@@ -362,14 +362,17 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   background: rgba(26, 21, 32, 0.95) !important;
+  position: relative;
   
   .world-map {
-    flex: 1;
-    position: relative;
-    background-size: cover !important;
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    margin: 20px;
     border: 2px solid var(--border-color);
     border-radius: 10px;
     
@@ -416,19 +419,29 @@ html, body, #root {
   }
   
   .location-info-panel {
-    padding: 20px;
-    background: rgba(42, 32, 48, 0.95) !important;
-    border-top: 2px solid var(--border-color);
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 24px 32px;
+    background: rgba(26, 21, 32, 0.98) !important;
+    border: 2px solid var(--highlight);
+    border-radius: 12px;
     text-align: center;
+    min-width: 300px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
     
     h3 {
       margin: 0 0 8px 0;
       color: var(--highlight);
+      font-size: 24px;
     }
     
     p {
       color: var(--text-secondary);
-      margin: 0 0 16px 0;
+      margin: 0 0 20px 0;
+      font-size: 14px;
     }
     
     .explore-button {

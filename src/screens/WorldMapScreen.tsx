@@ -21,12 +21,15 @@ interface MapLocation {
 export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }) => {
     const [selectedLocation, setSelectedLocation] = useState<MapLocation | null>(null);
 
+    // Marker positions (x, y are percentages 0-100 of map image)
+    // Look at the map and adjust these to match the actual locations in the image
+    // Town = buildings cluster upper-center, Manor = center-right, Woods = left forest, etc.
     const locations: MapLocation[] = [
-        { id: 'Manor', name: 'The Manor', x: 50, y: 50, discovered: true, description: 'Your domain of power' },
-        { id: 'Town', name: 'Town', x: 30, y: 70, discovered: true, description: 'A bustling settlement' },
-        { id: 'Woods', name: 'The Woods', x: 70, y: 30, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
-        { id: 'Ruins', name: 'Ancient Ruins', x: 20, y: 20, discovered: stage().chatState.discoveredLocations.includes('Ruins'), description: 'Crumbling structures of old' },
-        { id: 'Circus', name: 'Circus', x: 80, y: 80, discovered: stage().chatState.discoveredLocations.includes('Circus'), description: 'A place of wonder and danger' },
+        { id: 'Manor', name: 'The Manor', x: 60, y: 40, discovered: true, description: 'Your domain of power' },
+        { id: 'Town', name: 'Town', x: 50, y: 30, discovered: true, description: 'A bustling settlement' },
+        { id: 'Woods', name: 'The Woods', x: 20, y: 50, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
+        { id: 'Ruins', name: 'Ancient Ruins', x: 40, y: 80, discovered: stage().chatState.discoveredLocations.includes('Ruins'), description: 'Crumbling structures of old' },
+        { id: 'Circus', name: 'Circus', x: 80, y: 50, discovered: stage().chatState.discoveredLocations.includes('Circus'), description: 'A place of wonder and danger' },
     ];
 
     const handleLocationClick = (location: MapLocation) => {
