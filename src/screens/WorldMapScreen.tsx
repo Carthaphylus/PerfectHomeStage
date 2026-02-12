@@ -25,11 +25,11 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
     // Look at the map and adjust these to match the actual locations in the image
     // Town = buildings cluster upper-center, Manor = center-right, Woods = left forest, etc.
     const locations: MapLocation[] = [
-        { id: 'Manor', name: 'The Manor', x: 60, y: 40, discovered: true, description: 'Your domain of power' },
-        { id: 'Town', name: 'Town', x: 50, y: 30, discovered: true, description: 'A bustling settlement' },
-        { id: 'Woods', name: 'The Woods', x: 20, y: 50, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
-        { id: 'Ruins', name: 'Ancient Ruins', x: 40, y: 80, discovered: stage().chatState.discoveredLocations.includes('Ruins'), description: 'Crumbling structures of old' },
-        { id: 'Circus', name: 'Circus', x: 80, y: 50, discovered: stage().chatState.discoveredLocations.includes('Circus'), description: 'A place of wonder and danger' },
+        { id: 'Manor', name: 'The Manor', x: 73, y: 45, discovered: true, description: 'Your domain of power' },
+        { id: 'Town', name: 'Town', x: 52, y: 40, discovered: true, description: 'A bustling settlement' },
+        { id: 'Woods', name: 'The Woods', x: 28.5, y: 67.5, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
+        { id: 'Ruins', name: 'Ancient Ruins', x: 44, y: 75, discovered: stage().chatState.discoveredLocations.includes('Ruins'), description: 'Crumbling structures of old' },
+        { id: 'Circus', name: 'Circus', x: 79, y: 90, discovered: stage().chatState.discoveredLocations.includes('Circus'), description: 'A place of wonder and danger' },
     ];
 
     const handleLocationClick = (location: MapLocation) => {
