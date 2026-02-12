@@ -12,7 +12,7 @@ visibility: 'PUBLIC'
 # 'ADJACENT' | 'NONE' | 'COVER' | 'FULLSCREEN'
 # COVER overlays the chat history but leaves the input box
 # FULLSCREEN covers everything except the header
-position: 'COVER'
+position: 'FULLSCREEN'
 
 # Tags for discovery
 tags:
