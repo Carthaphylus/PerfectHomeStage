@@ -1,77 +1,122 @@
-# All of these fields are optional, as is this file itself,
-#   in which case these values can be managed in the UI.
+# Perfect Home Game Stage Configuration
 
 # The name of the stage.
-# project_name: "Stage Template"
+project_name: "Perfect Home - Game Tracker"
 
 # A short tagline to show in search.
-# tagline: "A base template for all stages."
+tagline: "Track your witch's stats, heroes, servants, and manor in the Perfect Home game"
 
 # 'PUBLIC', 'PRIVATE', or 'UNLISTED'.
-# visibility: 'PUBLIC'
+visibility: 'PUBLIC'
 
 # 'ADJACENT' | 'NONE' | 'COVER' | 'FULLSCREEN'
-# 'ADJACENT' is default. The frame will display on the side of the
-#   chat on desktop and above/in the top half of the chat on mobile.
-# 'NONE' will not display, only run.
-# 'COVER' will, indeed, cover the chat history completely,
-#   but leave the text input box.
-# 'FULLSCREEN' will make nothing below the header bar
-#   show except for your stage.
-# position: 'ADJACENT'
+# COVER overlays the chat history but leaves the input box
+# FULLSCREEN covers everything except the header
+position: 'COVER'
 
-# Self-explanatory.
-# tags:
-#  - 'Stage'
-#  - 'Admin'
-#  - 'Template'
-#  - 'Base'
+# Tags for discovery
+tags:
+  - 'Game'
+  - 'RPG'
+  - 'Stats'
+  - 'Tracker'
+  - 'Perfect Home'
+  - 'Hypnosis'
 
 # The schema of any user-supplied config.
-# If your stage requires a configuration but has no
-#   defined schema, it won't work.
 config_schema:
   type: object
+  title: "Perfect Home Display Settings"
+  description: "Configure what information to display"
   properties:
-    health:
-      type: integer
-      default: 100
+    theme:
+      title: "Theme"
+      description: "Visual theme for the stage"
+      type: string
+      enum: ['dark', 'light', 'purple']
+      default: 'dark'
+    showStats:
+      title: "Show Witch Stats"
+      description: "Display health, mana, corruption, and other witch statistics"
+      type: boolean
+      default: true
+    showHeroes:
+      title: "Show Heroes"
+      description: "Display encountered and captured heroes"
+      type: boolean
+      default: true
+    showServants:
+      title: "Show Servants"
+      description: "Display converted servants"
+      type: boolean
+      default: true
+    showManor:
+      title: "Show Manor Upgrades"
+      description: "Display manor upgrades and improvements"
+      type: boolean
+      default: true
+    showInventory:
+      title: "Show Inventory"
+      description: "Display collected items"
+      type: boolean
+      default: true
+    showDungeon:
+      title: "Show Dungeon Progress"
+      description: "Display dungeon exploration progress"
+      type: boolean
+      default: true
+    compactMode:
+      title: "Compact Mode"
+      description: "Use a more condensed display layout"
+      type: boolean
+      default: false
 
 # The schema of the state that you store.
-# This isn't needed even if you do store state,
-#   and is here more for future use cases to
-#   optimize storage.
 state_schema:
   init:
     type: object
     properties:
-      grid:
+      startDate:
+        type: string
+      gameVersion:
         type: string
   message:
     type: object
     properties:
-      angry:
-        type: boolean
-        default: true
+      stats:
+        type: object
+      location:
+        type: string
+      heroes:
+        type: object
+      servants:
+        type: object
+      inventory:
+        type: object
+      manorUpgrades:
+        type: object
+      dungeonProgress:
+        type: object
   chat:
     type: object
     properties:
-      visited:
+      discoveredLocations:
         type: array
         items:
-          type: integer
+          type: string
+      totalHeroesCaptured:
+        type: integer
+      totalServantsConverted:
+        type: integer
+      achievements:
+        type: array
+        items:
+          type: string
 
 # Whether to publish as 'Anonymous' instead of under your username.
-# is_anonymous: false
+is_anonymous: false
 
 # Self-explanatory.
-# ratings_disabled: false
+ratings_disabled: false
 
-# This is here for future cases where ex. you need user secrets,
-#    but currently does nothing.
-# permissions:
-
-# extension_id is automatically generated on push with a new project;
-#    you should not make or set this value.
-# github_path will be added if it does not exist. It is the URL of the repo.
 

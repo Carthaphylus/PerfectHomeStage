@@ -37,50 +37,124 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
      This is the main thing you'll want to modify.
      ***/
     async function runTests() {
-        /*
-        await stage.setState({someKey: 'A new value, even!'});
-        refresh();
-
-        const beforePromptResponse: Partial<StageResponse<ChatStateType, MessageStateType>> = await stage.beforePrompt({
-            ...DEFAULT_MESSAGE, ...{
-                anonymizedId: "0",
-                content: "Hello, this is what happens when a human sends a message, but before it's sent to the model.",
-                isBot: false
-            }
+        // Test 1: Set initial game state with some progress
+        await stage.setState({
+            stats: {
+                health: 85,
+                maxHealth: 100,
+                mana: 30,
+                maxMana: 50,
+                corruption: 45,
+                influence: 35,
+                money: 250,
+                level: 3,
+            },
+            location: 'Woods',
+            heroes: {
+                'Locke': {
+                    name: 'Locke',
+                    status: 'converting',
+                    conversionProgress: 65,
+                    location: 'Manor - Dungeon',
+                },
+                'Felicity': {
+                    name: 'Felicity',
+                    status: 'captured',
+                    conversionProgress: 20,
+                    location: 'Manor - Holding Cell',
+                },
+                'Rogue': {
+                    name: 'Rogue',
+                    status: 'encountered',
+                    conversionProgress: 0,
+                    location: 'Town',
+                },
+            },
+            servants: {
+                'Citrine': {
+                    name: 'Citrine',
+                    formerClass: 'Witch',
+                    loyalty: 100,
+                    assignedTask: 'Brewing potions',
+                },
+                'Barbarian': {
+                    name: 'Barbarian',
+                    formerClass: 'Barbarian',
+                    loyalty: 85,
+                    assignedTask: 'Guard duty',
+                },
+            },
+            inventory: {
+                'Hypnotic Pendant': {
+                    name: 'Hypnotic Pendant',
+                    quantity: 1,
+                    type: 'Equipment',
+                },
+                'Mana Potion': {
+                    name: 'Mana Potion',
+                    quantity: 5,
+                    type: 'Consumable',
+                },
+                'Gold Coin': {
+                    name: 'Gold Coin',
+                    quantity: 250,
+                    type: 'Currency',
+                },
+            },
+            manorUpgrades: {
+                'Bedroom': {
+                    name: 'Bedroom',
+                    level: 2,
+                    description: 'Your personal quarters',
+                },
+                'Kitchen': {
+                    name: 'Kitchen',
+                    level: 1,
+                    description: 'For preparing meals',
+                },
+                'Dungeon': {
+                    name: 'Dungeon',
+                    level: 3,
+                    description: 'Where you keep your captives',
+                },
+            },
+            dungeonProgress: {
+                currentFloor: 5,
+                maxFloor: 10,
+                lastBoss: 'Shadow Serpent',
+            },
         });
-        console.assert(beforePromptResponse.error == null);
-        refresh();
-        */
-        /***
-         "What is all of this nonsense with 'DEFAULT_MESSAGE'?" you may well ask.
-         The purpose of this is to future-proof your test runner.
-         The stage interface is designed to be forwards-compatible,
-            so that a stage with a certain library version will continue to work
-            even if new fields are added to any of the call/response objects.
-         But when new fields are added to the input objects, the code calling an
-            stage needs to be updated. Using DEFAULT_MESSAGE,
-            DEFAULT_INITIAL, DEFAULT_CHARACTER, DEFAULT_USER,
-            DEFAULT_LOAD_RESPONSE, and DEFAULT_RESPONSE
-            where relevant in your tests prevents a version bump
-            from breaking your test runner in many cases.
-         ***/
-        /*
-        const afterPromptResponse: Partial<StageResponse<ChatStateType, MessageStateType>> = await stage.afterResponse({
-            ...DEFAULT_MESSAGE, ...{
-            promptForId: null,
-            anonymizedId: "2",
-            content: "Why yes hello, and this is what happens when a bot sends a response.",
-            isBot: true}});
-        console.assert(afterPromptResponse.error == null);
         refresh();
 
-        const afterDelayedThing: Partial<StageResponse<ChatStateType, MessageStateType>> = await delayedTest(() => stage.beforePrompt({
-            ...DEFAULT_MESSAGE, ...{
-            anonymizedId: "0", content: "Hello, and now the human is prompting again.", isBot: false, promptForId: null
-        }}), 5);
-        console.assert(afterDelayedThing.error == null);
-        refresh();
-        */
+        console.info("Test state loaded with sample Perfect Home data");
+
+        // Test 2: Simulate a user message after 2 seconds
+        await delayedTest(async () => {
+            const beforePromptResponse = await stage.beforePrompt({
+                anonymizedId: "0",
+                content: "I explore the woods looking for more heroes to capture.",
+                isBot: false,
+                promptForId: null,
+                identity: "user_0",
+                isMain: true,
+            });
+            console.info("Before prompt response:", beforePromptResponse);
+            refresh();
+        }, 2);
+
+        // Test 3: Simulate a bot response after 4 seconds
+        await delayedTest(async () => {
+            const afterPromptResponse = await stage.afterResponse({
+                promptForId: null,
+                anonymizedId: "2",
+                content: "As you wander through the misty woods, you spot Cleric praying near an old shrine. Your corruption rises to 50% as you prepare your hypnotic spell. Your mana drops to 25.",
+                isBot: true,
+                identity: "witch_bot",
+                isMain: true,
+            });
+            console.info("After response processed:", afterPromptResponse);
+            refresh();
+        }, 4);
     }
 
     useEffect(() => {
