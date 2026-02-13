@@ -294,32 +294,6 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                             </div>
                         ))}
                     </div>
-                    
-                    <div className="info-divider"></div>
-                    
-                    <div className="floor-quick-nav">
-                        <div className="quick-nav-label">Quick Floor Switch</div>
-                        <div className="quick-nav-buttons">
-                            <button 
-                                className={`quick-nav-btn ${currentFloor === 'basement' ? 'active' : ''}`}
-                                onClick={() => setCurrentFloor('basement')}
-                            >
-                                B
-                            </button>
-                            <button 
-                                className={`quick-nav-btn ${currentFloor === '1st' ? 'active' : ''}`}
-                                onClick={() => setCurrentFloor('1st')}
-                            >
-                                1F
-                            </button>
-                            <button 
-                                className={`quick-nav-btn ${currentFloor === '2nd' ? 'active' : ''}`}
-                                onClick={() => setCurrentFloor('2nd')}
-                            >
-                                2F
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Center - Manor Blueprint with positioned rooms */}
