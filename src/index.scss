@@ -21,25 +21,32 @@
 // so that the chat page can be seen through the stage
 * {
   background-color: transparent !important;
-  overflow: hidden !important;
 }
 
-html, body, #root {
+html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
+  overflow: auto !important;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden !important;
 }
 
 // Base screen styles
 .base-screen {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 1920px;
+  height: 1080px;
+  min-width: 1920px;
+  min-height: 1080px;
+  max-width: 1920px;
+  max-height: 1080px;
+  position: relative;
+  overflow: hidden !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: var(--text-primary);
 }
@@ -87,8 +94,8 @@ html, body, #root {
 
 // Menu Screen
 .menu-screen {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,8 +160,8 @@ html, body, #root {
 
 // Manor Screen
 .manor-screen {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   flex-direction: column;
   background: rgba(26, 21, 32, 0.95) !important;
@@ -807,8 +814,8 @@ html, body, #root {
 
 // World Map Screen
 .world-map-screen {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   flex-direction: column;
   background: rgba(26, 21, 32, 0.95) !important;
@@ -916,8 +923,8 @@ html, body, #root {
 
 // Skit Screen (RPG-style)
 .skit-screen {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   position: relative;
   
   .skit-background {
@@ -1004,8 +1011,8 @@ html, body, #root {
 
 // Heroes Screen
 .heroes-screen {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   flex-direction: column;
   background: rgba(26, 21, 32, 0.95) !important;
@@ -1122,8 +1129,8 @@ html, body, #root {
 
 // Perfect Home Stage Styling
 .perfect-home-stage {
-  width: 100%;
-  height: 100%;
+  width: 1920px;
+  height: 1080px;
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
