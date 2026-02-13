@@ -2,7 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 import { Location } from '../Stage';
-import MapImage from '../assets/Images/Map.webp';
+import MapImage from '../assets/Images/Skits/Map.webp';
 
 interface WorldMapScreenProps {
     stage: () => Stage;
