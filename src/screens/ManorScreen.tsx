@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 
@@ -65,6 +65,49 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     const [currentFloor, setCurrentFloor] = useState<FloorType>('1st');
     const [emptyRoomIds, setEmptyRoomIds] = useState<Set<string>>(new Set());
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({});
+    const blueprintContainerRef = useRef<HTMLDivElement>(null);
+
+    // Measure where the <img> actually renders inside the container
+    // and position the rooms-overlay to match exactly
+    const updateOverlayBounds = useCallback(() => {
+        const container = blueprintContainerRef.current;
+        if (!container) return;
+        const img = container.querySelector('.blueprint-img') as HTMLImageElement;
+        if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        const containerAspect = containerRect.width / containerRect.height;
+
+        let renderW: number, renderH: number;
+        if (containerAspect > imgAspect) {
+            // Container is wider than image — image height-limited
+            renderH = containerRect.height;
+            renderW = renderH * imgAspect;
+        } else {
+            // Container is taller than image — image width-limited
+            renderW = containerRect.width;
+            renderH = renderW / imgAspect;
+        }
+
+        const offsetX = (containerRect.width - renderW) / 2;
+        const offsetY = (containerRect.height - renderH) / 2;
+
+        setOverlayStyle({
+            position: 'absolute',
+            left: `${offsetX}px`,
+            top: `${offsetY}px`,
+            width: `${renderW}px`,
+            height: `${renderH}px`,
+        });
+    }, []);
+
+    useEffect(() => {
+        updateOverlayBounds();
+        window.addEventListener('resize', updateOverlayBounds);
+        return () => window.removeEventListener('resize', updateOverlayBounds);
+    }, [updateOverlayBounds, currentFloor]);
 
     // Room positions on each floor blueprint
     // Adjust x, y, width, height (all percentages 0-100) to position rooms on the blueprint
@@ -297,10 +340,15 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                 </div>
 
                 {/* Center - Manor Blueprint with positioned rooms */}
-                <div 
-                    className="manor-blueprint"
-                    style={{ backgroundImage: `url(${FLOOR_IMAGES[currentFloor]})` }}
-                >
+                <div className="manor-blueprint" ref={blueprintContainerRef}>
+                    <img 
+                        src={FLOOR_IMAGES[currentFloor]} 
+                        alt={`${currentFloor} floor`}
+                        className="blueprint-img"
+                        draggable={false}
+                        onLoad={updateOverlayBounds}
+                    />
+                    <div className="rooms-overlay" style={overlayStyle}>
                     {currentFloorRooms.map((room) => (
                         <div
                             key={room.id}
@@ -340,9 +388,8 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                             )}
                         </div>
                     ))}
+                    </div>
                 </div>
-
-                {/* Right Side - Room Detail Panel */}
                 <div className={`room-detail-panel ${selectedRoom ? 'visible' : ''}`}>
                     {selectedRoom ? (
                         <>
