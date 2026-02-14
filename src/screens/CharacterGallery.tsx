@@ -1,9 +1,11 @@
 import React, { FC, useState } from 'react';
+import { AspectRatio } from '@chub-ai/stages-ts';
 import {
     Stage,
     GalleryImageType,
     GalleryImage,
     GALLERY_SLOTS,
+    CHARACTER_DATA,
 } from '../Stage';
 
 interface CharacterGalleryProps {
@@ -14,32 +16,34 @@ interface CharacterGalleryProps {
     onClose: () => void;
 }
 
-// Prompt templates for each hypnosis / outfit type
-const GENERATION_PROMPTS: Record<GalleryImageType, { prompt: string; negPrompt: string; strength: number }> = {
-    no_background: {
-        prompt: '',
-        negPrompt: '',
-        strength: 0,
-    },
+// Base appearance descriptions per character (for text-to-image)
+const CHARACTER_APPEARANCE: Record<string, string> = {
+    Citrine: 'anthro gray cat male, silvery fur, short messy blonde hair, piercing violet eyes, wearing brown coat over white shirt with black tie, khaki shorts, witch aesthetic, anime style',
+    Felicity: 'anthro pink cat female, pink fur, long pink hair, bright cheerful eyes, maid outfit, dainty, bubbly expression, anime style',
+    Locke: 'anthro gray fox male, gray fur, steely blue eyes, impeccable posture, butler uniform, stoic expression, anime style',
+    Sable: 'anthro tabby cat male, amber-streaked brown fur, amber eyes, cocky grin, thief outfit, leather gear, agile build, anime style',
+    Veridian: 'anthro deer female, soft brown fur with pale spots, gentle doe, cleric robes, white and green outfit, kind eyes, anime style',
+    Kova: 'anthro wolf female, gray fur, battle scars on muzzle, fierce expression, barbarian armor, muscular build, anime style',
+    Pervis: 'anthro rabbit male, sleek white fur, sapphire blue eyes, composed expression, leader uniform, strategic demeanor, anime style',
+};
+
+// Effect modifiers for each generation type
+const EFFECT_MODIFIERS: Record<Exclude<GalleryImageType, 'no_background'>, { suffix: string; negPrompt: string }> = {
     hypno_citrine: {
-        prompt: 'golden glowing eyes, drooling, happy trance, hypnotized, blank happy smile, glowing golden irises, spiral eyes, mind controlled, dazed expression',
-        negPrompt: 'normal eyes, alert, angry, sad, closed eyes',
-        strength: 0.45,
+        suffix: ', golden glowing eyes, drooling, happy trance, hypnotized, blank happy smile, glowing golden irises, mind controlled, dazed blissful expression, swirly eyes',
+        negPrompt: 'normal eyes, alert, angry, sad',
     },
     hypno_julian: {
-        prompt: 'blue glowing eyes, blank empty trance, hypnotized, emotionless, glowing blue irises, empty stare, mind controlled, vacant expression, dull',
-        negPrompt: 'normal eyes, happy, smiling, alert, angry',
-        strength: 0.45,
+        suffix: ', blue glowing eyes, blank empty trance, hypnotized, emotionless, glowing blue irises, empty stare, mind controlled, vacant expression, dull lifeless gaze',
+        negPrompt: 'normal eyes, happy, smiling, alert',
     },
     hypno_flores: {
-        prompt: 'purple glowing eyes, drooling, drained, blushing, horny, hypnotized, glowing purple irises, flushed cheeks, heavy breathing, mind controlled, dazed aroused expression',
-        negPrompt: 'normal eyes, alert, angry, calm, composed',
-        strength: 0.45,
+        suffix: ', purple glowing eyes, drooling, drained, blushing, hypnotized, glowing purple irises, flushed cheeks, heavy breathing, mind controlled, dazed aroused expression',
+        negPrompt: 'normal eyes, alert, calm, composed',
     },
     outfit_lingerie: {
-        prompt: 'wearing lingerie, lace underwear, bra and panties, seductive pose, bedroom setting, intimate clothing',
-        negPrompt: 'fully clothed, armor, casual clothes, nude, naked',
-        strength: 0.55,
+        suffix: ', wearing lace lingerie, bra and panties, seductive pose, bedroom setting, intimate clothing, alluring',
+        negPrompt: 'fully clothed, armor, casual clothes, nude',
     },
 };
 
@@ -95,26 +99,18 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({ stage, characterNa
                 const result = await stage().generator.removeBackground({ image: avatarUrl });
                 resultUrl = result?.url || null;
             } else {
-                // Use imageToImage for expression/outfit changes
-                const config = GENERATION_PROMPTS[type];
-                const result = await stage().generator.imageToImage({
-                    image: avatarUrl,
-                    prompt: config.prompt,
-                    strength: config.strength,
+                // Use text-to-image with character appearance + effect modifiers
+                const baseAppearance = CHARACTER_APPEARANCE[characterName] || `anthro ${characterName}, anime style`;
+                const modifier = EFFECT_MODIFIERS[type as Exclude<GalleryImageType, 'no_background'>];
+                const fullPrompt = baseAppearance + modifier.suffix + ', portrait, high quality, detailed';
+
+                const result = await stage().generator.makeImage({
+                    prompt: fullPrompt,
+                    negative_prompt: modifier.negPrompt + ', low quality, blurry, deformed',
+                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+                    remove_background: type.startsWith('hypno_'),
                 });
                 resultUrl = result?.url || null;
-
-                // If hypnosis type, also remove the background from the result
-                if (resultUrl && type.startsWith('hypno_')) {
-                    try {
-                        const bgResult = await stage().generator.removeBackground({ image: resultUrl });
-                        if (bgResult?.url) {
-                            resultUrl = bgResult.url;
-                        }
-                    } catch (_) {
-                        // Keep the original result if BG removal fails
-                    }
-                }
             }
 
             if (resultUrl) {
