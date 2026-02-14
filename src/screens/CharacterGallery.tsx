@@ -1,5 +1,4 @@
 import React, { FC, useState } from 'react';
-import { AspectRatio } from '@chub-ai/stages-ts';
 import {
     Stage,
     GalleryImageType,
@@ -98,19 +97,24 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({ stage, characterNa
             } else {
                 // Use imageToImage for expression/outfit changes
                 const config = GENERATION_PROMPTS[type];
-                const request: Record<string, any> = {
+                const result = await stage().generator.imageToImage({
                     image: avatarUrl,
                     prompt: config.prompt,
-                    negative_prompt: config.negPrompt,
                     strength: config.strength,
-                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
-                    item_id: itemId,
-                };
-                if (type.startsWith('hypno_')) {
-                    request.remove_background = true;
-                }
-                const result = await stage().generator.imageToImage(request);
+                });
                 resultUrl = result?.url || null;
+
+                // If hypnosis type, also remove the background from the result
+                if (resultUrl && type.startsWith('hypno_')) {
+                    try {
+                        const bgResult = await stage().generator.removeBackground({ image: resultUrl });
+                        if (bgResult?.url) {
+                            resultUrl = bgResult.url;
+                        }
+                    } catch (_) {
+                        // Keep the original result if BG removal fails
+                    }
+                }
             }
 
             if (resultUrl) {
