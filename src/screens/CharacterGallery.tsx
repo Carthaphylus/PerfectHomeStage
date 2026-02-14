@@ -1,229 +1,239 @@
 import React, { FC, useState } from 'react';
-import {
-    Stage,
-    GalleryImageType,
-    GalleryImage,
-    GALLERY_SLOTS,
-} from '../Stage';
+import { Stage } from '../Stage';
+import { AspectRatio } from '@chub-ai/stages-ts';
+
+// Generation slot types
+export type GenerationSlotType =
+    | 'bg_removed'
+    | 'hypno_citrine'
+    | 'hypno_julian'
+    | 'hypno_flores'
+    | 'outfit_lingerie';
+
+interface GenerationSlot {
+    type: GenerationSlotType;
+    label: string;
+    description: string;
+    icon: string;
+}
+
+const GENERATION_SLOTS: GenerationSlot[] = [
+    {
+        type: 'bg_removed',
+        label: 'No Background',
+        description: 'Portrait with transparent background',
+        icon: '🖼️',
+    },
+    {
+        type: 'hypno_citrine',
+        label: 'Citrine\u2019s Trance',
+        description: 'Golden glowing eyes, drooling, happy trance',
+        icon: '✨',
+    },
+    {
+        type: 'hypno_julian',
+        label: 'Julian\u2019s Trance',
+        description: 'Blue glowing eyes, blank and empty trance',
+        icon: '💎',
+    },
+    {
+        type: 'hypno_flores',
+        label: 'Flores\u2019s Trance',
+        description: 'Purple glowing eyes, drooling, drained, blushing',
+        icon: '🌸',
+    },
+    {
+        type: 'outfit_lingerie',
+        label: 'Lingerie',
+        description: 'Character in lingerie outfit',
+        icon: '👙',
+    },
+];
+
+// Prompt builders for each generation type
+function buildPrompt(type: GenerationSlotType, charName: string, charSpecies: string): string {
+    const base = `${charName}, ${charSpecies}, anime style, high quality, detailed`;
+    switch (type) {
+        case 'hypno_citrine':
+            return `${base}, golden glowing eyes, spiral eyes, drooling, happy vacant smile, hypnotized trance, mesmerized, glowing golden light in eyes`;
+        case 'hypno_julian':
+            return `${base}, blue glowing eyes, blank empty expression, mindless trance, hypnotized, dull vacant stare, glowing blue light in eyes`;
+        case 'hypno_flores':
+            return `${base}, purple glowing eyes, drooling, drained expression, blushing heavily, hypnotized trance, glowing purple light in eyes`;
+        case 'outfit_lingerie':
+            return `${base}, wearing elegant lace lingerie, seductive pose, bedroom setting, soft lighting`;
+        default:
+            return base;
+    }
+}
+
+function buildNegativePrompt(type: GenerationSlotType): string {
+    const base = 'low quality, blurry, deformed, bad anatomy, extra limbs';
+    switch (type) {
+        case 'hypno_citrine':
+        case 'hypno_julian':
+        case 'hypno_flores':
+            return `${base}, normal eyes, closed eyes`;
+        default:
+            return base;
+    }
+}
 
 interface CharacterGalleryProps {
     stage: () => Stage;
-    characterName: string;
-    avatarUrl: string;
-    color: string;
+    charName: string;
+    charAvatar: string;
+    charSpecies: string;
+    charColor: string;
     onClose: () => void;
 }
 
-// Prompt templates for each hypnosis / outfit type
-const GENERATION_PROMPTS: Record<GalleryImageType, { prompt: string; negPrompt: string; strength: number }> = {
-    no_background: {
-        prompt: '',
-        negPrompt: '',
-        strength: 0,
-    },
-    hypno_citrine: {
-        prompt: 'golden glowing eyes, drooling, happy trance, hypnotized, blank happy smile, glowing golden irises, spiral eyes, mind controlled, dazed expression',
-        negPrompt: 'normal eyes, alert, angry, sad, closed eyes',
-        strength: 0.45,
-    },
-    hypno_julian: {
-        prompt: 'blue glowing eyes, blank empty trance, hypnotized, emotionless, glowing blue irises, empty stare, mind controlled, vacant expression, dull',
-        negPrompt: 'normal eyes, happy, smiling, alert, angry',
-        strength: 0.45,
-    },
-    hypno_flores: {
-        prompt: 'purple glowing eyes, drooling, drained, blushing, horny, hypnotized, glowing purple irises, flushed cheeks, heavy breathing, mind controlled, dazed aroused expression',
-        negPrompt: 'normal eyes, alert, angry, calm, composed',
-        strength: 0.45,
-    },
-    outfit_lingerie: {
-        prompt: 'wearing lingerie, lace underwear, bra and panties, seductive pose, bedroom setting, intimate clothing',
-        negPrompt: 'fully clothed, armor, casual clothes, nude, naked',
-        strength: 0.55,
-    },
-};
+// Storage key helper
+function galleryKey(charName: string, slotType: GenerationSlotType): string {
+    return `gallery_${charName}_${slotType}`;
+}
 
-// Helper to convert an image URL to a resized base64 data URL
-const MAX_IMG_DIM = 512;
-const urlToBase64 = (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            // Scale down to MAX_IMG_DIM on longest side
-            let w = img.naturalWidth;
-            let h = img.naturalHeight;
-            if (w > MAX_IMG_DIM || h > MAX_IMG_DIM) {
-                const scale = MAX_IMG_DIM / Math.max(w, h);
-                w = Math.round(w * scale);
-                h = Math.round(h * scale);
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) { reject(new Error('No canvas context')); return; }
-            ctx.drawImage(img, 0, 0, w, h);
-            // Use JPEG for smaller payload
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
-            canvas.remove();
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = url;
+export const CharacterGallery: FC<CharacterGalleryProps> = ({
+    stage,
+    charName,
+    charAvatar,
+    charSpecies,
+    charColor,
+    onClose,
+}) => {
+    // Track generated image URLs: type -> url
+    const [generatedImages, setGeneratedImages] = useState<Record<string, string>>(() => {
+        // Try to load from chatState
+        const saved = stage().chatState.generatedImages;
+        return saved?.[charName] || {};
     });
-};
+    const [loadingSlot, setLoadingSlot] = useState<GenerationSlotType | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
-export const CharacterGallery: FC<CharacterGalleryProps> = ({ stage, characterName, avatarUrl, color, onClose }) => {
-    // Get existing gallery images from chat state
-    const gallery = stage().chatState.characterGallery || {};
-    const charImages: GalleryImage[] = gallery[characterName] || [];
+    const saveImage = (slotType: GenerationSlotType, url: string) => {
+        // Update local state
+        const updated = { ...generatedImages, [slotType]: url };
+        setGeneratedImages(updated);
 
-    // Track generation status per slot
-    const [genStatus, setGenStatus] = useState<Record<GalleryImageType, 'idle' | 'loading' | 'done' | 'error'>>({
-        no_background: 'idle',
-        hypno_citrine: 'idle',
-        hypno_julian: 'idle',
-        hypno_flores: 'idle',
-        outfit_lingerie: 'idle',
-    });
-    const [genErrors, setGenErrors] = useState<Record<string, string>>({});
-    // Local URL cache for newly generated images (before state refresh)
-    const [localUrls, setLocalUrls] = useState<Record<string, string>>({});
-
-    const getImageForType = (type: GalleryImageType): string | null => {
-        // Check local cache first (just generated this session)
-        if (localUrls[type]) return localUrls[type];
-        // Check persisted gallery
-        const existing = charImages.find(img => img.type === type);
-        return existing?.url || null;
+        // Persist to chatState
+        const chatState = stage().chatState;
+        if (!chatState.generatedImages) {
+            chatState.generatedImages = {};
+        }
+        chatState.generatedImages[charName] = updated;
     };
 
-    const saveImageToGallery = (type: GalleryImageType, url: string) => {
-        const currentGallery = stage().chatState.characterGallery || {};
-        const currentCharImages = currentGallery[characterName] || [];
-
-        // Replace if exists, or add new
-        const filtered = currentCharImages.filter(img => img.type !== type);
-        filtered.push({ type, url, generatedAt: Date.now() });
-
-        stage().chatState.characterGallery = {
-            ...currentGallery,
-            [characterName]: filtered,
-        };
-    };
-
-    const handleGenerate = async (type: GalleryImageType) => {
-        setGenStatus(prev => ({ ...prev, [type]: 'loading' }));
-        setGenErrors(prev => ({ ...prev, [type]: '' }));
+    const handleGenerate = async (slot: GenerationSlot) => {
+        setLoadingSlot(slot.type);
+        setError(null);
 
         try {
-            let resultUrl: string | null = null;
-            const itemId = `gallery_${characterName}_${type}`;
+            const gen = stage().generator;
+            const itemId = galleryKey(charName, slot.type);
 
-            if (type === 'no_background') {
+            if (slot.type === 'bg_removed') {
                 // Use dedicated removeBackground API
-                const result = await stage().generator.removeBackground({ image: avatarUrl });
-                resultUrl = result?.url || null;
+                const result = await gen.removeBackground({ image: charAvatar });
+                if (result?.url) {
+                    saveImage(slot.type, result.url);
+                } else {
+                    setError('No result from background removal.');
+                }
             } else {
-                // Convert avatar URL to base64 for img2img
-                const base64Image = await urlToBase64(avatarUrl);
                 // Use imageToImage for expression/outfit changes
-                const config = GENERATION_PROMPTS[type];
-                const result = await stage().generator.imageToImage({
-                    image: base64Image,
-                    prompt: config.prompt,
-                    strength: config.strength,
-                });
-                resultUrl = result?.url || null;
+                const prompt = buildPrompt(slot.type, charName, charSpecies);
+                const negPrompt = buildNegativePrompt(slot.type);
 
-                // If hypnosis type, also remove the background from the result
-                if (resultUrl && type.startsWith('hypno_')) {
-                    try {
-                        const bgResult = await stage().generator.removeBackground({ image: resultUrl });
-                        if (bgResult?.url) {
-                            resultUrl = bgResult.url;
-                        }
-                    } catch (_) {
-                        // Keep the original result if BG removal fails
-                    }
+                const strength = slot.type.startsWith('outfit_') ? 0.65 : 0.55;
+
+                const result = await gen.imageToImage({
+                    image: charAvatar,
+                    prompt,
+                    negative_prompt: negPrompt,
+                    strength,
+                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+                    remove_background: true,
+                    item_id: itemId,
+                    seed: null,
+                });
+
+                if (result?.url) {
+                    saveImage(slot.type, result.url);
+                } else {
+                    setError('No result from image generation.');
                 }
             }
-
-            if (resultUrl) {
-                setLocalUrls(prev => ({ ...prev, [type]: resultUrl! }));
-                saveImageToGallery(type, resultUrl);
-                setGenStatus(prev => ({ ...prev, [type]: 'done' }));
-            } else {
-                setGenErrors(prev => ({ ...prev, [type]: 'No result returned.' }));
-                setGenStatus(prev => ({ ...prev, [type]: 'error' }));
-            }
         } catch (err: any) {
-            setGenErrors(prev => ({ ...prev, [type]: err?.message || 'Generation failed.' }));
-            setGenStatus(prev => ({ ...prev, [type]: 'error' }));
+            setError(err?.message || 'Generation failed.');
+        } finally {
+            setLoadingSlot(null);
         }
     };
 
     return (
-        <div className="char-gallery-overlay" style={{ '--char-color': color } as React.CSSProperties}>
+        <div className="char-gallery-overlay" style={{ '--char-color': charColor } as React.CSSProperties}>
+            {/* Expanded image viewer */}
+            {expandedImage && (
+                <div className="gallery-lightbox" onClick={() => setExpandedImage(null)}>
+                    <img src={expandedImage} alt="Expanded" />
+                    <div className="lightbox-close">✕</div>
+                </div>
+            )}
+
             <div className="char-gallery-panel">
                 <div className="gallery-header">
                     <button className="back-button" onClick={onClose}>&lt; Back</button>
-                    <h3>{characterName}&rsquo;s Gallery</h3>
+                    <h3>{charName}\u2019s Gallery</h3>
                     <div className="header-spacer"></div>
                 </div>
 
-                <div className="gallery-grid">
-                    {/* Original avatar slot */}
-                    <div className="gallery-slot">
-                        <div className="gallery-slot-label">Original</div>
-                        <div className="gallery-image-frame">
-                            <img src={avatarUrl} alt={`${characterName} original`} />
-                        </div>
-                        <div className="gallery-slot-desc">Base character portrait</div>
-                    </div>
+                {error && (
+                    <div className="gallery-error">{error}</div>
+                )}
 
-                    {/* Generation slots */}
-                    {GALLERY_SLOTS.map(slot => {
-                        const imageUrl = getImageForType(slot.type);
-                        const status = genStatus[slot.type];
-                        const error = genErrors[slot.type];
+                <div className="gallery-grid">
+                    {GENERATION_SLOTS.map((slot) => {
+                        const imageUrl = generatedImages[slot.type];
+                        const isLoading = loadingSlot === slot.type;
+                        const isAnyLoading = loadingSlot !== null;
 
                         return (
                             <div key={slot.type} className="gallery-slot">
-                                <div className="gallery-slot-label">
+                                <div className="gallery-slot-header">
                                     <span className="gallery-slot-icon">{slot.icon}</span>
-                                    {slot.label}
+                                    <span className="gallery-slot-label">{slot.label}</span>
                                 </div>
-                                <div className={`gallery-image-frame ${!imageUrl ? 'empty' : ''}`}>
-                                    {imageUrl ? (
-                                        <img src={imageUrl} alt={`${characterName} ${slot.label}`} />
-                                    ) : status === 'loading' ? (
-                                        <div className="gallery-placeholder loading">
+
+                                <div
+                                    className={`gallery-slot-image ${imageUrl ? 'has-image' : ''} ${isLoading ? 'loading' : ''}`}
+                                    onClick={() => imageUrl && setExpandedImage(imageUrl)}
+                                >
+                                    {isLoading && (
+                                        <div className="gallery-loading">
                                             <div className="gallery-spinner"></div>
                                             <span>Generating...</span>
                                         </div>
-                                    ) : status === 'error' ? (
-                                        <div className="gallery-placeholder error">
-                                            <span>{error || 'Error'}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="gallery-placeholder">
-                                            <span className="gallery-placeholder-icon">{slot.icon}</span>
-                                            <span>Not generated</span>
+                                    )}
+                                    {!isLoading && imageUrl && (
+                                        <img src={imageUrl} alt={slot.label} />
+                                    )}
+                                    {!isLoading && !imageUrl && (
+                                        <div className="gallery-empty">
+                                            <span className="gallery-empty-icon">{slot.icon}</span>
+                                            <span className="gallery-empty-text">Not Generated</span>
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="gallery-slot-desc">{slot.description}</div>
+
                                 <button
                                     className="gallery-gen-btn"
-                                    onClick={() => handleGenerate(slot.type)}
-                                    disabled={status === 'loading'}
+                                    onClick={() => handleGenerate(slot)}
+                                    disabled={isAnyLoading}
                                 >
-                                    {status === 'loading'
-                                        ? 'Generating...'
-                                        : imageUrl
-                                            ? 'Regenerate'
-                                            : 'Generate'}
+                                    {isLoading ? 'Generating...' : imageUrl ? 'Regenerate' : 'Generate'}
                                 </button>
                             </div>
                         );

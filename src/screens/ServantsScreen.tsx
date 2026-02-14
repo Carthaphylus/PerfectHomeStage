@@ -21,9 +21,10 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
             return (
                 <CharacterGallery
                     stage={stage}
-                    characterName={s.name}
-                    avatarUrl={s.avatar}
-                    color={s.color}
+                    charName={s.name}
+                    charAvatar={s.avatar}
+                    charSpecies={s.details['Species'] || 'character'}
+                    charColor={s.color}
                     onClose={() => setShowGallery(false)}
                 />
             );
@@ -36,9 +37,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         &lt; Back
                     </button>
                     <h2>{s.name}</h2>
-                    <button className="gallery-button" onClick={() => setShowGallery(true)}>
-                        🖼️ Gallery
-                    </button>
+                    <div className="header-spacer"></div>
                 </div>
                 <div className="char-profile-content">
                     <div className="char-card">
@@ -48,6 +47,9 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         <div className="char-info">
                             <h3 className="char-name">{s.name}</h3>
                             <span className="char-title">{s.formerClass}</span>
+                            <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
+                                🖼️ Gallery
+                            </button>
                         </div>
                     </div>
                     <div className="char-bio-panel">

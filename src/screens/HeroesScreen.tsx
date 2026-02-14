@@ -21,9 +21,10 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
             return (
                 <CharacterGallery
                     stage={stage}
-                    characterName={h.name}
-                    avatarUrl={h.avatar}
-                    color={h.color}
+                    charName={h.name}
+                    charAvatar={h.avatar}
+                    charSpecies={h.details['Species'] || 'character'}
+                    charColor={h.color}
                     onClose={() => setShowGallery(false)}
                 />
             );
@@ -36,9 +37,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                         &lt; Back
                     </button>
                     <h2>{h.name}</h2>
-                    <button className="gallery-button" onClick={() => setShowGallery(true)}>
-                        🖼️ Gallery
-                    </button>
+                    <div className="header-spacer"></div>
                 </div>
                 <div className="char-profile-content">
                     <div className="char-card">
@@ -49,6 +48,9 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                             <h3 className="char-name">{h.name}</h3>
                             <span className="char-title">{h.heroClass}</span>
                             <span className={`char-status-badge status-${h.status}`}>{h.status}</span>
+                            <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
+                                🖼️ Gallery
+                            </button>
                         </div>
                     </div>
                     <div className="char-bio-panel">

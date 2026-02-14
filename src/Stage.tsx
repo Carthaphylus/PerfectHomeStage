@@ -52,70 +52,6 @@ export interface PlayerCharacter {
     details: Record<string, string>;
 }
 
-// ==========================================
-// Character Gallery / Image Generation Types
-// ==========================================
-
-// Each generation slot type
-export type GalleryImageType =
-    | 'no_background'
-    | 'hypno_citrine'
-    | 'hypno_julian'
-    | 'hypno_flores'
-    | 'outfit_lingerie';
-
-// Metadata for each generation type
-export interface GallerySlotDef {
-    type: GalleryImageType;
-    label: string;
-    description: string;
-    icon: string;
-}
-
-// All available generation slots
-export const GALLERY_SLOTS: GallerySlotDef[] = [
-    {
-        type: 'no_background',
-        label: 'No Background',
-        description: 'Remove the background from the character portrait.',
-        icon: '🖼️',
-    },
-    {
-        type: 'hypno_citrine',
-        label: 'Citrine\u2019s Trance',
-        description: 'Golden glowing eyes, drooling, happy trance.',
-        icon: '✨',
-    },
-    {
-        type: 'hypno_julian',
-        label: 'Julian\u2019s Trance',
-        description: 'Blue glowing eyes, blank and empty trance.',
-        icon: '💎',
-    },
-    {
-        type: 'hypno_flores',
-        label: 'Flores\u2019 Trance',
-        description: 'Purple glowing eyes, drooling, drained, blushing.',
-        icon: '🌸',
-    },
-    {
-        type: 'outfit_lingerie',
-        label: 'Lingerie',
-        description: 'Character wearing lingerie.',
-        icon: '👙',
-    },
-];
-
-// A single generated image entry
-export interface GalleryImage {
-    type: GalleryImageType;
-    url: string;
-    generatedAt: number; // timestamp
-}
-
-// Per-character gallery: name -> array of generated images
-export type CharacterGallery = { [charName: string]: GalleryImage[] };
-
 // Chub.ai avatar URLs
 export const CHUB_AVATARS = {
     citrine: 'https://avatars.charhub.io/avatars/Sauron275/citrine-9731bb4e10d9/chara_card_v2.png',
@@ -308,8 +244,8 @@ type ChatStateType = {
     achievements: string[];
     // Manor save data - stores which room is built in which slot
     manorSlots?: SavedSlotData[];
-    // Character image gallery - persists generated images
-    characterGallery?: CharacterGallery;
+    // Generated images per character: { charName: { slotType: url } }
+    generatedImages?: Record<string, Record<string, string>>;
 };
 
 // Serializable manor slot data for saving/loading
