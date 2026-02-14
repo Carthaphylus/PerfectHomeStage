@@ -107,42 +107,39 @@ html, body, #root {
   .stat-item.bar-stat {
     gap: 5px;
 
-    .stat-fill-bar {
-      position: relative;
-      width: 70px;
-      height: 14px;
-      background: rgba(20, 14, 28, 0.8);
-      border: 1px solid rgba(100, 80, 120, 0.4);
-      border-radius: 2px;
-      overflow: hidden;
+    .stat-blocks {
+      display: flex;
+      gap: 3px;
+      align-items: center;
 
-      .stat-fill {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        border-radius: 1px;
-        transition: width 0.4s ease;
+      .stat-block {
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        border: 1px solid rgba(100, 80, 120, 0.3);
+        transition: background 0.3s ease, border-color 0.3s ease;
 
-        &.comfort-fill {
-          background: linear-gradient(90deg, #2a6a4a, #4adf8a, #8affc0);
-        }
-        &.obedience-fill {
-          background: linear-gradient(90deg, #4a2a6a, #8a4adf, #c08aff);
+        &.empty {
+          background: rgba(20, 14, 28, 0.8) !important;
         }
       }
 
-      .stat-fill-label {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8px;
+      .stat-blocks-value {
+        font-size: 9px;
         font-weight: 700;
-        color: #fff;
-        text-shadow: 0 0 3px rgba(0,0,0,0.8), 1px 1px 0 rgba(0,0,0,0.6);
-        z-index: 1;
+        color: var(--text-primary);
+        margin-left: 2px;
+        min-width: 12px;
+      }
+
+      &.comfort-blocks .stat-block.filled {
+        background: #3cc878 !important;
+        border-color: #5eeaa0;
+      }
+
+      &.obedience-blocks .stat-block.filled {
+        background: #7a3ad0 !important;
+        border-color: #a06aee;
       }
     }
   }
@@ -419,28 +416,38 @@ html, body, #root {
         &.bar-slot-stat {
           gap: 4px;
 
-          .slot-mini-bar {
-            display: inline-block;
-            position: relative;
-            width: 40px;
-            height: 8px;
-            background: rgba(20, 14, 28, 0.8);
-            border: 1px solid rgba(100, 80, 120, 0.3);
-            border-radius: 1px;
-            overflow: hidden;
+          .slot-mini-blocks {
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
             vertical-align: middle;
 
-            .slot-mini-fill {
-              display: block;
-              height: 100%;
+            .mini-block {
+              width: 5px;
+              height: 8px;
               border-radius: 1px;
+              border: 1px solid rgba(100, 80, 120, 0.3);
 
-              &.comfort-fill {
-                background: linear-gradient(90deg, #2a6a4a, #4adf8a, #8affc0);
+              &.empty {
+                background: rgba(20, 14, 28, 0.8) !important;
               }
-              &.obedience-fill {
-                background: linear-gradient(90deg, #4a2a6a, #8a4adf, #c08aff);
-              }
+            }
+
+            .mini-blocks-value {
+              font-size: 8px;
+              font-weight: 700;
+              color: var(--text-primary);
+              margin-left: 2px;
+            }
+
+            &.comfort-blocks .mini-block.filled {
+              background: #3cc878 !important;
+              border-color: #5eeaa0;
+            }
+
+            &.obedience-blocks .mini-block.filled {
+              background: #7a3ad0 !important;
+              border-color: #a06aee;
             }
           }
         }

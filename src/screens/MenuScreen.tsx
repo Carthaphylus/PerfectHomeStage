@@ -207,17 +207,21 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                                             <div className="slot-stats-row bars">
                                                 <span className="slot-stat bar-slot-stat">
                                                     <img src={ComfortIcon} alt="" className="slot-stat-icon" />
-                                                    <span className="slot-mini-bar">
-                                                        <span className="slot-mini-fill comfort-fill" style={{ width: `${Math.min(saveFile.stats.household.comfort * 10, 100)}%` }} />
+                                                    <span className="slot-mini-blocks comfort-blocks">
+                                                        {Array.from({ length: 10 }, (_, i) => (
+                                                            <span key={i} className={`mini-block ${i < saveFile.stats!.household.comfort ? 'filled' : 'empty'}`} />
+                                                        ))}
+                                                        <span className="mini-blocks-value">{saveFile.stats!.household.comfort}</span>
                                                     </span>
-                                                    {saveFile.stats.household.comfort}
                                                 </span>
                                                 <span className="slot-stat bar-slot-stat">
                                                     <img src={ObedienceIcon} alt="" className="slot-stat-icon" />
-                                                    <span className="slot-mini-bar">
-                                                        <span className="slot-mini-fill obedience-fill" style={{ width: `${Math.min(saveFile.stats.household.obedience * 10, 100)}%` }} />
+                                                    <span className="slot-mini-blocks obedience-blocks">
+                                                        {Array.from({ length: 10 }, (_, i) => (
+                                                            <span key={i} className={`mini-block ${i < saveFile.stats!.household.obedience ? 'filled' : 'empty'}`} />
+                                                        ))}
+                                                        <span className="mini-blocks-value">{saveFile.stats!.household.obedience}</span>
                                                     </span>
-                                                    {saveFile.stats.household.obedience}
                                                 </span>
                                             </div>
                                             <div className="slot-stats-row">

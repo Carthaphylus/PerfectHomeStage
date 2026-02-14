@@ -55,22 +55,20 @@ export const StatBar: FC<StatBarProps> = ({ stage }) => {
             <div className="stat-bar-group household">
                 <div className="stat-item bar-stat" title={`Comfort: ${s.household.comfort}`}>
                     <img src={ComfortIcon} alt="Comfort" className="stat-icon" />
-                    <div className="stat-fill-bar">
-                        <div 
-                            className="stat-fill comfort-fill" 
-                            style={{ width: `${Math.min(s.household.comfort * 10, 100)}%` }}
-                        />
-                        <span className="stat-fill-label">{s.household.comfort}</span>
+                    <div className="stat-blocks comfort-blocks">
+                        {Array.from({ length: 10 }, (_, i) => (
+                            <span key={i} className={`stat-block ${i < s.household.comfort ? 'filled' : 'empty'}`} />
+                        ))}
+                        <span className="stat-blocks-value">{s.household.comfort}</span>
                     </div>
                 </div>
                 <div className="stat-item bar-stat" title={`Obedience: ${s.household.obedience}`}>
                     <img src={ObedienceIcon} alt="Obedience" className="stat-icon" />
-                    <div className="stat-fill-bar">
-                        <div 
-                            className="stat-fill obedience-fill" 
-                            style={{ width: `${Math.min(s.household.obedience * 10, 100)}%` }}
-                        />
-                        <span className="stat-fill-label">{s.household.obedience}</span>
+                    <div className="stat-blocks obedience-blocks">
+                        {Array.from({ length: 10 }, (_, i) => (
+                            <span key={i} className={`stat-block ${i < s.household.obedience ? 'filled' : 'empty'}`} />
+                        ))}
+                        <span className="stat-blocks-value">{s.household.obedience}</span>
                     </div>
                 </div>
             </div>
