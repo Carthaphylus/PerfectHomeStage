@@ -152,8 +152,8 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     prompt,
                     negative_prompt: negPrompt,
                     strength,
-                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
-                    remove_background: true,
+                    aspect_ratio: AspectRatio.SQUARE,
+                    remove_background: false,
                     item_id: itemId,
                     seed: null,
                 });
