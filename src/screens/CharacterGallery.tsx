@@ -1,6 +1,5 @@
 import React, { FC, useState } from 'react';
 import { Stage } from '../Stage';
-import { AspectRatio } from '@chub-ai/stages-ts';
 
 // Generation slot types
 export type GenerationSlotType =
@@ -67,18 +66,6 @@ function buildPrompt(type: GenerationSlotType, charName: string, charSpecies: st
     }
 }
 
-function buildNegativePrompt(type: GenerationSlotType): string {
-    const base = 'low quality, blurry, deformed, bad anatomy, extra limbs';
-    switch (type) {
-        case 'hypno_citrine':
-        case 'hypno_julian':
-        case 'hypno_flores':
-            return `${base}, normal eyes, closed eyes`;
-        default:
-            return base;
-    }
-}
-
 interface CharacterGalleryProps {
     stage: () => Stage;
     charName: string;
@@ -86,11 +73,6 @@ interface CharacterGalleryProps {
     charSpecies: string;
     charColor: string;
     onClose: () => void;
-}
-
-// Storage key helper
-function galleryKey(charName: string, slotType: GenerationSlotType): string {
-    return `gallery_${charName}_${slotType}`;
 }
 
 export const CharacterGallery: FC<CharacterGalleryProps> = ({
@@ -130,7 +112,6 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
 
         try {
             const gen = stage().generator;
-            const itemId = galleryKey(charName, slot.type);
 
             if (slot.type === 'bg_removed') {
                 // Use dedicated removeBackground API
@@ -142,24 +123,27 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                 }
             } else {
                 // Use imageToImage for expression/outfit changes
+                // Following the pattern from Lord-Raven's working stage:
+                // - transfer_type: 'edit' is required
+                // - minimal payload (no aspect_ratio, seed, item_id, etc.)
+                // - remove_background done as separate step after img2img
                 const prompt = buildPrompt(slot.type, charName, charSpecies);
-                const negPrompt = buildNegativePrompt(slot.type);
-
-                const strength = slot.type.startsWith('outfit_') ? 0.65 : 0.55;
 
                 const result = await gen.imageToImage({
                     image: charAvatar,
                     prompt,
-                    negative_prompt: negPrompt,
-                    strength,
-                    aspect_ratio: AspectRatio.SQUARE,
-                    remove_background: false,
-                    item_id: itemId,
-                    seed: null,
-                });
+                    remove_background: true,
+                    transfer_type: 'edit',
+                } as any);
 
                 if (result?.url) {
-                    saveImage(slot.type, result.url);
+                    // Do a separate removeBackground call on the result
+                    try {
+                        const bgRemoved = await gen.removeBackground({ image: result.url });
+                        saveImage(slot.type, bgRemoved?.url || result.url);
+                    } catch {
+                        saveImage(slot.type, result.url);
+                    }
                 } else {
                     setError('No result from image generation.');
                 }
