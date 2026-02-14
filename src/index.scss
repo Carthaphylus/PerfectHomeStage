@@ -137,6 +137,208 @@ html, body, #root {
   100% { opacity: 0; }
 }
 
+// Save/Load Menu
+.save-menu {
+  background: rgba(26, 21, 32, 0.98) !important;
+  border: 2px solid rgba(138, 43, 226, 0.4);
+  border-radius: 14px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(138, 43, 226, 0.2);
+  
+  .save-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+    
+    h3 {
+      margin: 0;
+      color: var(--highlight);
+      font-size: 20px;
+    }
+    
+    .close-btn {
+      background: none !important;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      
+      &:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+  }
+  
+  .save-menu-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 20px;
+    margin-top: 12px;
+    
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      background: rgba(42, 32, 64, 0.3) !important;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:first-child {
+        border-radius: 6px 0 0 6px;
+      }
+      &:last-child {
+        border-radius: 0 6px 6px 0;
+      }
+      
+      &.active {
+        background: rgba(138, 43, 226, 0.35) !important;
+        color: var(--highlight);
+        border-color: var(--accent-primary);
+      }
+      
+      &:hover:not(.active) {
+        background: rgba(42, 32, 64, 0.6) !important;
+      }
+    }
+  }
+  
+  .save-slots {
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .save-slot {
+    border: 2px solid rgba(138, 43, 226, 0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.2s;
+    
+    &.occupied {
+      background: rgba(42, 32, 64, 0.4) !important;
+      border-color: rgba(138, 43, 226, 0.35);
+    }
+    
+    &.empty {
+      background: rgba(30, 25, 38, 0.4) !important;
+      border-style: dashed;
+    }
+    
+    .slot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      
+      .slot-number {
+        font-size: 15px;
+        font-weight: bold;
+        color: var(--text-primary);
+      }
+      
+      .slot-date {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      
+      .slot-empty-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+    }
+    
+    .slot-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      
+      .slot-name {
+        font-size: 14px;
+        color: var(--accent-primary);
+        font-weight: 600;
+      }
+      
+      .slot-rooms {
+        font-size: 12px;
+        color: var(--text-muted);
+        background: rgba(58, 48, 64, 0.5) !important;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+    }
+    
+    .slot-actions {
+      display: flex;
+      gap: 8px;
+      
+      .slot-btn {
+        padding: 7px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid;
+        
+        &.save {
+          flex: 1;
+          background: rgba(50, 120, 80, 0.4) !important;
+          color: #8fd8a8;
+          border-color: rgba(80, 180, 120, 0.4);
+          
+          &:hover {
+            background: rgba(50, 120, 80, 0.65) !important;
+            border-color: rgba(80, 180, 120, 0.7);
+          }
+        }
+        
+        &.load {
+          flex: 1;
+          background: rgba(50, 80, 140, 0.4) !important;
+          color: #8fb8e8;
+          border-color: rgba(80, 120, 200, 0.4);
+          
+          &:hover:not(:disabled) {
+            background: rgba(50, 80, 140, 0.65) !important;
+            border-color: rgba(80, 120, 200, 0.7);
+          }
+          
+          &:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+          }
+        }
+        
+        &.delete {
+          background: rgba(140, 40, 40, 0.3) !important;
+          color: #e88f8f;
+          border-color: rgba(200, 80, 80, 0.3);
+          padding: 7px 10px;
+          
+          &:hover {
+            background: rgba(140, 40, 40, 0.55) !important;
+            border-color: rgba(200, 80, 80, 0.6);
+          }
+        }
+      }
+    }
+  }
+}
+
 // Menu Screen
 .menu-screen {
   width: 100%;

@@ -120,6 +120,15 @@ export interface SavedSlotData {
     occupant?: string;
 }
 
+// A save file slot with metadata
+export interface SaveFileSlot {
+    name: string;
+    timestamp: number; // ms since epoch
+    data: SavedSlotData[];
+}
+
+export const MAX_SAVE_SLOTS = 3;
+
 /***
  Perfect Home Stage Implementation
  ***/
@@ -372,37 +381,65 @@ Corruption: ${stats.corruption}% | Influence: ${stats.influence}%
         this.chatState.manorSlots = slots;
     }
 
-    /** Explicitly save manor layout to localStorage as a save file */
-    saveManorToFile(slots: SavedSlotData[]): boolean {
+    /** Get all save file slots */
+    getSaveSlots(): (SaveFileSlot | null)[] {
+        const slots: (SaveFileSlot | null)[] = [];
+        for (let i = 0; i < MAX_SAVE_SLOTS; i++) {
+            try {
+                const key = `${this.storageKey}_slot_${i}`;
+                const stored = localStorage.getItem(key);
+                if (stored) {
+                    slots.push(JSON.parse(stored) as SaveFileSlot);
+                } else {
+                    slots.push(null);
+                }
+            } catch {
+                slots.push(null);
+            }
+        }
+        return slots;
+    }
+
+    /** Save manor data to a specific slot */
+    saveToSlot(slotIndex: number, name: string, data: SavedSlotData[]): boolean {
+        if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return false;
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(slots));
+            const key = `${this.storageKey}_slot_${slotIndex}`;
+            const saveFile: SaveFileSlot = {
+                name,
+                timestamp: Date.now(),
+                data,
+            };
+            localStorage.setItem(key, JSON.stringify(saveFile));
             return true;
         } catch (e) {
-            console.warn('Failed to save manor to localStorage:', e);
+            console.warn('Failed to save:', e);
             return false;
         }
     }
 
-    /** Explicitly load manor layout from localStorage save file */
-    loadManorFromFile(): SavedSlotData[] | null {
+    /** Load manor data from a specific slot */
+    loadFromSlot(slotIndex: number): SaveFileSlot | null {
+        if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return null;
         try {
-            const stored = localStorage.getItem(this.storageKey);
+            const key = `${this.storageKey}_slot_${slotIndex}`;
+            const stored = localStorage.getItem(key);
             if (stored) {
-                const parsed = JSON.parse(stored) as SavedSlotData[];
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
+                return JSON.parse(stored) as SaveFileSlot;
             }
         } catch (e) {
-            console.warn('Failed to load manor from localStorage:', e);
+            console.warn('Failed to load:', e);
         }
         return null;
     }
 
-    /** Check if a save file exists */
-    hasSaveFile(): boolean {
+    /** Delete a save slot */
+    deleteSlot(slotIndex: number): boolean {
+        if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return false;
         try {
-            return localStorage.getItem(this.storageKey) !== null;
+            const key = `${this.storageKey}_slot_${slotIndex}`;
+            localStorage.removeItem(key);
+            return true;
         } catch {
             return false;
         }
