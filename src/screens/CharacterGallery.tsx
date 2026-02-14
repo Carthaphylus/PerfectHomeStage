@@ -165,63 +165,93 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                 </div>
             )}
 
-            <div className="char-gallery-panel">
-                <div className="gallery-header">
-                    <button className="back-button" onClick={onClose}>&lt; Back</button>
-                    <h3>{charName}\u2019s Gallery</h3>
-                    <div className="header-spacer"></div>
+            <div className="gallery-book">
+                {/* Book spine / binding */}
+                <div className="book-spine"></div>
+
+                {/* Left page: Character portrait + info */}
+                <div className="book-page book-page-left">
+                    <div className="page-corner page-corner-tl"></div>
+                    <div className="page-corner page-corner-bl"></div>
+
+                    <button className="gallery-back-btn" onClick={onClose}>
+                        <span className="back-arrow">◀</span>
+                        <span className="back-label">Return</span>
+                    </button>
+
+                    <div className="book-portrait">
+                        <img src={charAvatar} alt={charName} />
+                    </div>
+
+                    <div className="book-title-area">
+                        <div className="book-ornament">~ ✦ ~</div>
+                        <h3 className="book-char-name">{charName}</h3>
+                        <div className="book-subtitle">{charSpecies}</div>
+                        <div className="book-ornament">~ ✦ ~</div>
+                    </div>
+
+                    {error && (
+                        <div className="gallery-error">{error}</div>
+                    )}
                 </div>
 
-                {error && (
-                    <div className="gallery-error">{error}</div>
-                )}
+                {/* Right page: Gallery grid */}
+                <div className="book-page book-page-right">
+                    <div className="page-corner page-corner-tr"></div>
+                    <div className="page-corner page-corner-br"></div>
 
-                <div className="gallery-grid">
-                    {GENERATION_SLOTS.map((slot) => {
-                        const imageUrl = generatedImages[slot.type];
-                        const isLoading = loadingSlot === slot.type;
-                        const isAnyLoading = loadingSlot !== null;
+                    <div className="page-title">
+                        <span className="page-title-ornament">⸾</span>
+                        Gallery
+                        <span className="page-title-ornament">⸾</span>
+                    </div>
 
-                        return (
-                            <div key={slot.type} className="gallery-slot">
-                                <div className="gallery-slot-header">
-                                    <span className="gallery-slot-icon">{slot.icon}</span>
-                                    <span className="gallery-slot-label">{slot.label}</span>
-                                </div>
+                    <div className="gallery-grid">
+                        {GENERATION_SLOTS.map((slot) => {
+                            const imageUrl = generatedImages[slot.type];
+                            const isLoading = loadingSlot === slot.type;
+                            const isAnyLoading = loadingSlot !== null;
 
-                                <div
-                                    className={`gallery-slot-image ${imageUrl ? 'has-image' : ''} ${isLoading ? 'loading' : ''}`}
-                                    onClick={() => imageUrl && setExpandedImage(imageUrl)}
-                                >
-                                    {isLoading && (
-                                        <div className="gallery-loading">
-                                            <div className="gallery-spinner"></div>
-                                            <span>Generating...</span>
+                            return (
+                                <div key={slot.type} className="gallery-slot">
+                                    <div className="gallery-slot-frame">
+                                        <div
+                                            className={`gallery-slot-image ${imageUrl ? 'has-image' : ''} ${isLoading ? 'loading' : ''}`}
+                                            onClick={() => imageUrl && setExpandedImage(imageUrl)}
+                                        >
+                                            {isLoading && (
+                                                <div className="gallery-loading">
+                                                    <div className="gallery-spinner"></div>
+                                                    <span>Generating...</span>
+                                                </div>
+                                            )}
+                                            {!isLoading && imageUrl && (
+                                                <img src={imageUrl} alt={slot.label} />
+                                            )}
+                                            {!isLoading && !imageUrl && (
+                                                <div className="gallery-empty">
+                                                    <span className="gallery-empty-icon">{slot.icon}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                    {!isLoading && imageUrl && (
-                                        <img src={imageUrl} alt={slot.label} />
-                                    )}
-                                    {!isLoading && !imageUrl && (
-                                        <div className="gallery-empty">
-                                            <span className="gallery-empty-icon">{slot.icon}</span>
-                                            <span className="gallery-empty-text">Not Generated</span>
-                                        </div>
-                                    )}
+                                    </div>
+
+                                    <div className="gallery-slot-label">
+                                        <span className="slot-icon">{slot.icon}</span>
+                                        {slot.label}
+                                    </div>
+
+                                    <button
+                                        className="gallery-gen-btn"
+                                        onClick={() => handleGenerate(slot)}
+                                        disabled={isAnyLoading}
+                                    >
+                                        {isLoading ? '✦ Conjuring...' : imageUrl ? '↻ Redo' : '✦ Conjure'}
+                                    </button>
                                 </div>
-
-                                <div className="gallery-slot-desc">{slot.description}</div>
-
-                                <button
-                                    className="gallery-gen-btn"
-                                    onClick={() => handleGenerate(slot)}
-                                    disabled={isAnyLoading}
-                                >
-                                    {isLoading ? 'Generating...' : imageUrl ? 'Regenerate' : 'Generate'}
-                                </button>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>
