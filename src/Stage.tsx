@@ -39,6 +39,9 @@ export interface PlayerCharacter {
     name: string;
     avatar: string;
     title: string;
+    description: string;
+    traits: string[];
+    details: Record<string, string>;
 }
 
 // Chub.ai avatar URLs
@@ -231,6 +234,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 name: 'Citrine',
                 avatar: CHUB_AVATARS.citrine,
                 title: 'The Witch of the Manor',
+                description: 'A cunning and enigmatic witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Though her methods are questionable, she seeks to restore the manor to its former grandeur — one thrall at a time.',
+                traits: ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'],
+                details: {
+                    'Race': 'Human (Witch)',
+                    'Age': 'Unknown',
+                    'Affinity': 'Mind Magic',
+                    'Alignment': 'Lawful Evil',
+                    'Goal': 'Restore the manor to glory',
+                },
             },
             heroes: {
                 'Sable': {
@@ -302,6 +314,18 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     async setState(state: MessageStateType): Promise<void> {
         if (state != null) {
             this.currentState = state;
+            // Backward compat: patch playerCharacter with new fields
+            if (this.currentState.playerCharacter && !this.currentState.playerCharacter.description) {
+                this.currentState.playerCharacter.description = 'A cunning and enigmatic witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Though her methods are questionable, she seeks to restore the manor to its former grandeur \u2014 one thrall at a time.';
+                this.currentState.playerCharacter.traits = ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'];
+                this.currentState.playerCharacter.details = {
+                    'Race': 'Human (Witch)',
+                    'Age': 'Unknown',
+                    'Affinity': 'Mind Magic',
+                    'Alignment': 'Lawful Evil',
+                    'Goal': 'Restore the manor to glory',
+                };
+            }
         }
     }
 

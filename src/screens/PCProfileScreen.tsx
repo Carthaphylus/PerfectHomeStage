@@ -9,7 +9,6 @@ interface PCProfileScreenProps {
 
 export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType }) => {
     const pc = stage().currentState.playerCharacter;
-    const stats = stage().currentState.stats;
 
     return (
         <div className="pc-profile-screen">
@@ -32,52 +31,28 @@ export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType
                     </div>
                 </div>
 
-                <div className="pc-stats-panel">
-                    <h4>Skills</h4>
-                    <div className="pc-stats-grid">
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Power</span>
-                            <span className="pc-stat-value">{stats.skills.power}</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Wisdom</span>
-                            <span className="pc-stat-value">{stats.skills.wisdom}</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Charm</span>
-                            <span className="pc-stat-value">{stats.skills.charm}</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Speed</span>
-                            <span className="pc-stat-value">{stats.skills.speed}</span>
-                        </div>
+                <div className="pc-bio-panel">
+                    <div className="pc-bio-section">
+                        <h4>About</h4>
+                        <p>{pc.description}</p>
                     </div>
 
-                    <h4>Household</h4>
-                    <div className="pc-stats-grid">
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Comfort</span>
-                            <span className="pc-stat-value">{stats.household.comfort}/10</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Obedience</span>
-                            <span className="pc-stat-value">{stats.household.obedience}/10</span>
-                        </div>
+                    <div className="pc-bio-section">
+                        <h4>Details</h4>
+                        {Object.entries(pc.details).map(([key, value]) => (
+                            <div key={key} className="pc-detail-row">
+                                <span className="pc-detail-label">{key}</span>
+                                <span className="pc-detail-value">{value}</span>
+                            </div>
+                        ))}
                     </div>
 
-                    <h4>Resources</h4>
-                    <div className="pc-stats-grid">
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Gold</span>
-                            <span className="pc-stat-value">{stats.gold}</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Servants</span>
-                            <span className="pc-stat-value">{stats.servants}/{stats.maxServants}</span>
-                        </div>
-                        <div className="pc-stat-item">
-                            <span className="pc-stat-label">Day</span>
-                            <span className="pc-stat-value">{stats.day}</span>
+                    <div className="pc-bio-section">
+                        <h4>Traits</h4>
+                        <div className="pc-trait-list">
+                            {pc.traits.map(t => (
+                                <span key={t} className="pc-trait">{t}</span>
+                            ))}
                         </div>
                     </div>
                 </div>

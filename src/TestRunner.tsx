@@ -60,6 +60,15 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 name: 'Citrine',
                 avatar: 'https://avatars.charhub.io/avatars/Sauron275/citrine-9731bb4e10d9/chara_card_v2.png',
                 title: 'The Witch of the Manor',
+                description: 'A cunning and enigmatic witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants.',
+                traits: ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'],
+                details: {
+                    'Race': 'Human (Witch)',
+                    'Age': 'Unknown',
+                    'Affinity': 'Mind Magic',
+                    'Alignment': 'Lawful Evil',
+                    'Goal': 'Restore the manor to glory',
+                },
             },
             heroes: {
                 'Sable': {
