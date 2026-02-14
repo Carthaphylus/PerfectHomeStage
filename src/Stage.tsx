@@ -381,6 +381,11 @@ Corruption: ${stats.corruption}% | Influence: ${stats.influence}%
         this.chatState.manorSlots = slots;
     }
 
+    /** Reset manor to defaults (new game) */
+    resetManor(): void {
+        this.chatState.manorSlots = undefined;
+    }
+
     /** Get all save file slots */
     getSaveSlots(): (SaveFileSlot | null)[] {
         const slots: (SaveFileSlot | null)[] = [];

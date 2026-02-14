@@ -1,7 +1,7 @@
 import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
-import type { SaveFileSlot } from '../Stage';
+
 
 // Room images
 import BrewingImg from '../assets/Images/Rooms/Brewing.webp';
@@ -439,10 +439,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
     // Slot state — initialized from chatState or defaults
     const [slotData, setSlotData] = useState<RoomSlot[]>(() => loadSlots());
-    const [showSaveMenu, setShowSaveMenu] = useState(false);
-    const [saveMenuMode, setSaveMenuMode] = useState<'save' | 'load'>('save');
-    const [saveSlots, setSaveSlots] = useState<(SaveFileSlot | null)[]>([]);
-    const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
 
     // Sync to chatState whenever slotData changes (so it persists on next message send)
     const isInitialMount = useRef(true);
@@ -460,62 +457,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         stage().syncManorSlots(toSave);
     }, [slotData]);
 
-    const flashMessage = (msg: string) => {
-        setSaveMessage(msg);
-        setTimeout(() => setSaveMessage(null), 2500);
-    };
 
-    const openSaveMenu = (mode: 'save' | 'load') => {
-        setSaveMenuMode(mode);
-        setSaveSlots(stage().getSaveSlots());
-        setShowSaveMenu(true);
-    };
-
-    const handleSaveToSlot = (slotIndex: number) => {
-        const toSave = slotData.map(s => ({
-            slotId: s.slotId,
-            roomType: s.roomType,
-            level: s.level || 1,
-            occupant: s.occupant,
-        }));
-        const builtCount = toSave.filter(s => s.roomType !== null).length;
-        const name = `Manor (${builtCount} rooms)`;
-        const ok = stage().saveToSlot(slotIndex, name, toSave);
-        if (ok) {
-            setSaveSlots(stage().getSaveSlots());
-            flashMessage(`💾 Saved to Slot ${slotIndex + 1}!`);
-        } else {
-            flashMessage('❌ Save failed');
-        }
-    };
-
-    const handleLoadFromSlot = (slotIndex: number) => {
-        const saveFile = stage().loadFromSlot(slotIndex);
-        if (!saveFile) {
-            flashMessage('❌ Empty slot');
-            return;
-        }
-        const defaults = getDefaultSlots();
-        const savedMap = new Map(saveFile.data.map(s => [s.slotId, s]));
-        const merged = defaults.map(slot => {
-            const savedSlot = savedMap.get(slot.slotId);
-            if (savedSlot) {
-                return { ...slot, roomType: savedSlot.roomType, level: savedSlot.level, occupant: savedSlot.occupant };
-            }
-            return slot;
-        });
-        setSlotData(merged);
-        setSelectedRoom(null);
-        setSelectedSlot(null);
-        setShowSaveMenu(false);
-        flashMessage(`📂 Loaded from Slot ${slotIndex + 1}!`);
-    };
-
-    const handleDeleteSlot = (slotIndex: number) => {
-        stage().deleteSlot(slotIndex);
-        setSaveSlots(stage().getSaveSlots());
-        flashMessage(`🗑️ Slot ${slotIndex + 1} deleted`);
-    };
 
     // Convert slots to SlotWithRoom (combines slot position with room instance)
     const getSlotsWithRooms = (): SlotWithRoom[] => {
@@ -581,12 +523,6 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                     ← Menu
                 </button>
                 <h2>Manor Management</h2>
-                
-                <div className="save-load-buttons">
-                    <button className="save-btn" onClick={() => openSaveMenu('save')}>💾 Save</button>
-                    <button className="load-btn" onClick={() => openSaveMenu('load')}>📂 Load</button>
-                    {saveMessage && <span className="save-message">{saveMessage}</span>}
-                </div>
                 
                 {/* Floor Navigation */}
                 <div className="floor-navigation">
@@ -853,86 +789,6 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                     )}
                 </div>
             </div>
-            
-            {/* Save/Load Menu */}
-            {showSaveMenu && (
-                <div className="confirmation-overlay" onClick={() => setShowSaveMenu(false)}>
-                    <div className="save-menu" onClick={(e) => e.stopPropagation()}>
-                        <div className="save-menu-header">
-                            <h3>{saveMenuMode === 'save' ? '💾 Save Manor' : '📂 Load Manor'}</h3>
-                            <button className="close-btn" onClick={() => setShowSaveMenu(false)}>✕</button>
-                        </div>
-                        
-                        <div className="save-menu-tabs">
-                            <button 
-                                className={`tab-btn ${saveMenuMode === 'save' ? 'active' : ''}`}
-                                onClick={() => setSaveMenuMode('save')}
-                            >
-                                💾 Save
-                            </button>
-                            <button 
-                                className={`tab-btn ${saveMenuMode === 'load' ? 'active' : ''}`}
-                                onClick={() => setSaveMenuMode('load')}
-                            >
-                                📂 Load
-                            </button>
-                        </div>
-
-                        <div className="save-slots">
-                            {saveSlots.map((saveFile, index) => (
-                                <div key={index} className={`save-slot ${saveFile ? 'occupied' : 'empty'}`}>
-                                    <div className="slot-header">
-                                        <span className="slot-number">Slot {index + 1}</span>
-                                        {saveFile ? (
-                                            <span className="slot-date">
-                                                {new Date(saveFile.timestamp).toLocaleString()}
-                                            </span>
-                                        ) : (
-                                            <span className="slot-empty-label">— Empty —</span>
-                                        )}
-                                    </div>
-                                    
-                                    {saveFile && (
-                                        <div className="slot-info">
-                                            <span className="slot-name">{saveFile.name}</span>
-                                            <span className="slot-rooms">
-                                                {saveFile.data.filter(s => s.roomType !== null).length} / {saveFile.data.length} rooms built
-                                            </span>
-                                        </div>
-                                    )}
-                                    
-                                    <div className="slot-actions">
-                                        {saveMenuMode === 'save' ? (
-                                            <button 
-                                                className="slot-btn save"
-                                                onClick={() => handleSaveToSlot(index)}
-                                            >
-                                                {saveFile ? 'Overwrite' : 'Save Here'}
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                className="slot-btn load"
-                                                onClick={() => handleLoadFromSlot(index)}
-                                                disabled={!saveFile}
-                                            >
-                                                Load
-                                            </button>
-                                        )}
-                                        {saveFile && (
-                                            <button 
-                                                className="slot-btn delete"
-                                                onClick={() => handleDeleteSlot(index)}
-                                            >
-                                                🗑️
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
             
             {/* Confirmation Dialog */}
             {showRemoveConfirm && selectedRoom && (
