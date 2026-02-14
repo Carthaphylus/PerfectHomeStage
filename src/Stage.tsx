@@ -67,10 +67,11 @@ export const CHUB_AVATARS = {
 export const CHARACTER_DATA: Record<string, { color: string; description: string; traits: string[]; details: Record<string, string> }> = {
     Citrine: {
         color: '#8a7abf',
-        description: 'A cunning and enigmatic gray cat witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Her silvery fur and piercing violet eyes belie a mind that is always three steps ahead. Though her methods are questionable, she seeks to restore the manor to its former grandeur \u2014 one thrall at a time.',
+        description: 'A cunning and enigmatic gray cat witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve his household, weaving subtle enchantments and honeyed words to convert them into loyal servants. His silvery fur and piercing violet eyes belie a mind that is always three steps ahead. Though his methods are questionable, he seeks to restore the manor to its former grandeur — one thrall at a time.',
         traits: ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'],
         details: {
             'Species': 'Gray Cat',
+            'Gender': 'Male ♂',
             'Class': 'Witch',
             'Affinity': 'Mind Magic',
             'Alignment': 'Lawful Evil',
@@ -79,10 +80,11 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
     },
     Felicity: {
         color: '#e85d9a',
-        description: 'A dainty pink-furred cat with an ever-present smile and an unsettling devotion to her mistress. Felicity was the first to fall under Citrine’s spell and now serves as the manor’s head handmaiden with frightening efficiency. Her bubbly demeanor hides a razor-sharp attention to detail — nothing escapes her notice, and no dust mote survives her wrath.',
+        description: 'A dainty pink-furred cat with an ever-present smile and an unsettling devotion to her master. Felicity was the first to fall under Citrine’s spell and now serves as the manor’s head handmaiden with frightening efficiency. Her bubbly demeanor hides a razor-sharp attention to detail — nothing escapes her notice, and no dust mote survives her wrath.',
         traits: ['Devoted', 'Meticulous', 'Cheerful', 'Perceptive', 'Territorial'],
         details: {
             'Species': 'Pink Cat',
+            'Gender': 'Female ♀',
             'Former Role': 'Handmaiden',
             'Specialty': 'Household Management',
             'Loyalty': 'Absolute',
@@ -95,6 +97,7 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
         traits: ['Stoic', 'Vigilant', 'Disciplined', 'Resourceful', 'Loyal'],
         details: {
             'Species': 'Gray Fox',
+            'Gender': 'Male ♂',
             'Former Role': 'Butler',
             'Specialty': 'Security & Logistics',
             'Loyalty': 'Unwavering',
@@ -103,14 +106,15 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
     },
     Sable: {
         color: '#c4943a',
-        description: 'A quick-witted tabby cat with amber-streaked fur and a cocky grin. Sable earned her reputation as one of the most elusive thieves in the region, slipping through traps and guards with feline grace. She trusts no one fully and keeps a dagger hidden in every pocket. Citrine sees her agility and cunning as perfect servant material \u2014 if she can ever be caught and broken.',
+        description: 'A quick-witted tabby cat with amber-streaked fur and a cocky grin. Sable earned his reputation as one of the most elusive thieves in the region, slipping through traps and guards with feline grace. He trusts no one fully and keeps a dagger hidden in every pocket. Citrine sees his agility and cunning as perfect servant material — if he can ever be caught and broken.',
         traits: ['Elusive', 'Witty', 'Distrustful', 'Agile', 'Defiant'],
         details: {
             'Species': 'Tabby Cat',
+            'Gender': 'Male ♂',
             'Class': 'Thief',
             'Specialty': 'Stealth & Lockpicking',
             'Weakness': 'Overconfidence',
-            'Quirk': 'Flicks her tail when lying',
+            'Quirk': 'Flicks his tail when lying',
         },
     },
     Veridian: {
@@ -118,8 +122,7 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
         description: 'A gentle doe with soft brown fur dappled in pale spots, Veridian radiates a quiet warmth that can mend wounds and ease troubled minds. As a devout cleric of the Forest Shrine, she travels the wilds healing the sick and protecting the innocent. Her compassion may be her greatest strength \u2014 but also the very thing Citrine intends to exploit.',
         traits: ['Compassionate', 'Devout', 'Gentle', 'Stubborn', 'Selfless'],
         details: {
-            'Species': 'Deer',
-            'Class': 'Cleric',
+            'Species': 'Deer',            'Gender': 'Female ♀',            'Class': 'Cleric',
             'Specialty': 'Healing & Warding',
             'Weakness': 'Trusts too easily',
             'Quirk': 'Ears twitch when sensing danger',
@@ -130,8 +133,7 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
         description: 'A towering gray wolf with battle scars carved across her muzzle and arms. Kova lives for the thrill of combat and the roar of the crowd. As a barbarian mercenary, she fears nothing \u2014 except boredom. Her raw strength is unmatched, but her impulsive nature leaves her vulnerable to subtler forms of manipulation. Citrine will need more than words to tame this beast.',
         traits: ['Fierce', 'Impulsive', 'Fearless', 'Proud', 'Restless'],
         details: {
-            'Species': 'Wolf',
-            'Class': 'Barbarian',
+            'Species': 'Wolf',            'Gender': 'Female ♀',            'Class': 'Barbarian',
             'Specialty': 'Raw Strength & Intimidation',
             'Weakness': 'Easily provoked',
             'Quirk': 'Howls at the moon involuntarily',
@@ -142,8 +144,7 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
         description: 'A composed and calculating rabbit with sleek white fur and piercing sapphire eyes. Pervis leads the hero party with a strategic mind and an iron will, always ten moves ahead of any adversary. Beneath the calm exterior lies a fierce determination to protect his companions at any cost. Citrine considers him the most dangerous \u2014 and the most valuable \u2014 prize.',
         traits: ['Strategic', 'Composed', 'Protective', 'Stubborn', 'Charismatic'],
         details: {
-            'Species': 'Bunny',
-            'Class': 'Leader',
+            'Species': 'Bunny',            'Gender': 'Male ♂',            'Class': 'Leader',
             'Specialty': 'Tactics & Inspiration',
             'Weakness': 'Cannot abandon allies',
             'Quirk': 'Nose wiggles when plotting',
