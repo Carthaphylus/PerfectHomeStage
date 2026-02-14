@@ -52,16 +52,28 @@ export interface DungeonProgress {
     lastBoss?: string;
 }
 
-// Witch stats
+// Personal skill stats (used for skill checks)
+export interface SkillStats {
+    power: number;
+    wisdom: number;
+    charm: number;
+    speed: number;
+}
+
+// Household stats
+export interface HouseholdStats {
+    comfort: number;    // How nice the living conditions are
+    obedience: number;  // How much respect servants have
+}
+
+// Full witch stats
 export interface WitchStats {
-    health: number;
-    maxHealth: number;
-    mana: number;
-    maxMana: number;
-    corruption: number; // 0-100
-    influence: number; // 0-100
-    money: number;
-    level?: number;
+    skills: SkillStats;
+    household: HouseholdStats;
+    gold: number;           // Main resource, starts at 100
+    servants: number;       // Current servant count
+    maxServants: number;    // Default 10
+    day: number;            // Current day
 }
 
 /***
@@ -176,14 +188,20 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private getDefaultMessageState(): MessageStateType {
         return {
             stats: {
-                health: 100,
-                maxHealth: 100,
-                mana: 50,
-                maxMana: 50,
-                corruption: 0,
-                influence: 10,
-                money: 100,
-                level: 1,
+                skills: {
+                    power: 1,
+                    wisdom: 1,
+                    charm: 1,
+                    speed: 1,
+                },
+                household: {
+                    comfort: 5,
+                    obedience: 5,
+                },
+                gold: 100,
+                servants: 0,
+                maxServants: 10,
+                day: 1,
             },
             location: 'Manor',
             heroes: {},
@@ -265,15 +283,23 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     private parseStats(text: string): void {
         // Parse numeric values for stats (simple regex matching)
-        const healthMatch = text.match(/health[:\s]+(\d+)/i);
-        const manaMatch = text.match(/mana[:\s]+(\d+)/i);
-        const moneyMatch = text.match(/(?:money|gold|coins?)[:\s]+(\d+)/i);
-        const corruptionMatch = text.match(/corruption[:\s]+(\d+)/i);
+        const goldMatch = text.match(/(?:gold|coins?)[:\s]+(\d+)/i);
+        const powerMatch = text.match(/power[:\s]+(\d+)/i);
+        const wisdomMatch = text.match(/wisdom[:\s]+(\d+)/i);
+        const charmMatch = text.match(/charm[:\s]+(\d+)/i);
+        const speedMatch = text.match(/speed[:\s]+(\d+)/i);
+        const comfortMatch = text.match(/comfort[:\s]+(\d+)/i);
+        const obedienceMatch = text.match(/obedience[:\s]+(\d+)/i);
+        const dayMatch = text.match(/day[:\s]+(\d+)/i);
 
-        if (healthMatch) this.currentState.stats.health = Math.min(parseInt(healthMatch[1]), this.currentState.stats.maxHealth);
-        if (manaMatch) this.currentState.stats.mana = Math.min(parseInt(manaMatch[1]), this.currentState.stats.maxMana);
-        if (moneyMatch) this.currentState.stats.money = parseInt(moneyMatch[1]);
-        if (corruptionMatch) this.currentState.stats.corruption = Math.min(parseInt(corruptionMatch[1]), 100);
+        if (goldMatch) this.currentState.stats.gold = parseInt(goldMatch[1]);
+        if (powerMatch) this.currentState.stats.skills.power = parseInt(powerMatch[1]);
+        if (wisdomMatch) this.currentState.stats.skills.wisdom = parseInt(wisdomMatch[1]);
+        if (charmMatch) this.currentState.stats.skills.charm = parseInt(charmMatch[1]);
+        if (speedMatch) this.currentState.stats.skills.speed = parseInt(speedMatch[1]);
+        if (comfortMatch) this.currentState.stats.household.comfort = parseInt(comfortMatch[1]);
+        if (obedienceMatch) this.currentState.stats.household.obedience = parseInt(obedienceMatch[1]);
+        if (dayMatch) this.currentState.stats.day = parseInt(dayMatch[1]);
     }
 
     private parseGameState(text: string): void {
@@ -329,10 +355,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Add context about current game state to help the LLM
         const directions: string[] = [];
         
-        directions.push(`[Current Location: ${this.currentState.location}]`);
-        directions.push(`[Witch Stats - HP: ${this.currentState.stats.health}/${this.currentState.stats.maxHealth}, ` +
-                       `Mana: ${this.currentState.stats.mana}/${this.currentState.stats.maxMana}, ` +
-                       `Corruption: ${this.currentState.stats.corruption}%, Money: ${this.currentState.stats.money}]`);
+        const s = this.currentState.stats;
+        directions.push(`[Day: ${s.day} | Location: ${this.currentState.location}]`);
+        directions.push(`[Skills - Power: ${s.skills.power}, Wisdom: ${s.skills.wisdom}, Charm: ${s.skills.charm}, Speed: ${s.skills.speed}]`);
+        directions.push(`[Household - Comfort: ${s.household.comfort}, Obedience: ${s.household.obedience}]`);
+        directions.push(`[Gold: ${s.gold} | Servants: ${s.servants}/${s.maxServants}]`);
         
         const heroCount = Object.keys(this.currentState.heroes).length;
         const servantCount = Object.keys(this.currentState.servants).length;
@@ -352,13 +379,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Generate visible stat block (limit to avoid clutter)
         if (!this.config.showStats) return null;
 
-        const stats = this.currentState.stats;
+        const s = this.currentState.stats;
         return `━━━━━━━━━━━━━━━━━━
-📊 Witch Status
-HP: ${stats.health}/${stats.maxHealth} | Mana: ${stats.mana}/${stats.maxMana}
-Corruption: ${stats.corruption}% | Influence: ${stats.influence}%
-💰 Money: ${stats.money}
-📍 Location: ${this.currentState.location}
+📊 Day ${s.day} — ${this.currentState.location}
+⚔️ Power: ${s.skills.power} | 📖 Wisdom: ${s.skills.wisdom} | 💎 Charm: ${s.skills.charm} | 💨 Speed: ${s.skills.speed}
+🏠 Comfort: ${s.household.comfort} | 🫡 Obedience: ${s.household.obedience}
+💰 Gold: ${s.gold} | 👥 Servants: ${s.servants}/${s.maxServants}
 ━━━━━━━━━━━━━━━━━━`;
     }
 

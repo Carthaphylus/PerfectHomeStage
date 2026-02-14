@@ -40,14 +40,20 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
         // Test 1: Set initial game state with some progress
         await stage.setState({
             stats: {
-                health: 85,
-                maxHealth: 100,
-                mana: 30,
-                maxMana: 50,
-                corruption: 45,
-                influence: 35,
-                money: 250,
-                level: 3,
+                skills: {
+                    power: 3,
+                    wisdom: 2,
+                    charm: 4,
+                    speed: 2,
+                },
+                household: {
+                    comfort: 7,
+                    obedience: 6,
+                },
+                gold: 250,
+                servants: 2,
+                maxServants: 10,
+                day: 5,
             },
             location: 'Woods',
             heroes: {

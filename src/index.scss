@@ -443,14 +443,25 @@ html, body, #root {
   
   .stats-summary {
     display: flex;
-    justify-content: space-around;
-    gap: 20px;
+    flex-direction: column;
+    gap: 8px;
     padding: 16px;
     background: rgba(42, 32, 48, 0.6) !important;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+
+      span {
+        white-space: nowrap;
+      }
+    }
   }
 }
 

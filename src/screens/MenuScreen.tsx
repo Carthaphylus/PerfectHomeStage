@@ -111,9 +111,21 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 </div>
 
                 <div className="stats-summary">
-                    <div>❤️ {stage().currentState.stats.health}/{stage().currentState.stats.maxHealth}</div>
-                    <div>✨ {stage().currentState.stats.mana}/{stage().currentState.stats.maxMana}</div>
-                    <div>💰 {stage().currentState.stats.money}</div>
+                    <div className="stats-row">
+                        <span>⚔️ Power: {stage().currentState.stats.skills.power}</span>
+                        <span>📖 Wisdom: {stage().currentState.stats.skills.wisdom}</span>
+                        <span>💎 Charm: {stage().currentState.stats.skills.charm}</span>
+                        <span>💨 Speed: {stage().currentState.stats.skills.speed}</span>
+                    </div>
+                    <div className="stats-row">
+                        <span>🏠 Comfort: {stage().currentState.stats.household.comfort}</span>
+                        <span>🫡 Obedience: {stage().currentState.stats.household.obedience}</span>
+                    </div>
+                    <div className="stats-row">
+                        <span>💰 Gold: {stage().currentState.stats.gold}</span>
+                        <span>👥 Servants: {stage().currentState.stats.servants}/{stage().currentState.stats.maxServants}</span>
+                        <span>📅 Day: {stage().currentState.stats.day}</span>
+                    </div>
                 </div>
             </div>
 
