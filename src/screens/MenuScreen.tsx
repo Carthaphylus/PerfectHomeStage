@@ -203,8 +203,22 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                                             <div className="slot-stats-row">
                                                 <span className="slot-stat"><img src={GoldIcon} alt="" className="slot-stat-icon" />{saveFile.stats.gold}</span>
                                                 <span className="slot-stat"><img src={ServantsIcon} alt="" className="slot-stat-icon" />{saveFile.stats.servants}/{saveFile.stats.maxServants}</span>
-                                                <span className="slot-stat"><img src={ComfortIcon} alt="" className="slot-stat-icon" />{saveFile.stats.household.comfort}</span>
-                                                <span className="slot-stat"><img src={ObedienceIcon} alt="" className="slot-stat-icon" />{saveFile.stats.household.obedience}</span>
+                                            </div>
+                                            <div className="slot-stats-row bars">
+                                                <span className="slot-stat bar-slot-stat">
+                                                    <img src={ComfortIcon} alt="" className="slot-stat-icon" />
+                                                    <span className="slot-mini-bar">
+                                                        <span className="slot-mini-fill comfort-fill" style={{ width: `${Math.min(saveFile.stats.household.comfort * 10, 100)}%` }} />
+                                                    </span>
+                                                    {saveFile.stats.household.comfort}
+                                                </span>
+                                                <span className="slot-stat bar-slot-stat">
+                                                    <img src={ObedienceIcon} alt="" className="slot-stat-icon" />
+                                                    <span className="slot-mini-bar">
+                                                        <span className="slot-mini-fill obedience-fill" style={{ width: `${Math.min(saveFile.stats.household.obedience * 10, 100)}%` }} />
+                                                    </span>
+                                                    {saveFile.stats.household.obedience}
+                                                </span>
                                             </div>
                                             <div className="slot-stats-row">
                                                 <span className="slot-day">Day {saveFile.stats.day}</span>

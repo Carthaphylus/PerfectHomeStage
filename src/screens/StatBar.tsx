@@ -53,13 +53,25 @@ export const StatBar: FC<StatBarProps> = ({ stage }) => {
             </div>
 
             <div className="stat-bar-group household">
-                <div className="stat-item" title="Comfort">
+                <div className="stat-item bar-stat" title={`Comfort: ${s.household.comfort}`}>
                     <img src={ComfortIcon} alt="Comfort" className="stat-icon" />
-                    <span className="stat-value">{s.household.comfort}</span>
+                    <div className="stat-fill-bar">
+                        <div 
+                            className="stat-fill comfort-fill" 
+                            style={{ width: `${Math.min(s.household.comfort * 10, 100)}%` }}
+                        />
+                        <span className="stat-fill-label">{s.household.comfort}</span>
+                    </div>
                 </div>
-                <div className="stat-item" title="Obedience">
+                <div className="stat-item bar-stat" title={`Obedience: ${s.household.obedience}`}>
                     <img src={ObedienceIcon} alt="Obedience" className="stat-icon" />
-                    <span className="stat-value">{s.household.obedience}</span>
+                    <div className="stat-fill-bar">
+                        <div 
+                            className="stat-fill obedience-fill" 
+                            style={{ width: `${Math.min(s.household.obedience * 10, 100)}%` }}
+                        />
+                        <span className="stat-fill-label">{s.household.obedience}</span>
+                    </div>
                 </div>
             </div>
 
