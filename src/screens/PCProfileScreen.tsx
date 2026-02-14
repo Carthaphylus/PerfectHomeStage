@@ -1,6 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
+import { CharacterGallery } from './CharacterGallery';
 
 interface PCProfileScreenProps {
     stage: () => Stage;
@@ -9,6 +10,19 @@ interface PCProfileScreenProps {
 
 export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType }) => {
     const pc = stage().currentState.playerCharacter;
+    const [showGallery, setShowGallery] = useState(false);
+
+    if (showGallery) {
+        return (
+            <CharacterGallery
+                stage={stage}
+                characterName={pc.name}
+                avatarUrl={pc.avatar}
+                color={pc.color}
+                onClose={() => setShowGallery(false)}
+            />
+        );
+    }
 
     return (
         <div className="char-profile-screen" style={{ '--char-color': pc.color } as React.CSSProperties}>
@@ -17,7 +31,9 @@ export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType
                     &lt; Menu
                 </button>
                 <h2>Profile</h2>
-                <div className="header-spacer"></div>
+                <button className="gallery-button" onClick={() => setShowGallery(true)}>
+                    🖼️ Gallery
+                </button>
             </div>
 
             <div className="char-profile-content">

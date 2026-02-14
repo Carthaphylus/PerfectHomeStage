@@ -1,6 +1,7 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
+import { CharacterGallery } from './CharacterGallery';
 
 interface HeroesScreenProps {
     stage: () => Stage;
@@ -10,10 +11,24 @@ interface HeroesScreenProps {
 export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) => {
     const heroes = Object.values(stage().currentState.heroes);
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
+    const [showGallery, setShowGallery] = useState(false);
 
     // Full profile view when a hero is selected
     if (selectedHero) {
         const h = selectedHero;
+
+        if (showGallery) {
+            return (
+                <CharacterGallery
+                    stage={stage}
+                    characterName={h.name}
+                    avatarUrl={h.avatar}
+                    color={h.color}
+                    onClose={() => setShowGallery(false)}
+                />
+            );
+        }
+
         return (
             <div className="char-profile-screen" style={{ '--char-color': h.color } as React.CSSProperties}>
                 <div className="screen-header">
@@ -21,7 +36,9 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                         &lt; Back
                     </button>
                     <h2>{h.name}</h2>
-                    <div className="header-spacer"></div>
+                    <button className="gallery-button" onClick={() => setShowGallery(true)}>
+                        🖼️ Gallery
+                    </button>
                 </div>
                 <div className="char-profile-content">
                     <div className="char-card">

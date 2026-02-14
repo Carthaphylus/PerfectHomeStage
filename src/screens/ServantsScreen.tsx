@@ -1,6 +1,7 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Servant } from '../Stage';
+import { CharacterGallery } from './CharacterGallery';
 
 interface ServantsScreenProps {
     stage: () => Stage;
@@ -10,10 +11,24 @@ interface ServantsScreenProps {
 export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }) => {
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
+    const [showGallery, setShowGallery] = useState(false);
 
     // Full profile view when a servant is selected
     if (selectedServant) {
         const s = selectedServant;
+
+        if (showGallery) {
+            return (
+                <CharacterGallery
+                    stage={stage}
+                    characterName={s.name}
+                    avatarUrl={s.avatar}
+                    color={s.color}
+                    onClose={() => setShowGallery(false)}
+                />
+            );
+        }
+
         return (
             <div className="char-profile-screen" style={{ '--char-color': s.color } as React.CSSProperties}>
                 <div className="screen-header">
@@ -21,7 +36,9 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         &lt; Back
                     </button>
                     <h2>{s.name}</h2>
-                    <div className="header-spacer"></div>
+                    <button className="gallery-button" onClick={() => setShowGallery(true)}>
+                        🖼️ Gallery
+                    </button>
                 </div>
                 <div className="char-profile-content">
                     <div className="char-card">
