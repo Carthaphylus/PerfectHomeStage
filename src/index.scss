@@ -2127,6 +2127,18 @@ html, body, #root {
           font-size: 11px;
           color: var(--char-color, var(--highlight));
           font-weight: bold;
+
+          &.char-gender-value {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .gender-symbol {
+              font-size: 18px;
+              line-height: 1;
+              font-family: 'Press Start 2P', monospace;
+            }
+          }
         }
       }
 

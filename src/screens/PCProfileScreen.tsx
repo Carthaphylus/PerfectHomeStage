@@ -42,7 +42,14 @@ export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType
                         {Object.entries(pc.details).map(([key, value]) => (
                             <div key={key} className="char-detail-row">
                                 <span className="char-detail-label">{key}</span>
-                                <span className="char-detail-value">{value}</span>
+                                {key === 'Gender' ? (
+                                    <span className="char-detail-value char-gender-value">
+                                        <span className="gender-symbol">{value.split(' ')[0]}</span>
+                                        <span>{value.split(' ').slice(1).join(' ')}</span>
+                                    </span>
+                                ) : (
+                                    <span className="char-detail-value">{value}</span>
+                                )}
                             </div>
                         ))}
                     </div>
