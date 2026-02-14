@@ -436,25 +436,63 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         });
     };
 
-    // Slot state — initialized from save or defaults
+    // Slot state — initialized from chatState or defaults
     const [slotData, setSlotData] = useState<RoomSlot[]>(() => loadSlots());
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    // Save whenever slotData changes (after initial load)
+    // Sync to chatState whenever slotData changes (so it persists on next message send)
     const isInitialMount = useRef(true);
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
             return;
         }
-        // Persist only the mutable fields
         const toSave = slotData.map(s => ({
             slotId: s.slotId,
             roomType: s.roomType,
             level: s.level || 1,
             occupant: s.occupant,
         }));
-        stage().saveManorSlots(toSave);
+        stage().syncManorSlots(toSave);
     }, [slotData]);
+
+    // Flash a save/load message then clear it
+    const flashMessage = (msg: string) => {
+        setSaveMessage(msg);
+        setTimeout(() => setSaveMessage(null), 2000);
+    };
+
+    const handleSaveToFile = () => {
+        const toSave = slotData.map(s => ({
+            slotId: s.slotId,
+            roomType: s.roomType,
+            level: s.level || 1,
+            occupant: s.occupant,
+        }));
+        const ok = stage().saveManorToFile(toSave);
+        flashMessage(ok ? '💾 Manor saved!' : '❌ Save failed');
+    };
+
+    const handleLoadFromFile = () => {
+        const saved = stage().loadManorFromFile();
+        if (!saved) {
+            flashMessage('❌ No save file found');
+            return;
+        }
+        const defaults = getDefaultSlots();
+        const savedMap = new Map(saved.map(s => [s.slotId, s]));
+        const merged = defaults.map(slot => {
+            const savedSlot = savedMap.get(slot.slotId);
+            if (savedSlot) {
+                return { ...slot, roomType: savedSlot.roomType, level: savedSlot.level, occupant: savedSlot.occupant };
+            }
+            return slot;
+        });
+        setSlotData(merged);
+        setSelectedRoom(null);
+        setSelectedSlot(null);
+        flashMessage('📂 Manor loaded!');
+    };
 
     // Convert slots to SlotWithRoom (combines slot position with room instance)
     const getSlotsWithRooms = (): SlotWithRoom[] => {
@@ -520,6 +558,12 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                     ← Menu
                 </button>
                 <h2>Manor Management</h2>
+                
+                <div className="save-load-buttons">
+                    <button className="save-btn" onClick={handleSaveToFile}>💾 Save</button>
+                    <button className="load-btn" onClick={handleLoadFromFile}>📂 Load</button>
+                    {saveMessage && <span className="save-message">{saveMessage}</span>}
+                </div>
                 
                 {/* Floor Navigation */}
                 <div className="floor-navigation">

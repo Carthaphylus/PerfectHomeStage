@@ -362,37 +362,49 @@ Corruption: ${stats.corruption}% | Influence: ${stats.influence}%
     // Manor Save/Load Methods
     // ============================
     
-    /** Get saved manor slot data. Checks localStorage first, then chatState. */
+    /** Get manor slots from chatState (current chat's state) */
     getManorSlots(): SavedSlotData[] | undefined {
-        // Try localStorage first (survives reload without message send)
+        return this.chatState.manorSlots;
+    }
+
+    /** Sync current manor layout to chatState (persisted on next message) */
+    syncManorSlots(slots: SavedSlotData[]): void {
+        this.chatState.manorSlots = slots;
+    }
+
+    /** Explicitly save manor layout to localStorage as a save file */
+    saveManorToFile(slots: SavedSlotData[]): boolean {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(slots));
+            return true;
+        } catch (e) {
+            console.warn('Failed to save manor to localStorage:', e);
+            return false;
+        }
+    }
+
+    /** Explicitly load manor layout from localStorage save file */
+    loadManorFromFile(): SavedSlotData[] | null {
         try {
             const stored = localStorage.getItem(this.storageKey);
             if (stored) {
                 const parsed = JSON.parse(stored) as SavedSlotData[];
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    // Sync to chatState so it gets persisted server-side on next message
-                    this.chatState.manorSlots = parsed;
                     return parsed;
                 }
             }
         } catch (e) {
             console.warn('Failed to load manor from localStorage:', e);
         }
-        
-        // Fall back to chatState (server-side persistence)
-        return this.chatState.manorSlots;
+        return null;
     }
 
-    /** Save manor slot data to both localStorage and chatState */
-    saveManorSlots(slots: SavedSlotData[]): void {
-        // Save to chatState (persisted server-side on next message)
-        this.chatState.manorSlots = slots;
-        
-        // Save to localStorage (immediate persistence, survives reload)
+    /** Check if a save file exists */
+    hasSaveFile(): boolean {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(slots));
-        } catch (e) {
-            console.warn('Failed to save manor to localStorage:', e);
+            return localStorage.getItem(this.storageKey) !== null;
+        } catch {
+            return false;
         }
     }
 }
