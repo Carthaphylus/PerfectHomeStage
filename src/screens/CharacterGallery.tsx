@@ -43,19 +43,29 @@ const GENERATION_PROMPTS: Record<GalleryImageType, { prompt: string; negPrompt: 
     },
 };
 
-// Helper to convert an image URL to base64 data URL
+// Helper to convert an image URL to a resized base64 data URL
+const MAX_IMG_DIM = 512;
 const urlToBase64 = (url: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
+            // Scale down to MAX_IMG_DIM on longest side
+            let w = img.naturalWidth;
+            let h = img.naturalHeight;
+            if (w > MAX_IMG_DIM || h > MAX_IMG_DIM) {
+                const scale = MAX_IMG_DIM / Math.max(w, h);
+                w = Math.round(w * scale);
+                h = Math.round(h * scale);
+            }
             const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
+            canvas.width = w;
+            canvas.height = h;
             const ctx = canvas.getContext('2d');
             if (!ctx) { reject(new Error('No canvas context')); return; }
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/png'));
+            ctx.drawImage(img, 0, 0, w, h);
+            // Use JPEG for smaller payload
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
             canvas.remove();
         };
         img.onerror = () => reject(new Error('Failed to load image'));
