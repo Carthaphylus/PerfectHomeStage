@@ -71,6 +71,8 @@ export abstract class BaseRoom {
     description: string;
     level: number;
     occupant?: string;
+    buildable: boolean;  // Can this room type be built by the player?
+    location: 'indoors' | 'outdoors'; // Where can this room be placed?
 
     constructor(
         level: number = 1,
@@ -84,6 +86,8 @@ export abstract class BaseRoom {
         this.type = 'room';
         this.image = EmptyRoomImg;
         this.description = 'A room in the manor';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 
     // Methods that can be overridden by specific room types
@@ -117,6 +121,8 @@ class YourRoomClass extends BaseRoom {
         this.type = 'your_room';
         this.image = YourRoomImg;
         this.description = 'Your personal quarters';
+        this.buildable = false;
+        this.location = 'indoors';
     }
 }
 
@@ -127,6 +133,8 @@ class RitualRoomClass extends BaseRoom {
         this.type = 'ritual';
         this.image = RitualImg;
         this.description = 'Where the magic happens';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -137,6 +145,8 @@ class QuartersClass extends BaseRoom {
         this.type = 'quarters';
         this.image = QuartersImg;
         this.description = 'Housing for your servants';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -147,6 +157,8 @@ class ClassroomClass extends BaseRoom {
         this.type = 'classroom';
         this.image = ClassroomImg;
         this.description = 'Education and training';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -157,6 +169,8 @@ class StorageClass extends BaseRoom {
         this.type = 'storage';
         this.image = StorageImg;
         this.description = 'Keep your items safe';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -167,6 +181,8 @@ class KitchenClass extends BaseRoom {
         this.type = 'kitchen';
         this.image = OvenImg;
         this.description = 'Where meals are prepared for the manor';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -177,6 +193,8 @@ class LoungeClass extends BaseRoom {
         this.type = 'lounge';
         this.image = QuartersImg; // Placeholder
         this.description = 'A comfortable space for relaxation and socializing';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -187,6 +205,8 @@ class CorridorClass extends BaseRoom {
         this.type = 'corridor';
         this.image = CorridorImg;
         this.description = 'A long hallway connecting the rooms';
+        this.buildable = false;
+        this.location = 'indoors';
     }
 }
 
@@ -197,6 +217,8 @@ class BrewingRoomClass extends BaseRoom {
         this.type = 'brewing';
         this.image = BrewingImg;
         this.description = 'Potion crafting area';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -207,6 +229,8 @@ class StableClass extends BaseRoom {
         this.type = 'stable';
         this.image = StableImg;
         this.description = 'For magical creatures';
+        this.buildable = true;
+        this.location = 'outdoors';
     }
 }
 
@@ -217,6 +241,8 @@ class DungeonClass extends BaseRoom {
         this.type = 'dungeon';
         this.image = DungeonImg;
         this.description = 'A dark chamber for interrogation and training';
+        this.buildable = false;
+        this.location = 'indoors';
     }
 }
 
@@ -227,6 +253,8 @@ class CellClass extends BaseRoom {
         this.type = 'cell';
         this.image = CellImg;
         this.description = 'A holding cell for captives';
+        this.buildable = true;
+        this.location = 'indoors';
     }
 }
 
@@ -237,7 +265,20 @@ class EmptyRoomClass extends BaseRoom {
         this.type = 'empty';
         this.image = EmptyRoomImg;
         this.description = 'An empty room awaiting construction';
+        this.buildable = false;
+        this.location = 'indoors';
     }
+}
+
+// Get all buildable room types, optionally filtered by location
+function getBuildableRoomTypes(locationFilter?: 'indoors' | 'outdoors'): BaseRoom[] {
+    const allTypes = [
+        'ritual', 'quarters', 'classroom', 'storage', 'kitchen',
+        'lounge', 'brewing', 'stable', 'cell'
+    ];
+    return allTypes
+        .map(t => createRoom(t))
+        .filter(r => r.buildable && (!locationFilter || r.location === locationFilter));
 }
 
 // Factory function to create room instances
@@ -325,88 +366,150 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     const [selectedRoom, setSelectedRoom] = useState<BaseRoom | null>(null);
     const [selectedSlot, setSelectedSlot] = useState<SlotWithRoom | null>(null);
     const [currentFloor, setCurrentFloor] = useState<FloorType>('1st');
-    const [emptyRoomIds, setEmptyRoomIds] = useState<Set<string>>(new Set());
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [showBuildPicker, setShowBuildPicker] = useState(false);
     const blueprintContainerRef = useRef<HTMLDivElement>(null);
 
-    // SLOT-BASED ROOM SYSTEM:
-    // - Each floor has slots (fixed positions/sizes)
-    // - Each slot can have a roomType assigned (or null for empty)
-    // - Slots have unique IDs (e.g., '1st_slot_1') preventing duplication
-    // - To add a room: set roomType in getRoomSlots()
-    // - To make empty: set roomType to null
-    // - Rooms are now class instances with their own methods
-    
-    // Define room slots for each floor
-    // Each slot has a position and can be assigned a room type (or null for empty)
-    const getRoomSlots = (): RoomSlot[] => {
-        return [
-            // 1st Floor slots
-            { slotId: '1st_slot_1', floor: '1st', x: 1,    y: 21, width: 45, height: 22, roomType: 'your_room', level: 1 },
-            { slotId: '1st_slot_2', floor: '1st', x: 2,    y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
-            { slotId: '1st_slot_3', floor: '1st', x: 34.5, y: 67, width: 30, height: 30, roomType: 'ritual',    level: 1 },
-            { slotId: '1st_slot_4', floor: '1st', x: 50,   y: 21, width: 45, height: 22, roomType: 'quarters',  level: 1 },
-            { slotId: '1st_slot_5', floor: '1st', x: 2,    y: 67, width: 30, height: 30, roomType: null }, // empty
-            { slotId: '1st_slot_6', floor: '1st', x: 67,   y: 67, width: 30, height: 30, roomType: null }, // empty
-            { slotId: '1st_slot_7', floor: '1st', x: 66,   y: 1,  width: 30, height: 18, roomType: null }, // empty
-            { slotId: '1st_slot_8', floor: '1st', x: 1,    y: 1,  width: 30, height: 18, roomType: null }, // empty
-            { slotId: '1st_slot_9', floor: '1st', x: 33,   y: 1,  width: 30, height: 18, roomType: null }, // empty
-            
-            // 2nd Floor slots
-            { slotId: '2nd_slot_1', floor: '2nd', x: 45,  y: 23, width: 50, height: 20, roomType: 'classroom', level: 1 },
-            { slotId: '2nd_slot_2', floor: '2nd', x: 75,  y: 1,  width: 20, height: 20, roomType: 'storage',   level: 1 },
-            { slotId: '2nd_slot_3', floor: '2nd', x: 67,  y: 66, width: 30, height: 30, roomType: 'kitchen',   level: 1 },
-            { slotId: '2nd_slot_4', floor: '2nd', x: 2,   y: 66, width: 60, height: 30, roomType: 'lounge',    level: 1 },
-            { slotId: '2nd_slot_5', floor: '2nd', x: 31,  y: 1,  width: 35, height: 20, roomType:  null }, // empty
-            { slotId: '2nd_slot_6', floor: '2nd', x: 2,   y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
-            { slotId: '2nd_slot_7', floor: '2nd', x: 2,   y: 1,  width: 25, height: 20, roomType: 'brewing',   level: 1 },
-            { slotId: '2nd_slot_8', floor: '2nd', x: 2,   y: 23, width: 40, height: 20, roomType:  null }, // empty
-            
-            // Basement slots
-            { slotId: 'basement_slot_1', floor: 'basement', x: 21,   y: 51, width: 55, height: 25, roomType: 'dungeon', level: 1 },
-            { slotId: 'basement_slot_2', floor: 'basement', x: 22,   y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
-            { slotId: 'basement_slot_3', floor: 'basement', x: 41,   y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
-            { slotId: 'basement_slot_4', floor: 'basement', x: 60,   y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
-            
-            // Outside slots
-            { slotId: 'outside_slot_1', floor: 'outside', x: 1, y: 74, width: 35, height: 25, roomType: 'stable', level: 1 },
-        ];
+    // ========================================================================
+    // SAVE/LOAD SYSTEM
+    // ========================================================================
+    // Default slots define the physical positions AND starter buildings.
+    // On first load (no save), these defaults are used.
+    // Once the player builds/removes rooms, the save data takes over.
+    // Only roomType/level/occupant are saved — positions are always from defaults.
+
+    const getDefaultSlots = (): RoomSlot[] => [
+        // 1st Floor slots
+        { slotId: '1st_slot_1', floor: '1st', x: 1,    y: 21, width: 45, height: 22, roomType: 'your_room', level: 1 },
+        { slotId: '1st_slot_2', floor: '1st', x: 2,    y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
+        { slotId: '1st_slot_3', floor: '1st', x: 34.5, y: 67, width: 30, height: 30, roomType: 'ritual',    level: 1 },
+        { slotId: '1st_slot_4', floor: '1st', x: 50,   y: 21, width: 45, height: 22, roomType: 'quarters',  level: 1 },
+        { slotId: '1st_slot_5', floor: '1st', x: 2,    y: 67, width: 30, height: 30, roomType: null },
+        { slotId: '1st_slot_6', floor: '1st', x: 67,   y: 67, width: 30, height: 30, roomType: null },
+        { slotId: '1st_slot_7', floor: '1st', x: 66,   y: 1,  width: 30, height: 18, roomType: null },
+        { slotId: '1st_slot_8', floor: '1st', x: 1,    y: 1,  width: 30, height: 18, roomType: null },
+        { slotId: '1st_slot_9', floor: '1st', x: 33,   y: 1,  width: 30, height: 18, roomType: null },
+        
+        // 2nd Floor slots
+        { slotId: '2nd_slot_1', floor: '2nd', x: 45,  y: 23, width: 50, height: 20, roomType: 'classroom', level: 1 },
+        { slotId: '2nd_slot_2', floor: '2nd', x: 75,  y: 1,  width: 20, height: 20, roomType: 'storage',   level: 1 },
+        { slotId: '2nd_slot_3', floor: '2nd', x: 67,  y: 66, width: 30, height: 30, roomType: 'kitchen',   level: 1 },
+        { slotId: '2nd_slot_4', floor: '2nd', x: 2,   y: 66, width: 60, height: 30, roomType: 'lounge',    level: 1 },
+        { slotId: '2nd_slot_5', floor: '2nd', x: 31,  y: 1,  width: 35, height: 20, roomType: null },
+        { slotId: '2nd_slot_6', floor: '2nd', x: 2,   y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
+        { slotId: '2nd_slot_7', floor: '2nd', x: 2,   y: 1,  width: 25, height: 20, roomType: 'brewing',   level: 1 },
+        { slotId: '2nd_slot_8', floor: '2nd', x: 2,   y: 23, width: 40, height: 20, roomType: null },
+        
+        // Basement slots
+        { slotId: 'basement_slot_1', floor: 'basement', x: 21, y: 51, width: 55, height: 25, roomType: 'dungeon', level: 1 },
+        { slotId: 'basement_slot_2', floor: 'basement', x: 22, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
+        { slotId: 'basement_slot_3', floor: 'basement', x: 41, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
+        { slotId: 'basement_slot_4', floor: 'basement', x: 60, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
+        
+        // Outside slots
+        { slotId: 'outside_slot_1', floor: 'outside', x: 1, y: 74, width: 35, height: 25, roomType: 'stable', level: 1 },
+    ];
+
+    // Load slots: merge saved data (roomType/level/occupant) with default positions
+    const loadSlots = (): RoomSlot[] => {
+        const defaults = getDefaultSlots();
+        const saved = stage().getManorSlots();
+        
+        if (!saved || saved.length === 0) {
+            return defaults; // First load — use starter buildings
+        }
+
+        // Build a lookup from saved data
+        const savedMap = new Map(saved.map(s => [s.slotId, s]));
+        
+        return defaults.map(slot => {
+            const savedSlot = savedMap.get(slot.slotId);
+            if (savedSlot) {
+                return {
+                    ...slot,
+                    roomType: savedSlot.roomType,
+                    level: savedSlot.level,
+                    occupant: savedSlot.occupant,
+                };
+            }
+            return slot;
+        });
     };
+
+    // Slot state — initialized from save or defaults
+    const [slotData, setSlotData] = useState<RoomSlot[]>(() => loadSlots());
+
+    // Save whenever slotData changes (after initial load)
+    const isInitialMount = useRef(true);
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        // Persist only the mutable fields
+        const toSave = slotData.map(s => ({
+            slotId: s.slotId,
+            roomType: s.roomType,
+            level: s.level || 1,
+            occupant: s.occupant,
+        }));
+        stage().saveManorSlots(toSave);
+    }, [slotData]);
 
     // Convert slots to SlotWithRoom (combines slot position with room instance)
     const getSlotsWithRooms = (): SlotWithRoom[] => {
-        const slots = getRoomSlots();
-        
-        return slots.map((slot) => {
-            const roomType = emptyRoomIds.has(slot.slotId) ? null : slot.roomType;
-            const room = createRoom(roomType, slot.level || 1, slot.occupant);
-            
-            return {
-                ...slot,
-                room
-            };
+        return slotData.map((slot) => {
+            const room = createRoom(slot.roomType, slot.level || 1, slot.occupant);
+            return { ...slot, room };
         });
     };
 
     const slotsWithRooms = getSlotsWithRooms();
     const currentFloorSlots = slotsWithRooms.filter(slot => slot.floor === currentFloor);
 
+    // Get the location type for the current floor
+    const getFloorLocation = (floor: FloorType): 'indoors' | 'outdoors' => {
+        return floor === 'outside' ? 'outdoors' : 'indoors';
+    };
+
     const handleRoomClick = (slotWithRoom: SlotWithRoom) => {
         setSelectedRoom(slotWithRoom.room);
         setSelectedSlot(slotWithRoom);
+        setShowBuildPicker(false);
     };
     
     const handleRemoveRoom = () => {
         if (selectedSlot) {
-            setEmptyRoomIds(prev => new Set(prev).add(selectedSlot.slotId));
+            setSlotData(prev => prev.map(s => 
+                s.slotId === selectedSlot.slotId 
+                    ? { ...s, roomType: null, level: 1, occupant: undefined }
+                    : s
+            ));
             setShowRemoveConfirm(false);
-            // Keep the room selected to show it's now empty
+            // Update selection to show it's now empty
+            const emptyRoom = createRoom(null);
+            setSelectedRoom(emptyRoom);
+            setSelectedSlot({ ...selectedSlot, roomType: null, room: emptyRoom });
+        }
+    };
+
+    const handleBuildRoom = (roomType: string) => {
+        if (selectedSlot) {
+            setSlotData(prev => prev.map(s =>
+                s.slotId === selectedSlot.slotId
+                    ? { ...s, roomType, level: 1, occupant: undefined }
+                    : s
+            ));
+            setShowBuildPicker(false);
+            // Update selection to show the newly built room
+            const newRoom = createRoom(roomType);
+            setSelectedRoom(newRoom);
+            setSelectedSlot({ ...selectedSlot, roomType, room: newRoom });
         }
     };
     
     const isRoomEmpty = (slotId: string, room: BaseRoom) => {
-        // Check if room slot was emptied (in emptyRoomIds set) or is empty type
-        return emptyRoomIds.has(slotId) || room.type === 'empty';
+        return room.type === 'empty';
     };
 
     return (
@@ -542,14 +645,14 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                             {isRoomEmpty(selectedSlot.slotId, selectedRoom) ? (
                                 <>
                                     <div className="room-detail-header">
-                                        <h3>Empty Room</h3>
-                                        <span className="room-type-badge empty">vacant</span>
+                                        <h3>Empty Slot</h3>
+                                        <span className="room-type-badge empty">{getFloorLocation(selectedSlot.floor)}</span>
                                     </div>
                                     
                                     <div className="room-preview-image" style={{ backgroundImage: `url(${EmptyRoomImg})` }}></div>
                                     
                                     <div className="room-detail-content">
-                                        <p className="room-description">This room has been cleared and is now available for reconstruction.</p>
+                                        <p className="room-description">This space is available for construction.</p>
                                         
                                         <div className="room-stats">
                                             <div className="stat-row">
@@ -559,30 +662,46 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 </span>
                                             </div>
                                             <div className="stat-row">
-                                                <span className="stat-label">📐 Size:</span>
-                                                <span className="stat-value">{selectedSlot.width}% × {selectedSlot.height}%</span>
+                                                <span className="stat-label">🏷️ Type:</span>
+                                                <span className="stat-value">{getFloorLocation(selectedSlot.floor) === 'outdoors' ? 'Outdoor' : 'Indoor'} slot</span>
                                             </div>
                                         </div>
-                                        
-                                        <div className="room-effects">
-                                            <h4>Available Actions</h4>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">🏗️</span>
-                                                <span className="effect-text">Build a new room</span>
+
+                                        {showBuildPicker ? (
+                                            <div className="build-picker">
+                                                <h4>Choose a Room to Build</h4>
+                                                <div className="build-picker-list">
+                                                    {getBuildableRoomTypes(getFloorLocation(selectedSlot.floor)).map(room => (
+                                                        <div 
+                                                            key={room.type} 
+                                                            className="build-picker-item"
+                                                            onClick={() => handleBuildRoom(room.type)}
+                                                        >
+                                                            <div className="build-picker-image" style={{ backgroundImage: `url(${room.image})` }}></div>
+                                                            <div className="build-picker-info">
+                                                                <div className="build-picker-name">{room.name}</div>
+                                                                <div className="build-picker-desc">{room.description}</div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <button 
+                                                    className="action-button" 
+                                                    onClick={() => setShowBuildPicker(false)}
+                                                >
+                                                    Cancel
+                                                </button>
                                             </div>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">🎨</span>
-                                                <span className="effect-text">Renovate the space</span>
+                                        ) : (
+                                            <div className="room-actions">
+                                                <button 
+                                                    className="action-button primary" 
+                                                    onClick={() => setShowBuildPicker(true)}
+                                                >
+                                                    🏗️ Build Room
+                                                </button>
                                             </div>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">📏</span>
-                                                <span className="effect-text">Redesign layout</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="room-actions">
-                                        <button className="action-button primary">🏗️ Build Room</button>
+                                        )}
                                     </div>
                                 </>
                             ) : (
@@ -590,6 +709,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                     <div className="room-detail-header">
                                         <h3>{selectedRoom.name}</h3>
                                         <span className="room-type-badge">{selectedRoom.type.replace('_', ' ')}</span>
+                                        <span className={`room-location-badge ${selectedRoom.location}`}>{selectedRoom.location}</span>
                                     </div>
                                     
                                     <div className="room-preview-image" style={{ backgroundImage: `url(${selectedRoom.image})` }}></div>
@@ -646,12 +766,14 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                     <div className="room-actions">
                                         <button className="action-button primary">⬆️ Upgrade</button>
                                         <button className="action-button">🎭 Enter</button>
-                                        <button 
-                                            className="action-button danger" 
-                                            onClick={() => setShowRemoveConfirm(true)}
-                                        >
-                                            🗑️ Remove
-                                        </button>
+                                        {selectedRoom.buildable && (
+                                            <button 
+                                                className="action-button danger" 
+                                                onClick={() => setShowRemoveConfirm(true)}
+                                            >
+                                                🗑️ Remove
+                                            </button>
+                                        )}
                                     </div>
                                 </>
                             )}

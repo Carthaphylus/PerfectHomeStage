@@ -108,7 +108,17 @@ type ChatStateType = {
     totalHeroesCaptured: number;
     totalServantsConverted: number;
     achievements: string[];
+    // Manor save data - stores which room is built in which slot
+    manorSlots?: SavedSlotData[];
 };
+
+// Serializable manor slot data for saving/loading
+export interface SavedSlotData {
+    slotId: string;
+    roomType: string | null; // null = empty slot
+    level: number;
+    occupant?: string;
+}
 
 /***
  Perfect Home Stage Implementation
@@ -145,6 +155,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             totalHeroesCaptured: 0,
             totalServantsConverted: 0,
             achievements: [],
+            manorSlots: undefined, // Will use defaults on first load
         };
     }
 
@@ -340,5 +351,19 @@ Corruption: ${stats.corruption}% | Influence: ${stats.influence}%
 
     render(): ReactElement {
         return <BaseScreen stage={() => this} />;
+    }
+
+    // ============================
+    // Manor Save/Load Methods
+    // ============================
+    
+    /** Get saved manor slot data, or undefined if no save exists (use defaults) */
+    getManorSlots(): SavedSlotData[] | undefined {
+        return this.chatState.manorSlots;
+    }
+
+    /** Save manor slot data to persistent chat state */
+    saveManorSlots(slots: SavedSlotData[]): void {
+        this.chatState.manorSlots = slots;
     }
 }
