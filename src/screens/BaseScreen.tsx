@@ -5,6 +5,8 @@ import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
 import { SkitScreen } from './SkitScreen';
 import { HeroesScreen } from './HeroesScreen';
+import { ServantsScreen } from './ServantsScreen';
+import { PCProfileScreen } from './PCProfileScreen';
 import { StatBar } from './StatBar';
 
 export enum ScreenType {
@@ -14,6 +16,7 @@ export enum ScreenType {
     HEROES = 'heroes',
     SERVANTS = 'servants',
     SKIT = 'skit',
+    PC_PROFILE = 'pc_profile',
 }
 
 interface BaseScreenProps {
@@ -33,6 +36,10 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 return <WorldMapScreen stage={stage} setScreenType={setScreenType} />;
             case ScreenType.HEROES:
                 return <HeroesScreen stage={stage} setScreenType={setScreenType} />;
+            case ScreenType.SERVANTS:
+                return <ServantsScreen stage={stage} setScreenType={setScreenType} />;
+            case ScreenType.PC_PROFILE:
+                return <PCProfileScreen stage={stage} setScreenType={setScreenType} />;
             case ScreenType.SKIT:
                 return <SkitScreen stage={stage} setScreenType={setScreenType} />;
             default:

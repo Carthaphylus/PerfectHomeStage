@@ -19,6 +19,8 @@ export interface Hero {
     name: string;
     status: HeroStatus;
     conversionProgress: number; // 0-100
+    heroClass: string;
+    avatar: string;
     traits?: string[];
     location?: string;
 }
@@ -27,9 +29,28 @@ export interface Hero {
 export interface Servant {
     name: string;
     formerClass: string;
+    avatar: string;
     loyalty: number; // 0-100
     assignedTask?: string;
 }
+
+// Player character info
+export interface PlayerCharacter {
+    name: string;
+    avatar: string;
+    title: string;
+}
+
+// Chub.ai avatar URLs
+export const CHUB_AVATARS = {
+    citrine: 'https://avatars.charhub.io/avatars/Sauron275/citrine-9731bb4e10d9/chara_card_v2.png',
+    felicity: 'https://avatars.charhub.io/avatars/Sauron275/felicity-79e6007def5a/chara_card_v2.png',
+    locke: 'https://avatars.charhub.io/avatars/Sauron275/locke-ea98d94e3965/chara_card_v2.png',
+    sable: 'https://avatars.charhub.io/avatars/Sauron275/sable-62ce8e0d06a3/chara_card_v2.png',
+    veridian: 'https://avatars.charhub.io/avatars/Sauron275/the-cleric-ef8cef32f1ff/chara_card_v2.png',
+    kova: 'https://avatars.charhub.io/avatars/Sauron275/the-barbarian-24e3aa6fd485/chara_card_v2.png',
+    pervis: 'https://avatars.charhub.io/avatars/Sauron275/the-leader-8e93f3bc4f21/chara_card_v2.png',
+};
 
 // Manor upgrade
 export interface ManorUpgrade {
@@ -82,6 +103,7 @@ export interface WitchStats {
 type MessageStateType = {
     stats: WitchStats;
     location: Location;
+    playerCharacter: PlayerCharacter;
     heroes: { [heroName: string]: Hero };
     servants: { [servantName: string]: Servant };
     inventory: { [itemName: string]: InventoryItem };
@@ -205,8 +227,61 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 day: 1,
             },
             location: 'Manor',
-            heroes: {},
-            servants: {},
+            playerCharacter: {
+                name: 'Citrine',
+                avatar: CHUB_AVATARS.citrine,
+                title: 'The Witch of the Manor',
+            },
+            heroes: {
+                'Sable': {
+                    name: 'Sable',
+                    status: 'free',
+                    conversionProgress: 0,
+                    heroClass: 'Thief',
+                    avatar: CHUB_AVATARS.sable,
+                    location: 'Unknown',
+                },
+                'Veridian': {
+                    name: 'Veridian',
+                    status: 'free',
+                    conversionProgress: 0,
+                    heroClass: 'Cleric',
+                    avatar: CHUB_AVATARS.veridian,
+                    location: 'Unknown',
+                },
+                'Kova': {
+                    name: 'Kova',
+                    status: 'free',
+                    conversionProgress: 0,
+                    heroClass: 'Barbarian',
+                    avatar: CHUB_AVATARS.kova,
+                    location: 'Unknown',
+                },
+                'Pervis': {
+                    name: 'Pervis',
+                    status: 'free',
+                    conversionProgress: 0,
+                    heroClass: 'Leader',
+                    avatar: CHUB_AVATARS.pervis,
+                    location: 'Unknown',
+                },
+            },
+            servants: {
+                'Felicity': {
+                    name: 'Felicity',
+                    formerClass: 'Handmaiden',
+                    avatar: CHUB_AVATARS.felicity,
+                    loyalty: 80,
+                    assignedTask: undefined,
+                },
+                'Locke': {
+                    name: 'Locke',
+                    formerClass: 'Butler',
+                    avatar: CHUB_AVATARS.locke,
+                    loyalty: 75,
+                    assignedTask: undefined,
+                },
+            },
             inventory: {},
             manorUpgrades: {},
         };
@@ -305,7 +380,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     private parseGameState(text: string): void {
         // Parse hero statuses from bot response
-        const heroNames = ['Citrine', 'Felicity', 'Locke', 'Rogue', 'Barbarian', 'Cleric'];
+        const heroNames = ['Sable', 'Veridian', 'Kova', 'Pervis'];
         
         for (const heroName of heroNames) {
             if (text.includes(heroName)) {
@@ -314,6 +389,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         name: heroName,
                         status: 'encountered',
                         conversionProgress: 0,
+                        heroClass: this.getHeroClass(heroName),
+                        avatar: this.getHeroAvatar(heroName),
                     };
                 }
                 
@@ -328,6 +405,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     this.currentState.servants[heroName] = {
                         name: heroName,
                         formerClass: this.getHeroClass(heroName),
+                        avatar: this.getHeroAvatar(heroName),
                         loyalty: 100,
                     };
                     delete this.currentState.heroes[heroName];
@@ -340,14 +418,22 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this.parseStats(text);
     }
 
+    private getHeroAvatar(heroName: string): string {
+        const avatars: {[key: string]: string} = {
+            'Sable': CHUB_AVATARS.sable,
+            'Veridian': CHUB_AVATARS.veridian,
+            'Kova': CHUB_AVATARS.kova,
+            'Pervis': CHUB_AVATARS.pervis,
+        };
+        return avatars[heroName] || '';
+    }
+
     private getHeroClass(heroName: string): string {
         const classes: {[key: string]: string} = {
-            'Citrine': 'Witch',
-            'Felicity': 'Mage',
-            'Locke': 'Rogue',
-            'Rogue': 'Rogue',
-            'Barbarian': 'Barbarian',
-            'Cleric': 'Cleric',
+            'Sable': 'Thief',
+            'Veridian': 'Cleric',
+            'Kova': 'Barbarian',
+            'Pervis': 'Leader',
         };
         return classes[heroName] || 'Unknown';
     }

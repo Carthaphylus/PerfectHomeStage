@@ -56,36 +56,49 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 day: 5,
             },
             location: 'Woods',
+            playerCharacter: {
+                name: 'Citrine',
+                avatar: 'https://avatars.charhub.io/avatars/Sauron275/citrine-9731bb4e10d9/chara_card_v2.png',
+                title: 'The Witch of the Manor',
+            },
             heroes: {
-                'Locke': {
-                    name: 'Locke',
+                'Sable': {
+                    name: 'Sable',
                     status: 'converting',
                     conversionProgress: 65,
+                    heroClass: 'Thief',
+                    avatar: 'https://avatars.charhub.io/avatars/Sauron275/sable-62ce8e0d06a3/chara_card_v2.png',
                     location: 'Manor - Dungeon',
                 },
-                'Felicity': {
-                    name: 'Felicity',
+                'Veridian': {
+                    name: 'Veridian',
                     status: 'captured',
                     conversionProgress: 20,
+                    heroClass: 'Cleric',
+                    avatar: 'https://avatars.charhub.io/avatars/Sauron275/the-cleric-ef8cef32f1ff/chara_card_v2.png',
                     location: 'Manor - Holding Cell',
                 },
-                'Rogue': {
-                    name: 'Rogue',
+                'Kova': {
+                    name: 'Kova',
                     status: 'encountered',
                     conversionProgress: 0,
+                    heroClass: 'Barbarian',
+                    avatar: 'https://avatars.charhub.io/avatars/Sauron275/the-barbarian-24e3aa6fd485/chara_card_v2.png',
                     location: 'Town',
                 },
             },
             servants: {
-                'Citrine': {
-                    name: 'Citrine',
-                    formerClass: 'Witch',
+                'Felicity': {
+                    name: 'Felicity',
+                    formerClass: 'Handmaiden',
+                    avatar: 'https://avatars.charhub.io/avatars/Sauron275/felicity-79e6007def5a/chara_card_v2.png',
                     loyalty: 100,
                     assignedTask: 'Brewing potions',
                 },
-                'Barbarian': {
-                    name: 'Barbarian',
-                    formerClass: 'Barbarian',
+                'Locke': {
+                    name: 'Locke',
+                    formerClass: 'Butler',
+                    avatar: 'https://avatars.charhub.io/avatars/Sauron275/locke-ea98d94e3965/chara_card_v2.png',
                     loyalty: 85,
                     assignedTask: 'Guard duty',
                 },

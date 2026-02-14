@@ -28,6 +28,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
 
     const menuOptions = [
+        { label: '🧙 Profile', screen: ScreenType.PC_PROFILE },
         { label: '🏰 Manor', screen: ScreenType.MANOR },
         { label: '🗺️ World Map', screen: ScreenType.WORLD_MAP },
         { label: '🎯 Heroes', screen: ScreenType.HEROES },
