@@ -1727,6 +1727,97 @@ html, body, #root {
       }
     }
   }
+
+  // BG Removal Test Panel
+  .bg-test-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    background: rgba(26, 21, 32, 0.95);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    max-width: 360px;
+
+    h4 {
+      margin: 0 0 12px;
+      color: var(--highlight);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .bg-test-images {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .bg-test-card {
+      flex: 1;
+      text-align: center;
+
+      .bg-test-label {
+        font-size: 10px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      img {
+        width: 100%;
+        aspect-ratio: 3 / 5;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid var(--border-color);
+        background: repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 16px 16px;
+      }
+
+      .bg-test-placeholder {
+        width: 100%;
+        aspect-ratio: 3 / 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 2px dashed var(--border-color);
+        color: var(--text-muted);
+        font-size: 10px;
+        text-align: center;
+        padding: 8px;
+        background: repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 16px 16px;
+
+        &.loading {
+          color: var(--highlight);
+          animation: pulse 1.2s infinite;
+        }
+
+        &.error {
+          color: #e85d5d;
+          border-color: #e85d5d44;
+        }
+      }
+    }
+
+    .bg-test-btn {
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+      padding: 8px 12px;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  }
 }
 
 // Heroes Screen
