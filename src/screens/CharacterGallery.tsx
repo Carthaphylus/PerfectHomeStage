@@ -1,4 +1,5 @@
 import React, { FC, useState } from 'react';
+import { AspectRatio } from '@chub-ai/stages-ts';
 import {
     Stage,
     GalleryImageType,
@@ -97,16 +98,18 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({ stage, characterNa
             } else {
                 // Use imageToImage for expression/outfit changes
                 const config = GENERATION_PROMPTS[type];
-                const result = await stage().generator.imageToImage({
+                const request: Record<string, any> = {
                     image: avatarUrl,
                     prompt: config.prompt,
                     negative_prompt: config.negPrompt,
                     strength: config.strength,
-                    aspect_ratio: null, // keep original
-                    remove_background: type.startsWith('hypno_') ? true : null,
-                    seed: null,
+                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
                     item_id: itemId,
-                });
+                };
+                if (type.startsWith('hypno_')) {
+                    request.remove_background = true;
+                }
+                const result = await stage().generator.imageToImage(request);
                 resultUrl = result?.url || null;
             }
 
