@@ -520,7 +520,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
             {/* Header */}
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
-                    ← Menu
+                    &lt; Menu
                 </button>
                 <h2>Manor Management</h2>
                 

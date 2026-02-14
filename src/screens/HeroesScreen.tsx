@@ -16,7 +16,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
             {/* Header */}
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
-                    ← Menu
+                    &lt; Menu
                 </button>
                 <h2>Heroes & Servants</h2>
                 <div className="header-spacer"></div>

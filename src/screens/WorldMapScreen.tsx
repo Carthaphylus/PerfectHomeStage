@@ -52,7 +52,7 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
             {/* Header */}
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
-                    ← Menu
+                    &lt; Menu
                 </button>
                 <h2>World Map</h2>
                 <div className="current-location">📍 {stage().currentState.location}</div>
