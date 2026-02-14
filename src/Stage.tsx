@@ -21,7 +21,10 @@ export interface Hero {
     conversionProgress: number; // 0-100
     heroClass: string;
     avatar: string;
-    traits?: string[];
+    color: string;
+    description: string;
+    traits: string[];
+    details: Record<string, string>;
     location?: string;
 }
 
@@ -30,6 +33,10 @@ export interface Servant {
     name: string;
     formerClass: string;
     avatar: string;
+    color: string;
+    description: string;
+    traits: string[];
+    details: Record<string, string>;
     loyalty: number; // 0-100
     assignedTask?: string;
 }
@@ -39,6 +46,7 @@ export interface PlayerCharacter {
     name: string;
     avatar: string;
     title: string;
+    color: string;
     description: string;
     traits: string[];
     details: Record<string, string>;
@@ -53,6 +61,94 @@ export const CHUB_AVATARS = {
     veridian: 'https://avatars.charhub.io/avatars/Sauron275/the-cleric-ef8cef32f1ff/chara_card_v2.png',
     kova: 'https://avatars.charhub.io/avatars/Sauron275/the-barbarian-24e3aa6fd485/chara_card_v2.png',
     pervis: 'https://avatars.charhub.io/avatars/Sauron275/the-leader-8e93f3bc4f21/chara_card_v2.png',
+};
+
+// Character bio/profile data
+export const CHARACTER_DATA: Record<string, { color: string; description: string; traits: string[]; details: Record<string, string> }> = {
+    Citrine: {
+        color: '#8a7abf',
+        description: 'A cunning and enigmatic gray cat witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Her silvery fur and piercing violet eyes belie a mind that is always three steps ahead. Though her methods are questionable, she seeks to restore the manor to its former grandeur \u2014 one thrall at a time.',
+        traits: ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'],
+        details: {
+            'Species': 'Gray Cat',
+            'Class': 'Witch',
+            'Affinity': 'Mind Magic',
+            'Alignment': 'Lawful Evil',
+            'Goal': 'Restore the manor to glory',
+        },
+    },
+    Felicity: {
+        color: '#e85d9a',
+        description: 'A dainty pink-furred cat with an ever-present smile and an unsettling devotion to her mistress. Felicity was the first to fall under Citrine’s spell and now serves as the manor’s head handmaiden with frightening efficiency. Her bubbly demeanor hides a razor-sharp attention to detail — nothing escapes her notice, and no dust mote survives her wrath.',
+        traits: ['Devoted', 'Meticulous', 'Cheerful', 'Perceptive', 'Territorial'],
+        details: {
+            'Species': 'Pink Cat',
+            'Former Role': 'Handmaiden',
+            'Specialty': 'Household Management',
+            'Loyalty': 'Absolute',
+            'Quirk': 'Hums while she cleans',
+        },
+    },
+    Locke: {
+        color: '#6a8caf',
+        description: 'A stoic gray fox with steely blue eyes and impeccable posture. Locke serves as the manor’s butler, managing affairs with a quiet efficiency that borders on unnerving. Before falling to Citrine’s enchantments, he was a renowned scout — skills he now applies to keeping the manor’s perimeter secure and its secrets well hidden. He speaks little, but when he does, every word carries weight.',
+        traits: ['Stoic', 'Vigilant', 'Disciplined', 'Resourceful', 'Loyal'],
+        details: {
+            'Species': 'Gray Fox',
+            'Former Role': 'Butler',
+            'Specialty': 'Security & Logistics',
+            'Loyalty': 'Unwavering',
+            'Quirk': 'Polishes silverware when thinking',
+        },
+    },
+    Sable: {
+        color: '#c4943a',
+        description: 'A quick-witted tabby cat with amber-streaked fur and a cocky grin. Sable earned her reputation as one of the most elusive thieves in the region, slipping through traps and guards with feline grace. She trusts no one fully and keeps a dagger hidden in every pocket. Citrine sees her agility and cunning as perfect servant material \u2014 if she can ever be caught and broken.',
+        traits: ['Elusive', 'Witty', 'Distrustful', 'Agile', 'Defiant'],
+        details: {
+            'Species': 'Tabby Cat',
+            'Class': 'Thief',
+            'Specialty': 'Stealth & Lockpicking',
+            'Weakness': 'Overconfidence',
+            'Quirk': 'Flicks her tail when lying',
+        },
+    },
+    Veridian: {
+        color: '#4a9e6a',
+        description: 'A gentle doe with soft brown fur dappled in pale spots, Veridian radiates a quiet warmth that can mend wounds and ease troubled minds. As a devout cleric of the Forest Shrine, she travels the wilds healing the sick and protecting the innocent. Her compassion may be her greatest strength \u2014 but also the very thing Citrine intends to exploit.',
+        traits: ['Compassionate', 'Devout', 'Gentle', 'Stubborn', 'Selfless'],
+        details: {
+            'Species': 'Deer',
+            'Class': 'Cleric',
+            'Specialty': 'Healing & Warding',
+            'Weakness': 'Trusts too easily',
+            'Quirk': 'Ears twitch when sensing danger',
+        },
+    },
+    Kova: {
+        color: '#b84a4a',
+        description: 'A towering gray wolf with battle scars carved across her muzzle and arms. Kova lives for the thrill of combat and the roar of the crowd. As a barbarian mercenary, she fears nothing \u2014 except boredom. Her raw strength is unmatched, but her impulsive nature leaves her vulnerable to subtler forms of manipulation. Citrine will need more than words to tame this beast.',
+        traits: ['Fierce', 'Impulsive', 'Fearless', 'Proud', 'Restless'],
+        details: {
+            'Species': 'Wolf',
+            'Class': 'Barbarian',
+            'Specialty': 'Raw Strength & Intimidation',
+            'Weakness': 'Easily provoked',
+            'Quirk': 'Howls at the moon involuntarily',
+        },
+    },
+    Pervis: {
+        color: '#5a6abf',
+        description: 'A composed and calculating rabbit with sleek white fur and piercing sapphire eyes. Pervis leads the hero party with a strategic mind and an iron will, always ten moves ahead of any adversary. Beneath the calm exterior lies a fierce determination to protect his companions at any cost. Citrine considers him the most dangerous \u2014 and the most valuable \u2014 prize.',
+        traits: ['Strategic', 'Composed', 'Protective', 'Stubborn', 'Charismatic'],
+        details: {
+            'Species': 'Bunny',
+            'Class': 'Leader',
+            'Specialty': 'Tactics & Inspiration',
+            'Weakness': 'Cannot abandon allies',
+            'Quirk': 'Nose wiggles when plotting',
+        },
+    },
 };
 
 // Manor upgrade
@@ -234,15 +330,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 name: 'Citrine',
                 avatar: CHUB_AVATARS.citrine,
                 title: 'The Witch of the Manor',
-                description: 'A cunning and enigmatic witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Though her methods are questionable, she seeks to restore the manor to its former grandeur — one thrall at a time.',
-                traits: ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'],
-                details: {
-                    'Race': 'Human (Witch)',
-                    'Age': 'Unknown',
-                    'Affinity': 'Mind Magic',
-                    'Alignment': 'Lawful Evil',
-                    'Goal': 'Restore the manor to glory',
-                },
+                color: CHARACTER_DATA.Citrine.color,
+                description: CHARACTER_DATA.Citrine.description,
+                traits: CHARACTER_DATA.Citrine.traits,
+                details: CHARACTER_DATA.Citrine.details,
             },
             heroes: {
                 'Sable': {
@@ -251,6 +342,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     conversionProgress: 0,
                     heroClass: 'Thief',
                     avatar: CHUB_AVATARS.sable,
+                    color: CHARACTER_DATA.Sable.color,
+                    description: CHARACTER_DATA.Sable.description,
+                    traits: CHARACTER_DATA.Sable.traits,
+                    details: CHARACTER_DATA.Sable.details,
                     location: 'Unknown',
                 },
                 'Veridian': {
@@ -259,6 +354,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     conversionProgress: 0,
                     heroClass: 'Cleric',
                     avatar: CHUB_AVATARS.veridian,
+                    color: CHARACTER_DATA.Veridian.color,
+                    description: CHARACTER_DATA.Veridian.description,
+                    traits: CHARACTER_DATA.Veridian.traits,
+                    details: CHARACTER_DATA.Veridian.details,
                     location: 'Unknown',
                 },
                 'Kova': {
@@ -267,6 +366,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     conversionProgress: 0,
                     heroClass: 'Barbarian',
                     avatar: CHUB_AVATARS.kova,
+                    color: CHARACTER_DATA.Kova.color,
+                    description: CHARACTER_DATA.Kova.description,
+                    traits: CHARACTER_DATA.Kova.traits,
+                    details: CHARACTER_DATA.Kova.details,
                     location: 'Unknown',
                 },
                 'Pervis': {
@@ -275,6 +378,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     conversionProgress: 0,
                     heroClass: 'Leader',
                     avatar: CHUB_AVATARS.pervis,
+                    color: CHARACTER_DATA.Pervis.color,
+                    description: CHARACTER_DATA.Pervis.description,
+                    traits: CHARACTER_DATA.Pervis.traits,
+                    details: CHARACTER_DATA.Pervis.details,
                     location: 'Unknown',
                 },
             },
@@ -283,6 +390,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     name: 'Felicity',
                     formerClass: 'Handmaiden',
                     avatar: CHUB_AVATARS.felicity,
+                    color: CHARACTER_DATA.Felicity.color,
+                    description: CHARACTER_DATA.Felicity.description,
+                    traits: CHARACTER_DATA.Felicity.traits,
+                    details: CHARACTER_DATA.Felicity.details,
                     loyalty: 80,
                     assignedTask: undefined,
                 },
@@ -290,6 +401,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     name: 'Locke',
                     formerClass: 'Butler',
                     avatar: CHUB_AVATARS.locke,
+                    color: CHARACTER_DATA.Locke.color,
+                    description: CHARACTER_DATA.Locke.description,
+                    traits: CHARACTER_DATA.Locke.traits,
+                    details: CHARACTER_DATA.Locke.details,
                     loyalty: 75,
                     assignedTask: undefined,
                 },
@@ -315,16 +430,37 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (state != null) {
             this.currentState = state;
             // Backward compat: patch playerCharacter with new fields
-            if (this.currentState.playerCharacter && !this.currentState.playerCharacter.description) {
-                this.currentState.playerCharacter.description = 'A cunning and enigmatic witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve her household, weaving subtle enchantments and honeyed words to convert them into loyal servants. Though her methods are questionable, she seeks to restore the manor to its former grandeur \u2014 one thrall at a time.';
-                this.currentState.playerCharacter.traits = ['Enchantress', 'Cunning', 'Ambitious', 'Charismatic', 'Possessive'];
-                this.currentState.playerCharacter.details = {
-                    'Race': 'Human (Witch)',
-                    'Age': 'Unknown',
-                    'Affinity': 'Mind Magic',
-                    'Alignment': 'Lawful Evil',
-                    'Goal': 'Restore the manor to glory',
-                };
+            const pc = this.currentState.playerCharacter;
+            if (pc && !pc.description) {
+                const cd = CHARACTER_DATA[pc.name] || CHARACTER_DATA.Citrine;
+                pc.description = cd.description;
+                pc.traits = cd.traits;
+                pc.details = cd.details;
+                pc.color = cd.color;
+            }
+            // Patch heroes missing bio fields
+            for (const hero of Object.values(this.currentState.heroes)) {
+                if (!hero.description) {
+                    const cd = CHARACTER_DATA[hero.name];
+                    if (cd) {
+                        hero.color = cd.color;
+                        hero.description = cd.description;
+                        hero.traits = cd.traits;
+                        hero.details = cd.details;
+                    }
+                }
+            }
+            // Patch servants missing bio fields
+            for (const servant of Object.values(this.currentState.servants)) {
+                if (!servant.description) {
+                    const cd = CHARACTER_DATA[servant.name];
+                    if (cd) {
+                        servant.color = cd.color;
+                        servant.description = cd.description;
+                        servant.traits = cd.traits;
+                        servant.details = cd.details;
+                    }
+                }
             }
         }
     }
@@ -409,12 +545,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         for (const heroName of heroNames) {
             if (text.includes(heroName)) {
                 if (!this.currentState.heroes[heroName]) {
+                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {} };
                     this.currentState.heroes[heroName] = {
                         name: heroName,
                         status: 'encountered',
                         conversionProgress: 0,
                         heroClass: this.getHeroClass(heroName),
                         avatar: this.getHeroAvatar(heroName),
+                        color: charData.color,
+                        description: charData.description,
+                        traits: charData.traits,
+                        details: charData.details,
                     };
                 }
                 
@@ -426,10 +567,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     this.currentState.heroes[heroName].status = 'converting';
                 } else if (text.match(new RegExp(`${heroName}.*(?:servant|slave|obedient|converted)`, 'i'))) {
                     this.currentState.heroes[heroName].status = 'servant';
+                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {} };
                     this.currentState.servants[heroName] = {
                         name: heroName,
                         formerClass: this.getHeroClass(heroName),
                         avatar: this.getHeroAvatar(heroName),
+                        color: charData.color,
+                        description: charData.description,
+                        traits: charData.traits,
+                        details: charData.details,
                         loyalty: 100,
                     };
                     delete this.currentState.heroes[heroName];

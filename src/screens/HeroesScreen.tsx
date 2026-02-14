@@ -11,9 +11,86 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
     const heroes = Object.values(stage().currentState.heroes);
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
 
+    // Full profile view when a hero is selected
+    if (selectedHero) {
+        const h = selectedHero;
+        return (
+            <div className="char-profile-screen" style={{ '--char-color': h.color } as React.CSSProperties}>
+                <div className="screen-header">
+                    <button className="back-button" onClick={() => setSelectedHero(null)}>
+                        &lt; Back
+                    </button>
+                    <h2>{h.name}</h2>
+                    <div className="header-spacer"></div>
+                </div>
+                <div className="char-profile-content">
+                    <div className="char-card">
+                        <div className="char-avatar-frame">
+                            <img src={h.avatar} alt={h.name} />
+                        </div>
+                        <div className="char-info">
+                            <h3 className="char-name">{h.name}</h3>
+                            <span className="char-title">{h.heroClass}</span>
+                            <span className={`char-status-badge status-${h.status}`}>{h.status}</span>
+                        </div>
+                    </div>
+                    <div className="char-bio-panel">
+                        <div className="char-bio-section">
+                            <h4>About</h4>
+                            <p>{h.description}</p>
+                        </div>
+
+                        {h.status === 'converting' && (
+                            <div className="char-bio-section">
+                                <h4>Conversion Progress</h4>
+                                <div className="char-conversion-bar">
+                                    <div className="char-conversion-fill" style={{ width: `${h.conversionProgress}%` }} />
+                                    <span className="char-conversion-text">{h.conversionProgress}%</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {h.location && (
+                            <div className="char-bio-section">
+                                <h4>Status</h4>
+                                <div className="char-detail-row">
+                                    <span className="char-detail-label">Location</span>
+                                    <span className="char-detail-value">{h.location}</span>
+                                </div>
+                                <div className="char-detail-row">
+                                    <span className="char-detail-label">Status</span>
+                                    <span className="char-detail-value">{h.status}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="char-bio-section">
+                            <h4>Details</h4>
+                            {Object.entries(h.details).map(([key, value]) => (
+                                <div key={key} className="char-detail-row">
+                                    <span className="char-detail-label">{key}</span>
+                                    <span className="char-detail-value">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="char-bio-section">
+                            <h4>Traits</h4>
+                            <div className="char-trait-list">
+                                {h.traits.map(t => (
+                                    <span key={t} className="char-trait">{t}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Card grid view
     return (
         <div className="heroes-screen">
-            {/* Header */}
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
                     &lt; Menu
@@ -23,7 +100,6 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
             </div>
 
             <div className="heroes-content">
-                {/* Hero Cards Grid */}
                 <div className="heroes-grid">
                     {heroes.length === 0 ? (
                         <div className="empty-message">No heroes encountered yet...</div>
@@ -31,8 +107,9 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                         heroes.map((hero) => (
                             <div 
                                 key={hero.name} 
-                                className={`hero-card status-${hero.status} ${selectedHero?.name === hero.name ? 'selected' : ''}`}
-                                onClick={() => setSelectedHero(selectedHero?.name === hero.name ? null : hero)}
+                                className={`hero-card status-${hero.status}`}
+                                style={{ '--char-color': hero.color } as React.CSSProperties}
+                                onClick={() => setSelectedHero(hero)}
                             >
                                 <div className="hero-card-avatar">
                                     <img src={hero.avatar} alt={hero.name} />
@@ -55,49 +132,6 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                         ))
                     )}
                 </div>
-
-                {/* Detail Panel */}
-                {selectedHero && (
-                    <div className="hero-detail-panel">
-                        <div className="hero-detail-avatar">
-                            <img src={selectedHero.avatar} alt={selectedHero.name} />
-                        </div>
-                        <h3>{selectedHero.name}</h3>
-                        <span className="hero-detail-class">{selectedHero.heroClass}</span>
-                        <span className={`hero-detail-status status-${selectedHero.status}`}>{selectedHero.status}</span>
-
-                        {selectedHero.location && (
-                            <div className="hero-detail-row">
-                                <span className="hero-detail-label">Location</span>
-                                <span className="hero-detail-value">{selectedHero.location}</span>
-                            </div>
-                        )}
-
-                        {selectedHero.status === 'converting' && (
-                            <div className="hero-detail-row">
-                                <span className="hero-detail-label">Conversion</span>
-                                <div className="hero-conversion-bar">
-                                    <div
-                                        className="hero-conversion-fill"
-                                        style={{ width: `${selectedHero.conversionProgress}%` }}
-                                    />
-                                    <span className="hero-conversion-text">{selectedHero.conversionProgress}%</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedHero.traits && selectedHero.traits.length > 0 && (
-                            <div className="hero-detail-traits">
-                                <span className="hero-detail-label">Traits</span>
-                                <div className="trait-list">
-                                    {selectedHero.traits.map(t => (
-                                        <span key={t} className="trait-badge">{t}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
             </div>
         </div>
     );

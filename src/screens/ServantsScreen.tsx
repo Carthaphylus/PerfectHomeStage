@@ -11,9 +11,78 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
 
+    // Full profile view when a servant is selected
+    if (selectedServant) {
+        const s = selectedServant;
+        return (
+            <div className="char-profile-screen" style={{ '--char-color': s.color } as React.CSSProperties}>
+                <div className="screen-header">
+                    <button className="back-button" onClick={() => setSelectedServant(null)}>
+                        &lt; Back
+                    </button>
+                    <h2>{s.name}</h2>
+                    <div className="header-spacer"></div>
+                </div>
+                <div className="char-profile-content">
+                    <div className="char-card">
+                        <div className="char-avatar-frame">
+                            <img src={s.avatar} alt={s.name} />
+                        </div>
+                        <div className="char-info">
+                            <h3 className="char-name">{s.name}</h3>
+                            <span className="char-title">{s.formerClass}</span>
+                        </div>
+                    </div>
+                    <div className="char-bio-panel">
+                        <div className="char-bio-section">
+                            <h4>About</h4>
+                            <p>{s.description}</p>
+                        </div>
+
+                        <div className="char-bio-section">
+                            <h4>Service</h4>
+                            <div className="char-detail-row">
+                                <span className="char-detail-label">Loyalty</span>
+                                <span className="char-detail-value">{s.loyalty}%</span>
+                            </div>
+                            {s.assignedTask && (
+                                <div className="char-detail-row">
+                                    <span className="char-detail-label">Task</span>
+                                    <span className="char-detail-value">{s.assignedTask}</span>
+                                </div>
+                            )}
+                            <div className="char-loyalty-bar">
+                                <div className="char-loyalty-fill" style={{ width: `${s.loyalty}%` }} />
+                            </div>
+                        </div>
+
+                        <div className="char-bio-section">
+                            <h4>Details</h4>
+                            {Object.entries(s.details).map(([key, value]) => (
+                                <div key={key} className="char-detail-row">
+                                    <span className="char-detail-label">{key}</span>
+                                    <span className="char-detail-value">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="char-bio-section">
+                            <h4>Traits</h4>
+                            <div className="char-trait-list">
+                                {s.traits.map(t => (
+                                    <span key={t} className="char-trait">{t}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Card grid view
     return (
         <div className="servants-screen">
-            {/* Header */}
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
                     &lt; Menu
@@ -23,7 +92,6 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
             </div>
 
             <div className="servants-content">
-                {/* Servant Cards Grid */}
                 <div className="servants-grid">
                     {servants.length === 0 ? (
                         <div className="empty-message">No servants yet...</div>
@@ -31,8 +99,9 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         servants.map((servant) => (
                             <div 
                                 key={servant.name} 
-                                className={`servant-card ${selectedServant?.name === servant.name ? 'selected' : ''}`}
-                                onClick={() => setSelectedServant(selectedServant?.name === servant.name ? null : servant)}
+                                className="servant-card"
+                                style={{ '--char-color': servant.color } as React.CSSProperties}
+                                onClick={() => setSelectedServant(servant)}
                             >
                                 <div className="servant-card-avatar">
                                     <img src={servant.avatar} alt={servant.name} />
@@ -52,35 +121,6 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         ))
                     )}
                 </div>
-
-                {/* Detail Panel */}
-                {selectedServant && (
-                    <div className="servant-detail-panel">
-                        <div className="servant-detail-avatar">
-                            <img src={selectedServant.avatar} alt={selectedServant.name} />
-                        </div>
-                        <h3>{selectedServant.name}</h3>
-                        <span className="servant-detail-class">{selectedServant.formerClass}</span>
-
-                        <div className="servant-detail-row">
-                            <span className="servant-detail-label">Loyalty</span>
-                            <div className="servant-loyalty-bar large">
-                                <div
-                                    className="servant-loyalty-fill"
-                                    style={{ width: `${selectedServant.loyalty}%` }}
-                                />
-                                <span className="servant-loyalty-text">{selectedServant.loyalty}%</span>
-                            </div>
-                        </div>
-
-                        {selectedServant.assignedTask && (
-                            <div className="servant-detail-row">
-                                <span className="servant-detail-label">Task</span>
-                                <span className="servant-detail-value">{selectedServant.assignedTask}</span>
-                            </div>
-                        )}
-                    </div>
-                )}
             </div>
         </div>
     );
