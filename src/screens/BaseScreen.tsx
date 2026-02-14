@@ -5,6 +5,7 @@ import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
 import { SkitScreen } from './SkitScreen';
 import { HeroesScreen } from './HeroesScreen';
+import { StatBar } from './StatBar';
 
 export enum ScreenType {
     MENU = 'menu',
@@ -39,8 +40,11 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         }
     };
 
+    const showStatBar = screenType !== ScreenType.MENU;
+
     return (
         <div className="base-screen">
+            {showStatBar && <StatBar stage={stage} />}
             {renderScreen()}
         </div>
     );

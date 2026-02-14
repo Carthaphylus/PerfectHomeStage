@@ -3,6 +3,18 @@ import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 import type { SaveFileSlot } from '../Stage';
 
+// Skill icons
+import PowerIcon from '../assets/Images/Stats/Power.webp';
+import WisdomIcon from '../assets/Images/Stats/Wisdom.webp';
+import CharmIcon from '../assets/Images/Stats/Charm.webp';
+import SpeedIcon from '../assets/Images/Stats/Speed.webp';
+
+// Resource icons
+import GoldIcon from '../assets/Images/Resources/GoldIcon.png';
+import ComfortIcon from '../assets/Images/Resources/HouseholdComfort.png';
+import ObedienceIcon from '../assets/Images/Resources/HouseholdObedience.png';
+import ServantsIcon from '../assets/Images/Resources/Servants.png';
+
 interface MenuScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
@@ -82,6 +94,90 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 <h1 className="menu-title">Perfect Home</h1>
                 <div className="menu-subtitle">The Witch's Domain</div>
 
+                {/* Stats Dashboard */}
+                <div className="menu-stats-card">
+                    <div className="menu-stats-section">
+                        <div className="menu-stats-label">Skills</div>
+                        <div className="menu-stats-grid">
+                            <div className="menu-stat">
+                                <img src={PowerIcon} alt="Power" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Power</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.skills.power}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat">
+                                <img src={WisdomIcon} alt="Wisdom" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Wisdom</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.skills.wisdom}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat">
+                                <img src={CharmIcon} alt="Charm" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Charm</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.skills.charm}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat">
+                                <img src={SpeedIcon} alt="Speed" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Speed</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.skills.speed}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="menu-stats-divider" />
+
+                    <div className="menu-stats-section">
+                        <div className="menu-stats-label">Household</div>
+                        <div className="menu-stats-grid two-col">
+                            <div className="menu-stat">
+                                <img src={ComfortIcon} alt="Comfort" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Comfort</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.household.comfort}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat">
+                                <img src={ObedienceIcon} alt="Obedience" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Obedience</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.household.obedience}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="menu-stats-divider" />
+
+                    <div className="menu-stats-section">
+                        <div className="menu-stats-label">Resources</div>
+                        <div className="menu-stats-grid three-col">
+                            <div className="menu-stat">
+                                <img src={GoldIcon} alt="Gold" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Gold</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.gold}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat">
+                                <img src={ServantsIcon} alt="Servants" className="menu-stat-icon" />
+                                <div className="menu-stat-info">
+                                    <span className="menu-stat-name">Servants</span>
+                                    <span className="menu-stat-value">{stage().currentState.stats.servants}/{stage().currentState.stats.maxServants}</span>
+                                </div>
+                            </div>
+                            <div className="menu-stat day-stat">
+                                <div className="day-badge">Day {stage().currentState.stats.day}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Game Management */}
                 <div className="game-actions">
                     <button className="game-action-btn new-game" onClick={() => setShowNewGameConfirm(true)}>
@@ -108,24 +204,6 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             {option.label}
                         </button>
                     ))}
-                </div>
-
-                <div className="stats-summary">
-                    <div className="stats-row">
-                        <span>⚔️ Power: {stage().currentState.stats.skills.power}</span>
-                        <span>📖 Wisdom: {stage().currentState.stats.skills.wisdom}</span>
-                        <span>💎 Charm: {stage().currentState.stats.skills.charm}</span>
-                        <span>💨 Speed: {stage().currentState.stats.skills.speed}</span>
-                    </div>
-                    <div className="stats-row">
-                        <span>🏠 Comfort: {stage().currentState.stats.household.comfort}</span>
-                        <span>🫡 Obedience: {stage().currentState.stats.household.obedience}</span>
-                    </div>
-                    <div className="stats-row">
-                        <span>💰 Gold: {stage().currentState.stats.gold}</span>
-                        <span>👥 Servants: {stage().currentState.stats.servants}/{stage().currentState.stats.maxServants}</span>
-                        <span>📅 Day: {stage().currentState.stats.day}</span>
-                    </div>
                 </div>
             </div>
 
