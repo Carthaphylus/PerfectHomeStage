@@ -647,121 +647,127 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                         <>
                             {isRoomEmpty(selectedSlot.slotId, selectedRoom) ? (
                                 <>
-                                    <div className="room-detail-header">
-                                        <h3>Empty Slot</h3>
-                                        <span className="room-type-badge empty">{getFloorLocation(selectedSlot.floor)}</span>
-                                    </div>
-                                    
-                                    <div className="room-preview-image" style={{ backgroundImage: `url(${EmptyRoomImg})` }}></div>
-                                    
-                                    <div className="room-detail-content">
-                                        <p className="room-description">This space is available for construction.</p>
-                                        
-                                        <div className="room-stats">
-                                            <div className="stat-row">
-                                                <span className="stat-label">📍 Location:</span>
-                                                <span className="stat-value">
-                                                    {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
-                                                </span>
-                                            </div>
-                                            <div className="stat-row">
-                                                <span className="stat-label">🏷️ Type:</span>
-                                                <span className="stat-value">{getFloorLocation(selectedSlot.floor) === 'outdoors' ? 'Outdoor' : 'Indoor'} slot</span>
-                                            </div>
+                                    <div className="room-detail-scrollable">
+                                        <div className="room-detail-header">
+                                            <h3>Empty Slot</h3>
+                                            <span className="room-type-badge empty">{getFloorLocation(selectedSlot.floor)}</span>
                                         </div>
-
-                                        {showBuildPicker ? (
-                                            <div className="build-picker">
-                                                <h4>Choose a Room to Build</h4>
-                                                <div className="build-picker-list">
-                                                    {getBuildableRoomTypes(getFloorLocation(selectedSlot.floor)).map(room => (
-                                                        <div 
-                                                            key={room.type} 
-                                                            className="build-picker-item"
-                                                            onClick={() => handleBuildRoom(room.type)}
-                                                        >
-                                                            <div className="build-picker-image" style={{ backgroundImage: `url(${room.image})` }}></div>
-                                                            <div className="build-picker-info">
-                                                                <div className="build-picker-name">{room.name}</div>
-                                                                <div className="build-picker-desc">{room.description}</div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                        
+                                        <div className="room-preview-image" style={{ backgroundImage: `url(${EmptyRoomImg})` }}></div>
+                                        
+                                        <div className="room-detail-content">
+                                            <p className="room-description">This space is available for construction.</p>
+                                            
+                                            <div className="room-stats">
+                                                <div className="stat-row">
+                                                    <span className="stat-label">📍 Location:</span>
+                                                    <span className="stat-value">
+                                                        {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
+                                                    </span>
                                                 </div>
-                                                <button 
-                                                    className="action-button" 
-                                                    onClick={() => setShowBuildPicker(false)}
-                                                >
-                                                    Cancel
-                                                </button>
+                                                <div className="stat-row">
+                                                    <span className="stat-label">🏷️ Type:</span>
+                                                    <span className="stat-value">{getFloorLocation(selectedSlot.floor) === 'outdoors' ? 'Outdoor' : 'Indoor'} slot</span>
+                                                </div>
                                             </div>
+
+                                            {showBuildPicker && (
+                                                <div className="build-picker">
+                                                    <h4>Choose a Room to Build</h4>
+                                                    <div className="build-picker-list">
+                                                        {getBuildableRoomTypes(getFloorLocation(selectedSlot.floor)).map(room => (
+                                                            <div 
+                                                                key={room.type} 
+                                                                className="build-picker-item"
+                                                                onClick={() => handleBuildRoom(room.type)}
+                                                            >
+                                                                <div className="build-picker-image" style={{ backgroundImage: `url(${room.image})` }}></div>
+                                                                <div className="build-picker-info">
+                                                                    <div className="build-picker-name">{room.name}</div>
+                                                                    <div className="build-picker-desc">{room.description}</div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="room-actions">
+                                        {showBuildPicker ? (
+                                            <button 
+                                                className="action-button" 
+                                                onClick={() => setShowBuildPicker(false)}
+                                            >
+                                                Cancel
+                                            </button>
                                         ) : (
-                                            <div className="room-actions">
-                                                <button 
-                                                    className="action-button primary" 
-                                                    onClick={() => setShowBuildPicker(true)}
-                                                >
-                                                    🏗️ Build Room
-                                                </button>
-                                            </div>
+                                            <button 
+                                                className="action-button primary" 
+                                                onClick={() => setShowBuildPicker(true)}
+                                            >
+                                                🏗️ Build Room
+                                            </button>
                                         )}
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="room-detail-header">
-                                        <h3>{selectedRoom.name}</h3>
-                                        <span className="room-type-badge">{selectedRoom.type.replace('_', ' ')}</span>
-                                        <span className={`room-location-badge ${selectedRoom.location}`}>{selectedRoom.location}</span>
-                                    </div>
-                                    
-                                    <div className="room-preview-image" style={{ backgroundImage: `url(${selectedRoom.image})` }}></div>
-                                    
-                                    <div className="room-detail-content">
-                                        <p className="room-description">{selectedRoom.description}</p>
+                                    <div className="room-detail-scrollable">
+                                        <div className="room-detail-header">
+                                            <h3>{selectedRoom.name}</h3>
+                                            <span className="room-type-badge">{selectedRoom.type.replace('_', ' ')}</span>
+                                            <span className={`room-location-badge ${selectedRoom.location}`}>{selectedRoom.location}</span>
+                                        </div>
                                         
-                                        <div className="room-stats">
-                                            <div className="stat-row">
-                                                <span className="stat-label">📍 Location:</span>
-                                                <span className="stat-value">
-                                                    {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
-                                                </span>
-                                            </div>
-                                            <div className="stat-row">
-                                                <span className="stat-label">⭐ Level:</span>
-                                                <span className="stat-value">{selectedRoom.level}</span>
-                                            </div>
-                                            {selectedRoom.occupant && (
+                                        <div className="room-preview-image" style={{ backgroundImage: `url(${selectedRoom.image})` }}></div>
+                                        
+                                        <div className="room-detail-content">
+                                            <p className="room-description">{selectedRoom.description}</p>
+                                            
+                                            <div className="room-stats">
                                                 <div className="stat-row">
-                                                    <span className="stat-label">👤 Occupant:</span>
-                                                    <span className="stat-value">{selectedRoom.occupant}</span>
+                                                    <span className="stat-label">📍 Location:</span>
+                                                    <span className="stat-value">
+                                                        {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
+                                                    </span>
                                                 </div>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="room-effects">
-                                            <h4>Room Effects</h4>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">✨</span>
-                                                <span className="effect-text">Provides comfort and rest</span>
+                                                <div className="stat-row">
+                                                    <span className="stat-label">⭐ Level:</span>
+                                                    <span className="stat-value">{selectedRoom.level}</span>
+                                                </div>
+                                                {selectedRoom.occupant && (
+                                                    <div className="stat-row">
+                                                        <span className="stat-label">👤 Occupant:</span>
+                                                        <span className="stat-value">{selectedRoom.occupant}</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">💰</span>
-                                                <span className="effect-text">Generates +{selectedRoom.level * 10} income/day</span>
+                                            
+                                            <div className="room-effects">
+                                                <h4>Room Effects</h4>
+                                                <div className="effect-item">
+                                                    <span className="effect-icon">✨</span>
+                                                    <span className="effect-text">Provides comfort and rest</span>
+                                                </div>
+                                                <div className="effect-item">
+                                                    <span className="effect-icon">💰</span>
+                                                    <span className="effect-text">Generates +{selectedRoom.level * 10} income/day</span>
+                                                </div>
+                                                <div className="effect-item">
+                                                    <span className="effect-icon">📈</span>
+                                                    <span className="effect-text">+{selectedRoom.level * 5}% efficiency bonus</span>
+                                                </div>
                                             </div>
-                                            <div className="effect-item">
-                                                <span className="effect-icon">📈</span>
-                                                <span className="effect-text">+{selectedRoom.level * 5}% efficiency bonus</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="upgrade-info">
-                                            <h4>Next Upgrade</h4>
-                                            <div className="upgrade-cost">
-                                                <span>💎 Cost: {selectedRoom.level * 500} Gold</span>
-                                            </div>
-                                            <div className="upgrade-benefit">
-                                                <span>Unlocks: Enhanced functions</span>
+                                            
+                                            <div className="upgrade-info">
+                                                <h4>Next Upgrade</h4>
+                                                <div className="upgrade-cost">
+                                                    <span>💎 Cost: {selectedRoom.level * 500} Gold</span>
+                                                </div>
+                                                <div className="upgrade-benefit">
+                                                    <span>Unlocks: Enhanced functions</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
