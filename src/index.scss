@@ -319,7 +319,7 @@ html, body, #root {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       
       .slot-name {
         font-size: 14px;
@@ -333,6 +333,49 @@ html, body, #root {
         background: rgba(58, 48, 64, 0.5) !important;
         padding: 2px 8px;
         border-radius: 4px;
+      }
+    }
+
+    .slot-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      margin-bottom: 10px;
+      background: rgba(26, 18, 34, 0.6) !important;
+      border: 1px solid rgba(100, 80, 120, 0.2);
+      border-radius: 6px;
+
+      .slot-stats-row {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .slot-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+
+        .slot-stat-icon {
+          width: 16px;
+          height: 16px;
+          object-fit: contain;
+        }
+      }
+
+      .slot-day {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--highlight);
+        padding: 1px 8px;
+        background: rgba(138, 106, 154, 0.2);
+        border: 1px solid rgba(138, 106, 154, 0.3);
+        border-radius: 8px;
       }
     }
     

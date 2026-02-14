@@ -53,7 +53,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
         }
         const builtCount = manorSlots.filter(s => s.roomType !== null).length;
         const name = `Manor (${builtCount} rooms)`;
-        const ok = stage().saveToSlot(slotIndex, name, manorSlots);
+        const ok = stage().saveToSlot(slotIndex, name, manorSlots, stage().currentState.stats);
         if (ok) {
             setSaveSlots(stage().getSaveSlots());
             flashMessage(`💾 Saved to Slot ${slotIndex + 1}!`);
@@ -69,6 +69,9 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             return;
         }
         stage().syncManorSlots(saveFile.data);
+        if (saveFile.stats) {
+            stage().restoreStats(saveFile.stats);
+        }
         setShowSaveMenu(false);
         flashMessage(`📂 Loaded Slot ${slotIndex + 1}!`);
         setScreenType(ScreenType.MANOR);
@@ -270,6 +273,26 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                                             <span className="slot-rooms">
                                                 {saveFile.data.filter(s => s.roomType !== null).length} / {saveFile.data.length} rooms built
                                             </span>
+                                        </div>
+                                    )}
+
+                                    {saveFile?.stats && (
+                                        <div className="slot-stats">
+                                            <div className="slot-stats-row">
+                                                <span className="slot-stat"><img src={PowerIcon} alt="" className="slot-stat-icon" />{saveFile.stats.skills.power}</span>
+                                                <span className="slot-stat"><img src={WisdomIcon} alt="" className="slot-stat-icon" />{saveFile.stats.skills.wisdom}</span>
+                                                <span className="slot-stat"><img src={CharmIcon} alt="" className="slot-stat-icon" />{saveFile.stats.skills.charm}</span>
+                                                <span className="slot-stat"><img src={SpeedIcon} alt="" className="slot-stat-icon" />{saveFile.stats.skills.speed}</span>
+                                            </div>
+                                            <div className="slot-stats-row">
+                                                <span className="slot-stat"><img src={GoldIcon} alt="" className="slot-stat-icon" />{saveFile.stats.gold}</span>
+                                                <span className="slot-stat"><img src={ServantsIcon} alt="" className="slot-stat-icon" />{saveFile.stats.servants}/{saveFile.stats.maxServants}</span>
+                                                <span className="slot-stat"><img src={ComfortIcon} alt="" className="slot-stat-icon" />{saveFile.stats.household.comfort}</span>
+                                                <span className="slot-stat"><img src={ObedienceIcon} alt="" className="slot-stat-icon" />{saveFile.stats.household.obedience}</span>
+                                            </div>
+                                            <div className="slot-stats-row">
+                                                <span className="slot-day">Day {saveFile.stats.day}</span>
+                                            </div>
                                         </div>
                                     )}
                                     

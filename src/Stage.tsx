@@ -137,6 +137,7 @@ export interface SaveFileSlot {
     name: string;
     timestamp: number; // ms since epoch
     data: SavedSlotData[];
+    stats?: WitchStats; // saved stats snapshot
 }
 
 export const MAX_SAVE_SLOTS = 3;
@@ -410,6 +411,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** Reset manor to defaults (new game) */
     resetManor(): void {
         this.chatState.manorSlots = undefined;
+        // Reset stats to defaults
+        const defaults = this.getDefaultMessageState();
+        this.currentState.stats = defaults.stats;
+    }
+
+    /** Restore stats from a save file */
+    restoreStats(stats: WitchStats): void {
+        this.currentState.stats = { ...stats };
     }
 
     /** Get all save file slots */
@@ -431,8 +440,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return slots;
     }
 
-    /** Save manor data to a specific slot */
-    saveToSlot(slotIndex: number, name: string, data: SavedSlotData[]): boolean {
+    /** Save manor data and stats to a specific slot */
+    saveToSlot(slotIndex: number, name: string, data: SavedSlotData[], stats?: WitchStats): boolean {
         if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return false;
         try {
             const key = `${this.storageKey}_slot_${slotIndex}`;
@@ -440,6 +449,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 name,
                 timestamp: Date.now(),
                 data,
+                stats: stats || this.currentState.stats,
             };
             localStorage.setItem(key, JSON.stringify(saveFile));
             return true;
