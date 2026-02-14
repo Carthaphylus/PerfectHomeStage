@@ -715,6 +715,7 @@ html, body, #root {
   
   .manor-content {
     flex: 1;
+    min-height: 0; // Critical for flex child scrolling
     display: flex;
     gap: 20px;
     padding: 0 20px 20px 20px;
@@ -1097,13 +1098,33 @@ html, body, #root {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0; // Critical for flex child scrolling
     transition: all 0.3s;
 
     .room-detail-scrollable {
       flex: 1;
       min-height: 0;
-      overflow-y: auto;
+      overflow-y: scroll !important;
       padding-right: 4px;
+
+      // Custom scrollbar styling
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: rgba(42, 32, 64, 0.3) !important;
+        border-radius: 3px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(138, 43, 226, 0.5) !important;
+        border-radius: 3px;
+        
+        &:hover {
+          background: rgba(138, 43, 226, 0.7) !important;
+        }
+      }
     }
     
     &.visible {
