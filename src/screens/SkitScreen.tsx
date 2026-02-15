@@ -33,12 +33,42 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
     const servants = Object.values(s.currentState.servants);
     const activeSkit = s.currentState.activeSkit;
     const [selectedLocation, setSelectedLocation] = useState<Location>(s.currentState.location);
+    const [inputText, setInputText] = useState('');
+    const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     // Auto-scroll to latest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [activeSkit?.messages?.length]);
+
+    // Focus input on mount
+    useEffect(() => {
+        if (activeSkit) {
+            setTimeout(() => inputRef.current?.focus(), 100);
+        }
+    }, [activeSkit]);
+
+    const handleSend = async () => {
+        const text = inputText.trim();
+        if (!text || isSending) return;
+        setInputText('');
+        setIsSending(true);
+        try {
+            await s.sendSkitMessage(text);
+        } finally {
+            setIsSending(false);
+            setTimeout(() => inputRef.current?.focus(), 50);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
 
     const handleStartSkit = (servant: Servant) => {
         s.startSkit(servant.name, selectedLocation);
@@ -109,9 +139,28 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Bottom hint */}
-                <div className="skit-bottom-bar">
-                    <span className="skit-chat-hint">⬇ Send a message in the chat below ⬇</span>
+                {/* Input bar */}
+                <div className="skit-input-bar">
+                    <img className="skit-input-avatar" src={pcAvatar} alt={pcName} />
+                    <div className="skit-input-wrapper">
+                        <textarea
+                            ref={inputRef}
+                            className="skit-input"
+                            placeholder={`Speak as ${pcName}...`}
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            disabled={isSending}
+                            rows={1}
+                        />
+                    </div>
+                    <button
+                        className={`skit-send-btn ${isSending ? 'sending' : ''}`}
+                        onClick={handleSend}
+                        disabled={isSending || !inputText.trim()}
+                    >
+                        {isSending ? '...' : '▶'}
+                    </button>
                 </div>
             </div>
         );

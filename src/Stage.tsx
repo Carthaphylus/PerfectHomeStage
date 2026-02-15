@@ -488,11 +488,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         // If a skit is active, handle skit conversation
         if (skit) {
-            // Add player message to skit history
-            skit.messages.push({
-                sender: this.currentState.playerCharacter.name,
-                text: content,
-            });
+            // Only add to history if not already added by sendSkitMessage
+            const lastMsg = skit.messages[skit.messages.length - 1];
+            const pcName = this.currentState.playerCharacter.name;
+            if (!lastMsg || lastMsg.sender !== pcName || lastMsg.text !== content) {
+                skit.messages.push({
+                    sender: pcName,
+                    text: content,
+                });
+            }
 
             return {
                 stageDirections: this.generateSkitDirections(skit, content),
@@ -716,6 +720,32 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** End the active skit */
     endSkit(): void {
         this.currentState.activeSkit = null;
+    }
+
+    /**
+     * Send a message in the active skit as Citrine.
+     * Uses the SDK's impersonate API to inject a player message and trigger the bot response.
+     * Returns true if it succeeded.
+     */
+    async sendSkitMessage(text: string): Promise<boolean> {
+        const skit = this.currentState.activeSkit;
+        if (!skit || !text.trim()) return false;
+
+        // Add to local skit history immediately (player side)
+        skit.messages.push({
+            sender: this.currentState.playerCharacter.name,
+            text: text.trim(),
+        });
+
+        try {
+            // Use impersonate to send the message through chub — this triggers
+            // beforePrompt → LLM → afterResponse, which will add the bot reply
+            await this.messenger.impersonate({ message: text.trim() });
+            return true;
+        } catch (e) {
+            console.error('Skit send failed:', e);
+            return false;
+        }
     }
 
     /** Get character bio data by name */
