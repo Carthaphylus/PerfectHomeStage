@@ -73,6 +73,9 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
         if (saveFile.stats) {
             stage().restoreStats(saveFile.stats);
         }
+        if (saveFile.generatedImages) {
+            stage().restoreGeneratedImages(saveFile.generatedImages);
+        }
         setShowSaveMenu(false);
         flashMessage(`📂 Loaded Slot ${slotIndex + 1}!`);
         setScreenType(ScreenType.MANOR);

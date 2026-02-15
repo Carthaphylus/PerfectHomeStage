@@ -276,6 +276,7 @@ export interface SaveFileSlot {
     timestamp: number; // ms since epoch
     data: SavedSlotData[];
     stats?: WitchStats; // saved stats snapshot
+    generatedImages?: Record<string, Record<string, string>>; // gallery images
 }
 
 export const MAX_SAVE_SLOTS = 3;
@@ -879,6 +880,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this.currentState.stats = { ...stats };
     }
 
+    /** Restore generated images from a save file */
+    restoreGeneratedImages(images: Record<string, Record<string, string>>): void {
+        this.chatState.generatedImages = JSON.parse(JSON.stringify(images));
+    }
+
     /** Get all save file slots */
     getSaveSlots(): (SaveFileSlot | null)[] {
         const slots: (SaveFileSlot | null)[] = [];
@@ -898,7 +904,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return slots;
     }
 
-    /** Save manor data and stats to a specific slot */
+    /** Save manor data, stats, and generated images to a specific slot */
     saveToSlot(slotIndex: number, name: string, data: SavedSlotData[], stats?: WitchStats): boolean {
         if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return false;
         try {
@@ -908,6 +914,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 timestamp: Date.now(),
                 data,
                 stats: stats || this.currentState.stats,
+                generatedImages: this.chatState.generatedImages || undefined,
             };
             localStorage.setItem(key, JSON.stringify(saveFile));
             return true;
