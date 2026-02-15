@@ -2262,38 +2262,41 @@ html, body, #root {
     // ─── Character sprites ───
     .vn-sprites {
       position: absolute;
-      bottom: 0;
+      bottom: 110px; // above text box
       left: 0;
       right: 0;
-      height: 75%;
+      top: 36px; // below top bar
       z-index: 5;
       pointer-events: none;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
+      padding: 0 6%;
     }
 
     .vn-sprite {
       position: relative;
-      width: 42%;
+      width: 30%;
       max-height: 100%;
       display: flex;
       align-items: flex-end;
+      justify-content: center;
       transition: filter 0.4s, opacity 0.4s, transform 0.4s;
 
       img {
-        width: 100%;
+        width: auto;
         height: auto;
+        max-width: 100%;
         max-height: 100%;
         object-fit: contain;
-        object-position: bottom;
+        object-position: bottom center;
         filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
       }
 
       &.dimmed {
         filter: brightness(0.5) saturate(0.4);
-        opacity: 0.7;
-        transform: scale(0.95);
+        opacity: 0.65;
+        transform: scale(0.92) translateY(4px);
       }
 
       &.speaking {
@@ -2303,13 +2306,11 @@ html, body, #root {
       }
 
       &.vn-sprite-left {
-        justify-content: flex-start;
-        padding-left: 4%;
+        align-self: flex-end;
       }
 
       &.vn-sprite-right {
-        justify-content: flex-end;
-        padding-right: 4%;
+        align-self: flex-end;
       }
     }
 
@@ -2349,7 +2350,7 @@ html, body, #root {
       font-size: 11px;
       line-height: 1.8;
       color: var(--text-primary);
-      white-space: pre-wrap;
+      white-space: normal;
       word-break: break-word;
 
       &.vn-hint-text {
@@ -2357,6 +2358,27 @@ html, body, #root {
         font-style: italic;
         text-align: center;
         padding: 12px 0;
+      }
+    }
+
+    .vn-waiting-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding-top: 6px;
+
+      .typing-dot {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--char-color, rgba(200, 170, 110, 0.6));
+        opacity: 0.4;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+
+        &:nth-child(1) { animation-delay: 0s; }
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.4s; }
       }
     }
 
