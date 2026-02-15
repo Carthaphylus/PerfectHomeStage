@@ -291,6 +291,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     public chatState: ChatStateType;
     private storageKey: string;
 
+    // Skit messages stored outside messageState so setState() can't wipe them
+    public skitMessages: SkitMessage[] = [];
+
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         super(data);
         const { config, messageState, chatState, users } = data;
@@ -489,10 +492,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // If a skit is active, handle skit conversation
         if (skit) {
             // Only add to history if not already added by sendSkitMessage
-            const lastMsg = skit.messages[skit.messages.length - 1];
+            const lastMsg = this.skitMessages[this.skitMessages.length - 1];
             const pcName = this.currentState.playerCharacter.name;
             if (!lastMsg || lastMsg.sender !== pcName || lastMsg.text !== content) {
-                skit.messages.push({
+                this.skitMessages.push({
                     sender: pcName,
                     text: content,
                 });
@@ -529,7 +532,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         // If a skit is active, capture the bot response as the character's reply
         if (skit) {
-            skit.messages.push({
+            this.skitMessages.push({
                 sender: skit.characterName,
                 text: content,
             });
@@ -710,6 +713,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     /** Start a conversation skit with a character */
     startSkit(characterName: string, location: Location): void {
+        this.skitMessages = [];
         this.currentState.activeSkit = {
             characterName,
             location,
@@ -719,6 +723,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     /** End the active skit */
     endSkit(): void {
+        this.skitMessages = [];
         this.currentState.activeSkit = null;
     }
 
@@ -733,7 +738,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!skit || !text.trim()) return false;
 
         // Add to local skit history immediately (player side)
-        skit.messages.push({
+        this.skitMessages.push({
             sender: this.currentState.playerCharacter.name,
             text: text.trim(),
         });
@@ -786,8 +791,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
 
         // Include recent conversation history for context
-        if (skit.messages.length > 0) {
-            const recent = skit.messages.slice(-10);
+        if (this.skitMessages.length > 0) {
+            const recent = this.skitMessages.slice(-10);
             lines.push('\nRecent conversation:');
             for (const msg of recent) {
                 lines.push(`${msg.sender}: ${msg.text}`);

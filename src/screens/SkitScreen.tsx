@@ -37,11 +37,12 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
     const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const skitMessages = s.skitMessages;
 
     // Auto-scroll to latest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [activeSkit?.messages?.length]);
+    }, [skitMessages.length]);
 
     // Focus input on mount
     useEffect(() => {
@@ -114,13 +115,13 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
 
                 {/* Messages area */}
                 <div className="skit-conversation">
-                    {activeSkit.messages.length === 0 && (
+                    {skitMessages.length === 0 && (
                         <div className="skit-empty-hint">
                             <div className="skit-empty-icon">💬</div>
                             <p>Type in the chat below to begin speaking with {activeSkit.characterName}.</p>
                         </div>
                     )}
-                    {activeSkit.messages.map((msg, i) => {
+                    {skitMessages.map((msg, i) => {
                         const isPlayer = msg.sender === pcName;
                         const avatar = isPlayer ? pcAvatar : charAvatar;
                         return (
