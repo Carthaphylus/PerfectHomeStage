@@ -63,6 +63,20 @@ import PlankBackgroundImg from '../assets/Images/BackGround/plank.jpg';
 
 type FloorType = 'basement' | '1st' | '2nd' | 'outside';
 
+// Effect and action descriptors for the room system
+export interface RoomEffect {
+    icon: string;
+    text: string;
+    stat?: string;     // Which stat this affects (for future mechanical use)
+    value?: number;    // Numeric value (for future calculation)
+}
+
+export interface RoomAction {
+    icon: string;
+    label: string;
+    key: string;       // Identifier for action handling
+}
+
 // Base Room class - all rooms extend from this
 // Only contains room-specific properties, not slot/position data
 export abstract class BaseRoom {
@@ -112,6 +126,18 @@ export abstract class BaseRoom {
     getEfficiencyBonus(): number {
         return this.level * 5;
     }
+
+    getUpkeep(): number {
+        return 0;
+    }
+
+    getEffects(): RoomEffect[] {
+        return [];
+    }
+
+    getActions(): RoomAction[] {
+        return [];
+    }
 }
 
 // Specific room type classes - only define room properties, not position
@@ -121,9 +147,24 @@ class YourRoomClass extends BaseRoom {
         this.name = 'Your Room';
         this.type = 'your_room';
         this.image = YourRoomImg;
-        this.description = 'Your personal quarters';
+        this.description = 'Your personal quarters — a private sanctuary for rest and planning.';
         this.buildable = false;
         this.location = 'indoors';
+    }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '💤', text: 'Personal rest & recovery', stat: 'rest', value: 1 },
+            { icon: '📋', text: 'Planning bonus', stat: 'planning', value: 1 },
+            { icon: '🔮', text: 'Private hypnosis sessions', stat: 'hypnosis', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '💤', label: 'Rest', key: 'rest' },
+            { icon: '📋', label: 'Plan', key: 'plan' },
+        ];
     }
 }
 
@@ -133,9 +174,27 @@ class RitualRoomClass extends BaseRoom {
         this.name = 'Ritual Room';
         this.type = 'ritual';
         this.image = RitualImg;
-        this.description = 'Where the magic happens';
+        this.description = 'A dark chamber for summoning demons and performing unholy rituals.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 8; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '👹', text: 'Unlocks demon summoning', stat: 'summoning', value: 1 },
+            { icon: '⛧', text: 'Unlocks unholy rituals', stat: 'rituals', value: 1 },
+            { icon: '🖤', text: 'Assigned servant: ++Corruption', stat: 'corruption', value: 2 },
+            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '👹', label: 'Summon Demon', key: 'summon_demon' },
+            { icon: '⛧', label: 'Perform Ritual', key: 'perform_ritual' },
+        ];
     }
 }
 
@@ -145,9 +204,19 @@ class QuartersClass extends BaseRoom {
         this.name = 'Servant Quarters';
         this.type = 'quarters';
         this.image = QuartersImg;
-        this.description = 'Housing for your servants';
+        this.description = 'Comfortable housing for your servants. Each quarters houses up to 10.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 3; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '🛏️', text: `+${this.level * 10} Servant capacity`, stat: 'servant_capacity', value: this.level * 10 },
+            { icon: '❤️', text: 'Assigned servant: +Love', stat: 'love', value: 1 },
+            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+        ];
     }
 }
 
@@ -157,9 +226,25 @@ class ClassroomClass extends BaseRoom {
         this.name = 'Classroom';
         this.type = 'classroom';
         this.image = ClassroomImg;
-        this.description = 'Education and training';
+        this.description = 'A space for education and training. Lessons raise obedience across the board.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '📚', text: '+Obedience for all servants (lessons)', stat: 'obedience_all', value: 1 },
+            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+            { icon: '🎓', text: 'Unlocks skill teaching', stat: 'skills', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '📚', label: 'Start Lesson', key: 'start_lesson' },
+        ];
     }
 }
 
@@ -169,9 +254,17 @@ class StorageClass extends BaseRoom {
         this.name = 'Storage';
         this.type = 'storage';
         this.image = StorageImg;
-        this.description = 'Keep your items safe';
+        this.description = 'A secure room for storing items and materials.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 2; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '📦', text: `+${this.level * 20} Item capacity`, stat: 'item_capacity', value: this.level * 20 },
+        ];
     }
 }
 
@@ -181,9 +274,25 @@ class KitchenClass extends BaseRoom {
         this.name = 'Kitchen';
         this.type = 'kitchen';
         this.image = OvenImg;
-        this.description = 'Where meals are prepared for the manor';
+        this.description = 'Where meals are prepared for the manor. Good food keeps everyone happy.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 4; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '🍖', text: '+Manor-wide morale (food)', stat: 'morale', value: 1 },
+            { icon: '💪', text: 'Servant stamina recovery boost', stat: 'stamina', value: 1 },
+            { icon: '🍳', text: 'Unlocks meal recipes', stat: 'recipes', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '🍳', label: 'Cook', key: 'cook' },
+        ];
     }
 }
 
@@ -193,9 +302,19 @@ class LoungeClass extends BaseRoom {
         this.name = 'Lounge';
         this.type = 'lounge';
         this.image = QuartersImg; // Placeholder
-        this.description = 'A comfortable space for relaxation and socializing';
+        this.description = 'A comfortable space for relaxation and socializing among servants.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 4; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '🛋️', text: '+Manor-wide comfort', stat: 'comfort', value: 1 },
+            { icon: '💬', text: 'Social interaction bonus', stat: 'social', value: 1 },
+            { icon: '❤️', text: '+Loyalty for visiting servants', stat: 'loyalty', value: 1 },
+        ];
     }
 }
 
@@ -217,9 +336,25 @@ class BrewingRoomClass extends BaseRoom {
         this.name = 'Brewing Room';
         this.type = 'brewing';
         this.image = BrewingImg;
-        this.description = 'Potion crafting area';
+        this.description = 'A workshop for crafting potions, elixirs, and other concoctions.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 6; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '⚗️', text: 'Unlocks potion crafting', stat: 'potions', value: 1 },
+            { icon: '🧪', text: '+Potion potency', stat: 'potion_potency', value: 1 },
+            { icon: '🌿', text: 'Produces reagents', stat: 'reagents', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '⚗️', label: 'Brew', key: 'brew' },
+        ];
     }
 }
 
@@ -229,9 +364,19 @@ class StableClass extends BaseRoom {
         this.name = 'Stable';
         this.type = 'stable';
         this.image = StableImg;
-        this.description = 'For magical creatures';
+        this.description = 'Shelter for magical creatures and beasts of burden.';
         this.buildable = true;
         this.location = 'outdoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '🐴', text: '+Creature capacity', stat: 'creature_capacity', value: 1 },
+            { icon: '💨', text: 'Travel speed bonus', stat: 'travel_speed', value: 1 },
+            { icon: '🧬', text: 'Unlocks creature taming', stat: 'taming', value: 1 },
+        ];
     }
 }
 
@@ -241,9 +386,23 @@ class DungeonClass extends BaseRoom {
         this.name = 'Dungeon';
         this.type = 'dungeon';
         this.image = DungeonImg;
-        this.description = 'A dark chamber for interrogation and training';
+        this.description = 'A dark chamber for interrogation, punishment, and breaking resistance.';
         this.buildable = false;
         this.location = 'indoors';
+    }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '😰', text: 'Interrogation chamber', stat: 'interrogation', value: 1 },
+            { icon: '⛓️', text: 'Punishment training', stat: 'punishment', value: 1 },
+            { icon: '👁️', text: '+Fear generation', stat: 'fear', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '😰', label: 'Interrogate', key: 'interrogate' },
+        ];
     }
 }
 
@@ -253,9 +412,25 @@ class CellClass extends BaseRoom {
         this.name = 'Cell';
         this.type = 'cell';
         this.image = CellImg;
-        this.description = 'A holding cell for captives';
+        this.description = 'A small holding cell for prisoners. Breaks down resistance over time.';
         this.buildable = true;
         this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 2; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: '🔒', text: '+1 Captive capacity', stat: 'captive_capacity', value: 1 },
+            { icon: '💫', text: 'Resistance breakdown over time', stat: 'resistance_break', value: 1 },
+            { icon: '😶', text: 'Isolation effect (weakens will)', stat: 'isolation', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: '😰', label: 'Interrogate', key: 'interrogate' },
+        ];
     }
 }
 
@@ -471,6 +646,11 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     const slotsWithRooms = getSlotsWithRooms();
     const currentFloorSlots = slotsWithRooms.filter(slot => slot.floor === currentFloor);
 
+    // Total daily upkeep across all built rooms
+    const totalUpkeep = slotsWithRooms
+        .filter(s => s.room.type !== 'empty')
+        .reduce((sum, s) => sum + s.room.getUpkeep(), 0);
+
     // Get the location type for the current floor
     const getFloorLocation = (floor: FloorType): 'indoors' | 'outdoors' => {
         return floor === 'outside' ? 'outdoors' : 'indoors';
@@ -574,6 +754,11 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                     <div className="info-section">
                         <div className="info-label">Rooms on Floor</div>
                         <div className="info-value">{currentFloorSlots.length}</div>
+                    </div>
+
+                    <div className="info-section">
+                        <div className="info-label">Daily Upkeep</div>
+                        <div className="info-value">🔧 {totalUpkeep} gold/day</div>
                     </div>
                     
                     <div className="info-divider"></div>
@@ -717,27 +902,34 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             
                                             <div className="room-effects">
                                                 <h4>Room Effects</h4>
-                                                <div className="effect-item">
-                                                    <span className="effect-icon">✨</span>
-                                                    <span className="effect-text">Provides comfort and rest</span>
-                                                </div>
-                                                <div className="effect-item">
-                                                    <span className="effect-icon">💰</span>
-                                                    <span className="effect-text">Generates +{selectedRoom.level * 10} income/day</span>
-                                                </div>
-                                                <div className="effect-item">
-                                                    <span className="effect-icon">📈</span>
-                                                    <span className="effect-text">+{selectedRoom.level * 5}% efficiency bonus</span>
-                                                </div>
+                                                {selectedRoom.getEffects().length > 0 ? (
+                                                    selectedRoom.getEffects().map((effect, i) => (
+                                                        <div key={i} className="effect-item">
+                                                            <span className="effect-icon">{effect.icon}</span>
+                                                            <span className="effect-text">{effect.text}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="effect-item">
+                                                        <span className="effect-icon">—</span>
+                                                        <span className="effect-text">No special effects</span>
+                                                    </div>
+                                                )}
                                             </div>
                                             
+                                            {selectedRoom.getUpkeep() > 0 && (
+                                                <div className="upgrade-info">
+                                                    <h4>Upkeep</h4>
+                                                    <div className="upgrade-cost">
+                                                        <span>🔧 {selectedRoom.getUpkeep()} gold/day</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="upgrade-info">
                                                 <h4>Next Upgrade</h4>
                                                 <div className="upgrade-cost">
-                                                    <span>💎 Cost: {selectedRoom.level * 500} Gold</span>
-                                                </div>
-                                                <div className="upgrade-benefit">
-                                                    <span>Unlocks: Enhanced functions</span>
+                                                    <span>💎 Cost: {selectedRoom.getUpgradeCost()} Gold</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -746,6 +938,11 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                     <div className="room-actions">
                                         <button className="action-button primary">⬆️ Upgrade</button>
                                         <button className="action-button">🎭 Enter</button>
+                                        {selectedRoom.getActions().map((action, i) => (
+                                            <button key={i} className="action-button">
+                                                {action.icon} {action.label}
+                                            </button>
+                                        ))}
                                         {selectedRoom.buildable && (
                                             <button 
                                                 className="action-button danger" 
@@ -808,14 +1005,11 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
                                             <div className="catalogue-detail-section">
                                                 <h4>Effects</h4>
-                                                <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label">💰 Income</span>
-                                                    <span className="catalogue-detail-value">+{preview.getIncomePerDay()} gold/day</span>
-                                                </div>
-                                                <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label">📈 Efficiency</span>
-                                                    <span className="catalogue-detail-value">+{preview.getEfficiencyBonus()}%</span>
-                                                </div>
+                                                {preview.getEffects().map((effect, i) => (
+                                                    <div key={i} className="catalogue-detail-row">
+                                                        <span className="catalogue-detail-label">{effect.icon} {effect.text}</span>
+                                                    </div>
+                                                ))}
                                             </div>
 
                                             <div className="catalogue-detail-section">
@@ -826,7 +1020,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 </div>
                                                 <div className="catalogue-detail-row">
                                                     <span className="catalogue-detail-label">🔧 Upkeep</span>
-                                                    <span className="catalogue-detail-value">{Math.round(preview.getIncomePerDay() * 0.3)} gold/day</span>
+                                                    <span className="catalogue-detail-value">{preview.getUpkeep()} gold/day</span>
                                                 </div>
                                             </div>
 
