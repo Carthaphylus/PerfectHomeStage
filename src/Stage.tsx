@@ -173,17 +173,17 @@ export interface DungeonProgress {
     lastBoss?: string;
 }
 
-// Skit conversation message
-export interface SkitMessage {
+// Scene conversation message
+export interface SceneMessage {
     sender: string;
     text: string;
 }
 
-// Active skit state
-export interface ActiveSkitState {
-    characterName: string;
+// Scene descriptor — passed to React as a prop snapshot, NOT stored in messageState
+export interface SceneData {
+    id: number;                 // Unique scene ID
+    participants: string[];     // NPC names in scene
     location: Location;
-    messages: SkitMessage[];
 }
 
 // Personal skill stats (used for skill checks)
@@ -223,7 +223,7 @@ type MessageStateType = {
     manorUpgrades: { [upgradeName: string]: ManorUpgrade };
     dungeonProgress?: DungeonProgress;
     currentQuest?: string;
-    activeSkit?: ActiveSkitState | null;
+    // NOTE: scene state is NOT stored here — it's ephemeral, owned by React
 };
 
 /***
@@ -291,11 +291,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     public chatState: ChatStateType;
     private storageKey: string;
 
-    // Skit messages stored outside messageState so setState() can't wipe them
-    public skitMessages: SkitMessage[] = [];
-
-    // Monotonic skit version counter — increments every startSkit(), used as React key
-    private _skitId: number = 0;
+    // Active scene state — ephemeral, NOT in messageState, immune to setState()
+    private _activeScene: SceneData | null = null;
+    private _sceneMessages: SceneMessage[] = [];
+    private _sceneIdCounter: number = 0;
 
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         super(data);
@@ -490,22 +489,22 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     async beforePrompt(userMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {
         const content = userMessage.content;
-        const skit = this.currentState.activeSkit;
+        const scene = this._activeScene;
 
-        // If a skit is active, handle skit conversation
-        if (skit) {
-            // Only add to history if not already added by sendSkitMessage
-            const lastMsg = this.skitMessages[this.skitMessages.length - 1];
+        // If a scene is active, handle scene conversation
+        if (scene) {
+            // Only add to history if not already added by sendSceneMessage
+            const lastMsg = this._sceneMessages[this._sceneMessages.length - 1];
             const pcName = this.currentState.playerCharacter.name;
             if (!lastMsg || lastMsg.sender !== pcName || lastMsg.text !== content) {
-                this.skitMessages.push({
+                this._sceneMessages.push({
                     sender: pcName,
                     text: content,
                 });
             }
 
             return {
-                stageDirections: this.generateSkitDirections(skit, content),
+                stageDirections: this.generateSceneDirections(scene, content),
                 messageState: this.currentState,
                 modifiedMessage: null,
                 systemMessage: null,
@@ -531,12 +530,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     async afterResponse(botMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {
         const content = botMessage.content;
-        const skit = this.currentState.activeSkit;
+        const scene = this._activeScene;
 
-        // If a skit is active, capture the bot response as the character's reply
-        if (skit) {
-            this.skitMessages.push({
-                sender: skit.characterName,
+        // If a scene is active, capture the bot response as the character's reply
+        if (scene) {
+            // Infer speaker: use first participant (for multi-NPC, the LLM names itself)
+            const speaker = scene.participants[0] || 'NPC';
+            this._sceneMessages.push({
+                sender: speaker,
                 text: content,
             });
 
@@ -711,73 +712,73 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     // ============================
-    // Skit Methods
+    // Scene Methods
     // ============================
 
-    /** Get the current skit version (changes on every startSkit) */
-    getSkitId(): number {
-        return this._skitId;
-    }
-
-    /** Get the current active skit (or null) */
-    getActiveSkit(): ActiveSkitState | null {
-        return this.currentState.activeSkit || null;
-    }
-
-    /** Get the current skit messages array */
-    getSkitMessages(): SkitMessage[] {
-        return this.skitMessages;
-    }
-
-    /** Start a conversation skit with a character */
-    startSkit(characterName: string, location: Location): void {
-        // Wipe any previous skit state cleanly
-        this.skitMessages = [];
-        this._skitId++;
-        this.currentState.activeSkit = {
-            characterName,
+    /**
+     * Create a new scene with the given participants and location.
+     * Returns a SceneData snapshot that React components can own.
+     * Scene state is ephemeral — NOT stored in messageState, immune to setState().
+     */
+    createScene(participants: string[], location: Location): SceneData {
+        // Wipe any previous scene
+        this._sceneMessages = [];
+        this._sceneIdCounter++;
+        const scene: SceneData = {
+            id: this._sceneIdCounter,
+            participants: [...participants],
             location,
-            messages: [],
         };
-        console.log(`[Skit] Started skit #${this._skitId} with ${characterName} at ${location}`);
+        this._activeScene = scene;
+        console.log(`[Scene] Created scene #${scene.id} with [${participants.join(', ')}] at ${location}`);
+        return { ...scene }; // Return a copy — React owns this
     }
 
-    /** End the active skit */
-    endSkit(): void {
-        const prev = this.currentState.activeSkit?.characterName || 'none';
-        this.skitMessages = [];
-        this.currentState.activeSkit = null;
-        console.log(`[Skit] Ended skit with ${prev}`);
+    /** End the active scene, returns void */
+    endScene(): void {
+        const prev = this._activeScene?.participants.join(', ') || 'none';
+        this._sceneMessages = [];
+        this._activeScene = null;
+        console.log(`[Scene] Ended scene with [${prev}]`);
+    }
+
+    /** Check if a scene is currently active */
+    isSceneActive(): boolean {
+        return this._activeScene !== null;
     }
 
     /**
-     * Send a message in the active skit as Citrine.
-     * Adds player message to local history, then uses nudge to get the LLM
-     * to respond in character. We skip impersonate entirely — the conversation
-     * is managed locally and passed via stage_directions.
+     * Send a player message in the active scene.
+     * Returns the NPC reply message, or null on failure.
+     * The caller (React component) owns message state — we just provide the API.
      */
-    async sendSkitMessage(text: string): Promise<boolean> {
-        const skit = this.currentState.activeSkit;
-        if (!skit || !text.trim()) return false;
+    async sendSceneMessage(text: string): Promise<SceneMessage | null> {
+        const scene = this._activeScene;
+        if (!scene || !text.trim()) return null;
 
-        // Add to local skit history immediately (player side)
-        this.skitMessages.push({
-            sender: this.currentState.playerCharacter.name,
+        const pcName = this.currentState.playerCharacter.name;
+
+        // Add player message to internal history (for stage_directions context)
+        this._sceneMessages.push({
+            sender: pcName,
             text: text.trim(),
         });
 
         try {
-            // Use nudge to trigger the bot to respond as the skit character.
-            // The full conversation history + character info is passed via stage_directions.
-            // No impersonate needed — we manage the skit conversation ourselves.
             await this.messenger.nudge({
-                stage_directions: this.generateSkitDirections(skit, text.trim()),
+                stage_directions: this.generateSceneDirections(scene, text.trim()),
             });
 
-            return true;
+            // After nudge, afterResponse() will have pushed the NPC reply.
+            // Return the latest NPC message.
+            const latest = this._sceneMessages[this._sceneMessages.length - 1];
+            if (latest && latest.sender !== pcName) {
+                return { ...latest }; // Return a copy — React owns this
+            }
+            return null;
         } catch (e) {
-            console.error('Skit send failed:', e);
-            return false;
+            console.error('[Scene] Send failed:', e);
+            return null;
         }
     }
 
@@ -792,37 +793,49 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return CHUB_AVATARS[key] || '';
     }
 
-    /** Generate stage directions for an active skit */
-    private generateSkitDirections(skit: ActiveSkitState, _userText: string): string {
-        const charData = CHARACTER_DATA[skit.characterName];
-        const servant = this.currentState.servants[skit.characterName];
-        const hero = this.currentState.heroes[skit.characterName];
+    /** Generate stage directions for an active scene */
+    private generateSceneDirections(scene: SceneData, _userText: string): string {
         const pcName = this.currentState.playerCharacter.name;
-
+        const primaryChar = scene.participants[0];
         const lines: string[] = [];
-        lines.push(`[SKIT MODE — Private Conversation at the ${skit.location}]`);
-        lines.push(`You are now roleplaying as ${skit.characterName}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
 
-        if (charData) {
-            lines.push(`${skit.characterName}'s personality: ${charData.description}`);
-            lines.push(`Traits: ${charData.traits.join(', ')}`);
+        if (scene.participants.length === 1) {
+            lines.push(`[SCENE MODE — Private Conversation at the ${scene.location}]`);
+            lines.push(`You are now roleplaying as ${primaryChar}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
+        } else {
+            lines.push(`[SCENE MODE — Group Conversation at the ${scene.location}]`);
+            lines.push(`Characters present: ${scene.participants.join(', ')}`);
+            lines.push(`Respond primarily as ${primaryChar}, but other present characters may also speak or react.`);
+            lines.push(`Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
         }
-        if (servant) {
-            lines.push(`Loyalty: ${servant.loyalty}/100. ${skit.characterName} is a servant (former ${servant.formerClass}).`);
-        } else if (hero) {
-            lines.push(`Status: ${hero.status}. ${skit.characterName} is a ${hero.heroClass}.`);
+
+        // Add character personalities
+        for (const name of scene.participants) {
+            const charData = CHARACTER_DATA[name];
+            const servant = this.currentState.servants[name];
+            const hero = this.currentState.heroes[name];
+
+            if (charData) {
+                lines.push(`\n${name}'s personality: ${charData.description}`);
+                lines.push(`Traits: ${charData.traits.join(', ')}`);
+            }
+            if (servant) {
+                lines.push(`Loyalty: ${servant.loyalty}/100. ${name} is a servant (former ${servant.formerClass}).`);
+            } else if (hero) {
+                lines.push(`Status: ${hero.status}. ${name} is a ${hero.heroClass}.`);
+            }
         }
 
         // Include recent conversation history for context
-        if (this.skitMessages.length > 0) {
-            const recent = this.skitMessages.slice(-10);
+        if (this._sceneMessages.length > 0) {
+            const recent = this._sceneMessages.slice(-10);
             lines.push('\nRecent conversation:');
             for (const msg of recent) {
                 lines.push(`${msg.sender}: ${msg.text}`);
             }
         }
 
-        lines.push(`\nRespond in character as ${skit.characterName}. Use first person. React naturally based on personality and relationship with ${pcName}.`);
+        lines.push(`\nRespond in character as ${primaryChar}. Use first person. React naturally based on personality and relationship with ${pcName}.`);
         lines.push(`Keep responses conversational — 1 to 3 paragraphs.`);
 
         // Formatting instructions

@@ -1,9 +1,9 @@
-import React, { FC, useState, useCallback, useEffect } from 'react';
-import { Stage } from '../Stage';
+import React, { FC, useState, useCallback } from 'react';
+import { Stage, SceneData } from '../Stage';
 import { MenuScreen } from './MenuScreen';
 import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
-import { SkitScreen } from './SkitScreen';
+import { SceneScreen } from './SceneScreen';
 import { HeroesScreen } from './HeroesScreen';
 import { ServantsScreen } from './ServantsScreen';
 import { PCProfileScreen } from './PCProfileScreen';
@@ -15,7 +15,7 @@ export enum ScreenType {
     WORLD_MAP = 'world_map',
     HEROES = 'heroes',
     SERVANTS = 'servants',
-    SKIT = 'skit',
+    SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
 }
 
@@ -26,24 +26,31 @@ interface BaseScreenProps {
 export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
     const [screenType, setScreenType] = useState<ScreenType>(ScreenType.MENU);
 
-    // Guard: if we land on SKIT but there's no active skit, redirect to SERVANTS
-    useEffect(() => {
-        if (screenType === ScreenType.SKIT && !stage().getActiveSkit()) {
-            console.warn('[BaseScreen] SKIT screen with no activeSkit — redirecting to SERVANTS');
-            setScreenType(ScreenType.SERVANTS);
-        }
-    }, [screenType, stage]);
+    // Scene data owned by React state — NOT read from Stage
+    const [activeScene, setActiveScene] = useState<SceneData | null>(null);
+
+    /**
+     * Start a scene: creates it on Stage (for API use), stores snapshot in React state,
+     * and navigates to the SCENE screen. This is the ONLY entry point.
+     */
+    const startScene = useCallback((participants: string[], location: string) => {
+        const sceneData = stage().createScene(participants, location as any);
+        setActiveScene(sceneData);
+        setScreenType(ScreenType.SCENE);
+    }, [stage]);
+
+    /** End scene: clears React state and navigates to menu */
+    const endScene = useCallback(() => {
+        setActiveScene(null);
+        setScreenType(ScreenType.MENU);
+    }, []);
 
     const showStatBar = screenType !== ScreenType.MENU;
-
-    // Read skitId so SkitScreen gets a fresh key on every startSkit()
-    const skitId = stage().getSkitId();
 
     return (
         <div className="base-screen">
             {showStatBar && <StatBar stage={stage} />}
 
-            {/* Non-skit screens: use switch */}
             {screenType === ScreenType.MENU && (
                 <MenuScreen stage={stage} setScreenType={setScreenType} />
             )}
@@ -57,15 +64,21 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 <HeroesScreen stage={stage} setScreenType={setScreenType} />
             )}
             {screenType === ScreenType.SERVANTS && (
-                <ServantsScreen stage={stage} setScreenType={setScreenType} />
+                <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} />
             )}
             {screenType === ScreenType.PC_PROFILE && (
                 <PCProfileScreen stage={stage} setScreenType={setScreenType} />
             )}
 
-            {/* Skit screen: keyed by skitId so it fully remounts on new skit */}
-            {screenType === ScreenType.SKIT && (
-                <SkitScreen key={skitId} stage={stage} setScreenType={setScreenType} />
+            {/* Scene: keyed by scene.id so a new scene always mounts fresh */}
+            {screenType === ScreenType.SCENE && activeScene && (
+                <SceneScreen
+                    key={activeScene.id}
+                    stage={stage}
+                    scene={activeScene}
+                    setScreenType={setScreenType}
+                    onEnd={endScene}
+                />
             )}
         </div>
     );

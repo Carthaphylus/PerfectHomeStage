@@ -1,5 +1,5 @@
 import React, { FC, useState, useRef, useEffect, useCallback } from 'react';
-import { Stage, SkitMessage } from '../Stage';
+import { Stage, SceneData, SceneMessage } from '../Stage';
 import { FormattedText, TypewriterText } from './SkitText';
 
 // ============================================================
@@ -7,7 +7,6 @@ import { FormattedText, TypewriterText } from './SkitText';
 // ============================================================
 const MAX_CHARS_PER_PAGE = 280;
 
-/** Collapse paragraph breaks / double newlines into single spaces for VN display */
 function collapseWhitespace(text: string): string {
     return text
         .replace(/\n{2,}/g, ' ')
@@ -16,10 +15,6 @@ function collapseWhitespace(text: string): string {
         .trim();
 }
 
-/**
- * Find all formatting marker ranges so we don't split inside them.
- * Returns [start, end] pairs for *actions* and "dialogue" markers.
- */
 function getProtectedRanges(text: string): [number, number][] {
     const ranges: [number, number][] = [];
     const pattern = /(\*[^*]+\*)|("(?:[^"\\]|\\.)*")/g;
@@ -38,13 +33,11 @@ function isInsideProtected(pos: number, ranges: [number, number][]): boolean {
 }
 
 function findSafeBreak(text: string, target: number, ranges: [number, number][]): number {
-    // Try sentence end first
     for (let i = target; i >= target * 0.4; i--) {
         if (text[i] === '.' && (text[i + 1] === ' ' || i === text.length - 1) && !isInsideProtected(i + 1, ranges)) {
             return i + 1;
         }
     }
-    // Fall back to any safe space
     for (let i = target; i >= target * 0.3; i--) {
         if (text[i] === ' ' && !isInsideProtected(i, ranges)) {
             return i;
@@ -66,13 +59,10 @@ function paginateText(rawText: string): string[] {
             pages.push(text.slice(pos).trim());
             break;
         }
-
-        // Adjust ranges relative to current position
         const absTarget = pos + MAX_CHARS_PER_PAGE;
         const breakAt = findSafeBreak(text, absTarget, ranges);
         pages.push(text.slice(pos, breakAt).trim());
         pos = breakAt;
-        // Skip leading whitespace
         while (pos < text.length && text[pos] === ' ') pos++;
     }
     return pages;
@@ -82,32 +72,33 @@ function paginateText(rawText: string): string[] {
 // VN VIEW COMPONENT
 // ============================================================
 
-interface SkitVNViewProps {
+interface SceneVNViewProps {
     stage: () => Stage;
-    activeSkit: { characterName: string; location: string };
+    scene: SceneData;
     bgImage: string;
     charAvatar: string;
     pcAvatar: string;
     pcName: string;
-    skitMessages: SkitMessage[];
+    messages: SceneMessage[];      // React-owned — from parent's useState
     isSending: boolean;
     onSend: (text: string) => void;
     onEnd: () => void;
 }
 
-export const SkitVNView: FC<SkitVNViewProps> = ({
+export const SceneVNView: FC<SceneVNViewProps> = ({
     stage,
-    activeSkit,
+    scene,
     bgImage,
     charAvatar,
     pcAvatar,
     pcName,
-    skitMessages,
+    messages,
     isSending,
     onSend,
     onEnd,
 }) => {
     const s = stage();
+    const primaryChar = scene.participants[0];
     const [inputText, setInputText] = useState('');
     const [isInputMode, setIsInputMode] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
@@ -118,44 +109,42 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
     // Sprites: prefer bg-removed images
     const genImages = s.chatState.generatedImages || {};
-    const charBgRemoved = genImages[activeSkit.characterName]?.['bg_removed'];
+    const charBgRemoved = genImages[primaryChar]?.['bg_removed'];
     const pcBgRemoved = genImages[pcName]?.['bg_removed'];
     const charSprite = charBgRemoved || charAvatar;
     const pcSprite = pcBgRemoved || pcAvatar;
 
     // Current display state
-    const latestIdx = skitMessages.length - 1;
-    const displayMsg = displayMsgIndex >= 0 && displayMsgIndex < skitMessages.length
-        ? skitMessages[displayMsgIndex] : null;
+    const latestIdx = messages.length - 1;
+    const displayMsg = displayMsgIndex >= 0 && displayMsgIndex < messages.length
+        ? messages[displayMsgIndex] : null;
     const isDisplayPlayer = displayMsg?.sender === pcName;
 
     // Track new messages arriving
-    const prevMsgCountRef = useRef(skitMessages.length);
+    const prevMsgCountRef = useRef(messages.length);
     useEffect(() => {
         const prevCount = prevMsgCountRef.current;
-        const newCount = skitMessages.length;
+        const newCount = messages.length;
         prevMsgCountRef.current = newCount;
         if (newCount <= 0 || newCount === prevCount) return;
 
-        const newMsg = skitMessages[newCount - 1];
+        const newMsg = messages[newCount - 1];
         if (newMsg.sender === pcName) {
-            // Player sent — show their message immediately
             setDisplayMsgIndex(newCount - 1);
             setCurrentPage(0);
             setTypewriterDone(true);
             setIsInputMode(false);
             setPendingNpcReveal(false);
         } else {
-            // NPC responded — don't auto-show, let user click to continue
             setPendingNpcReveal(true);
         }
-    }, [skitMessages.length, pcName]);
+    }, [messages.length, pcName]);
 
     // Initialize on first render
     useEffect(() => {
-        if (skitMessages.length > 0 && displayMsgIndex === -1) {
-            setDisplayMsgIndex(skitMessages.length - 1);
-            setTypewriterDone(skitMessages[skitMessages.length - 1].sender === pcName);
+        if (messages.length > 0 && displayMsgIndex === -1) {
+            setDisplayMsgIndex(messages.length - 1);
+            setTypewriterDone(messages[messages.length - 1].sender === pcName);
         }
     }, []);
 
@@ -222,8 +211,8 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
     }, [isInputMode, isSending, displayMsg, pendingNpcReveal, isDisplayPlayer, typewriterDone, totalPages, currentPage]);
 
     // Sprite highlighting
-    const charData = s.getCharacterData(activeSkit.characterName);
-    const showingChar = displayMsg?.sender === activeSkit.characterName && !pendingNpcReveal;
+    const charData = s.getCharacterData(primaryChar);
+    const showingChar = displayMsg?.sender !== pcName && displayMsg?.sender != null && !pendingNpcReveal;
     const pcActive = isSending || pendingNpcReveal || (displayMsg && !showingChar);
 
     return (
@@ -233,7 +222,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
             {/* Top bar */}
             <div className="vn-top-bar" onClick={e => e.stopPropagation()}>
-                <span className="vn-location">{activeSkit.location}</span>
+                <span className="vn-location">{scene.location}</span>
                 <button className="vn-end-btn" onClick={onEnd}>✕</button>
             </div>
 
@@ -243,7 +232,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
                     <img src={pcSprite} alt={pcName} />
                 </div>
                 <div className={`vn-sprite vn-sprite-right ${showingChar ? 'speaking' : 'dimmed'}`}>
-                    <img src={charSprite} alt={activeSkit.characterName} />
+                    <img src={charSprite} alt={primaryChar} />
                 </div>
             </div>
 

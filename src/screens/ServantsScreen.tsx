@@ -6,17 +6,17 @@ import { CharacterGallery } from './CharacterGallery';
 interface ServantsScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
+    startScene: (participants: string[], location: string) => void;
 }
 
-export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }) => {
+export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene }) => {
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
     const [showGallery, setShowGallery] = useState(false);
 
     const handleStartChat = (servant: Servant) => {
         const location = stage().currentState.location;
-        stage().startSkit(servant.name, location);
-        setScreenType(ScreenType.SKIT);
+        startScene([servant.name], location);
     };
 
     // Full profile view when a servant is selected

@@ -1,12 +1,12 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
-import { Stage, SkitMessage } from '../Stage';
+import { Stage, SceneData, SceneMessage } from '../Stage';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
-import { SkitVNView } from './SkitVNView';
+import { SceneVNView } from './SceneVNView';
 
-type SkitViewMode = 'chat' | 'vn';
+type ViewMode = 'chat' | 'vn';
 
-// Background images for skit locations
+// Background images for scene locations
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
 import ManorExteriorBg from '../assets/Images/Skits/Manor - Exterior.png';
 import TownBg from '../assets/Images/Skits/Town.webp';
@@ -25,78 +25,65 @@ const LOCATION_BACKGROUNDS: Record<string, string> = {
     'Unknown': ManorExteriorBg,
 };
 
-interface SkitScreenProps {
+interface SceneScreenProps {
     stage: () => Stage;
+    scene: SceneData;                              // Owned by parent — immutable snapshot
     setScreenType: (type: ScreenType) => void;
+    onEnd: () => void;                             // Called when user wants to leave
 }
 
 /**
- * SkitScreen — Active conversation view only.
- * Mounts fresh for every new skit via key={skitId} in BaseScreen.
- * If no active skit exists, immediately redirects to SERVANTS.
+ * SceneScreen — Active conversation view.
+ * ALL message state is owned here in useState.
+ * Stage class is only used as an API layer (sendSceneMessage).
+ * This component never reads mutable fields from Stage for scene data.
  */
-export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
-    const s = stage();
-    const activeSkit = s.getActiveSkit();
-
-    // ── Guard: redirect if no active skit ──
-    useEffect(() => {
-        if (!activeSkit) {
-            console.warn('[SkitScreen] No active skit — redirecting');
-            setScreenType(ScreenType.SERVANTS);
-        }
-    }, []);
-
-    // ── Local state ──
+export const SceneScreen: FC<SceneScreenProps> = ({ stage, scene, setScreenType, onEnd }) => {
+    // ── React-owned state (the single source of truth for messages) ──
+    const [messages, setMessages] = useState<SceneMessage[]>([]);
     const [inputText, setInputText] = useState('');
     const [isSending, setIsSending] = useState(false);
-    const [viewMode, setViewMode] = useState<SkitViewMode>('chat');
-    const [messageCount, setMessageCount] = useState(0);
+    const [viewMode, setViewMode] = useState<ViewMode>('chat');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    // Kick a poll loop that syncs message count from stage
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const msgs = s.getSkitMessages();
-            if (msgs.length !== messageCount) {
-                setMessageCount(msgs.length);
-            }
-        }, 200);
-        return () => clearInterval(interval);
-    }, [messageCount, s]);
+    // ── Derived values from the scene snapshot (immutable for this mount) ──
+    const s = stage();
+    const primaryChar = scene.participants[0];
+    const charData = s.getCharacterData(primaryChar);
+    const bg = LOCATION_BACKGROUNDS[scene.location] || ManorExteriorBg;
+    const charAvatar = s.getCharacterAvatar(primaryChar);
+    const pcAvatar = s.currentState.playerCharacter.avatar;
+    const pcName = s.currentState.playerCharacter.name;
 
     // Auto-scroll to latest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messageCount]);
+    }, [messages.length]);
 
     // Focus input on mount
     useEffect(() => {
         setTimeout(() => inputRef.current?.focus(), 100);
     }, []);
 
-    // Bail early if guard hasn't redirected yet
-    if (!activeSkit) return null;
-
-    // ── Derived values (stable for this skit's lifetime) ──
-    const skitMessages = s.getSkitMessages();
-    const charData = s.getCharacterData(activeSkit.characterName);
-    const bg = LOCATION_BACKGROUNDS[activeSkit.location] || ManorExteriorBg;
-    const charAvatar = s.getCharacterAvatar(activeSkit.characterName);
-    const pcAvatar = s.currentState.playerCharacter.avatar;
-    const pcName = s.currentState.playerCharacter.name;
-
     // ── Handlers ──
     const handleSend = async () => {
         const text = inputText.trim();
         if (!text || isSending) return;
         setInputText('');
+
+        // Immediately add player message to our React state
+        const playerMsg: SceneMessage = { sender: pcName, text };
+        setMessages(prev => [...prev, playerMsg]);
+
         setIsSending(true);
         try {
-            await s.sendSkitMessage(text);
-            // Force message count sync after send
-            setMessageCount(s.getSkitMessages().length);
+            // Call Stage API — returns the NPC reply (or null)
+            const reply = await s.sendSceneMessage(text);
+            if (reply) {
+                // Add NPC reply to our React state
+                setMessages(prev => [...prev, reply]);
+            }
         } finally {
             setIsSending(false);
             setTimeout(() => inputRef.current?.focus(), 50);
@@ -110,24 +97,29 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
         }
     };
 
-    const handleEndSkit = () => {
-        s.endSkit();
-        setScreenType(ScreenType.MENU);
+    const handleEnd = () => {
+        s.endScene();
+        onEnd();
     };
 
     const handleVNSend = async (text: string) => {
+        const playerMsg: SceneMessage = { sender: pcName, text };
+        setMessages(prev => [...prev, playerMsg]);
+
         setIsSending(true);
         try {
-            await s.sendSkitMessage(text);
-            setMessageCount(s.getSkitMessages().length);
+            const reply = await s.sendSceneMessage(text);
+            if (reply) {
+                setMessages(prev => [...prev, reply]);
+            }
         } finally {
             setIsSending(false);
         }
     };
 
-    // ═══════════════════════════════════════════
+    // ═════════════════════════════════════════
     // VN MODE
-    // ═══════════════════════════════════════════
+    // ═════════════════════════════════════════
     if (viewMode === 'vn') {
         return (
             <div
@@ -141,25 +133,25 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                 >
                     💬
                 </button>
-                <SkitVNView
+                <SceneVNView
                     stage={stage}
-                    activeSkit={activeSkit}
+                    scene={scene}
                     bgImage={bg}
                     charAvatar={charAvatar}
                     pcAvatar={pcAvatar}
                     pcName={pcName}
-                    skitMessages={skitMessages}
+                    messages={messages}
                     isSending={isSending}
                     onSend={handleVNSend}
-                    onEnd={handleEndSkit}
+                    onEnd={handleEnd}
                 />
             </div>
         );
     }
 
-    // ═══════════════════════════════════════════
+    // ═════════════════════════════════════════
     // CHAT MODE
-    // ═══════════════════════════════════════════
+    // ═════════════════════════════════════════
     return (
         <div
             className="skit-screen skit-active"
@@ -172,11 +164,15 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
             {/* Top bar */}
             <div className="skit-header">
                 <div className="skit-header-left">
-                    <span className="skit-location-badge">{activeSkit.location}</span>
+                    <span className="skit-location-badge">{scene.location}</span>
                 </div>
                 <div className="skit-header-center">
-                    <img className="skit-header-avatar" src={charAvatar} alt={activeSkit.characterName} />
-                    <span className="skit-header-name">{activeSkit.characterName}</span>
+                    <img className="skit-header-avatar" src={charAvatar} alt={primaryChar} />
+                    <span className="skit-header-name">
+                        {scene.participants.length > 1
+                            ? scene.participants.join(' & ')
+                            : primaryChar}
+                    </span>
                 </div>
                 <div className="skit-header-right">
                     <button
@@ -186,28 +182,30 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                     >
                         📖
                     </button>
-                    <button className="skit-end-btn" onClick={handleEndSkit}>End</button>
+                    <button className="skit-end-btn" onClick={handleEnd}>End</button>
                 </div>
             </div>
 
             {/* Messages area */}
             <div className="skit-conversation">
-                {skitMessages.length === 0 && !isSending && (
+                {messages.length === 0 && !isSending && (
                     <div className="skit-empty-hint">
                         <div className="skit-empty-icon">💬</div>
-                        <p>Type in the chat below to begin speaking with {activeSkit.characterName}.</p>
+                        <p>Type in the chat below to begin speaking with {primaryChar}.</p>
                     </div>
                 )}
-                {skitMessages.map((msg, i) => {
+                {messages.map((msg, i) => {
                     const isPlayer = msg.sender === pcName;
-                    const avatar = isPlayer ? pcAvatar : charAvatar;
-                    const isLatestNpc = !isPlayer && i === skitMessages.length - 1;
+                    const msgAvatar = isPlayer ? pcAvatar : s.getCharacterAvatar(msg.sender) || charAvatar;
+                    const isLatestNpc = !isPlayer && i === messages.length - 1;
+                    const msgCharData = !isPlayer ? s.getCharacterData(msg.sender) : null;
                     return (
                         <div
                             key={i}
                             className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'}`}
+                            style={msgCharData ? { '--char-color': msgCharData.color } as React.CSSProperties : undefined}
                         >
-                            <img className="skit-msg-avatar" src={avatar} alt={msg.sender} />
+                            <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
                             <div className="skit-msg-body">
                                 <span className="skit-msg-name">{msg.sender}</span>
                                 <div className="skit-msg-text">
@@ -223,7 +221,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                 })}
                 {isSending && (
                     <TypingIndicator
-                        name={activeSkit.characterName}
+                        name={primaryChar}
                         avatar={charAvatar}
                     />
                 )}

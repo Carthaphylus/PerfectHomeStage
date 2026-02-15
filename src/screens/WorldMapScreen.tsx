@@ -35,15 +35,15 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
     const handleLocationClick = (location: MapLocation) => {
         if (!location.discovered) return;
         setSelectedLocation(location);
-        // Could trigger location event/skit here
+        // Could trigger location event/scene here
     };
 
     const handleExplore = () => {
         if (selectedLocation) {
             // Update current location
             stage().currentState.location = selectedLocation.id;
-            // Could trigger a skit/event
-            // setScreenType(ScreenType.SKIT);
+            // Could trigger a scene/event
+            // setScreenType(ScreenType.SCENE);
         }
     };
 
