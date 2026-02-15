@@ -13,6 +13,12 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
     const [showGallery, setShowGallery] = useState(false);
 
+    const handleStartChat = (servant: Servant) => {
+        const location = stage().currentState.location;
+        stage().startSkit(servant.name, location);
+        setScreenType(ScreenType.SKIT);
+    };
+
     // Full profile view when a servant is selected
     if (selectedServant) {
         const s = selectedServant;
@@ -47,9 +53,14 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                         <div className="char-info">
                             <h3 className="char-name">{s.name}</h3>
                             <span className="char-title">{s.formerClass}</span>
-                            <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
-                                🖼️ Gallery
-                            </button>
+                            <div className="char-action-btns">
+                                <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
+                                    🖼️ Gallery
+                                </button>
+                                <button className="gallery-open-btn chat-btn" onClick={() => handleStartChat(s)}>
+                                    💬 Chat
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div className="char-bio-panel">
@@ -143,6 +154,13 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType }
                                     />
                                     <span className="servant-loyalty-text">{servant.loyalty}%</span>
                                 </div>
+                                <button
+                                    className="servant-chat-btn"
+                                    onClick={(e) => { e.stopPropagation(); handleStartChat(servant); }}
+                                    title={`Chat with ${servant.name}`}
+                                >
+                                    💬
+                                </button>
                             </div>
                         ))
                     )}

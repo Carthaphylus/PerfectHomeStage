@@ -2769,6 +2769,7 @@ html, body, #root {
 
   .servant-card {
     width: 160px;
+    position: relative;
     background:
       linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
       linear-gradient(180deg, rgba(45, 35, 50, 0.95) 0%, rgba(38, 28, 42, 0.95) 100%) !important;
@@ -2849,6 +2850,33 @@ html, body, #root {
         font-weight: bold;
         color: #fff;
         text-shadow: 0 0 3px rgba(0,0,0,0.8);
+      }
+    }
+
+    .servant-chat-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(130, 200, 170, 0.2);
+      background: rgba(18, 12, 24, 0.7) !important;
+      color: rgba(130, 200, 170, 0.7);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+      z-index: 2;
+      padding: 0;
+      line-height: 1;
+
+      &:hover {
+        background: rgba(130, 200, 170, 0.15) !important;
+        border-color: rgba(130, 200, 170, 0.5);
+        transform: scale(1.1);
       }
     }
   }
@@ -2933,8 +2961,14 @@ html, body, #root {
         &.status-servant { color: #5aaa5a; background: rgba(90, 170, 90, 0.2); }
       }
 
-      .gallery-open-btn {
+      .char-action-btns {
+        display: flex;
+        gap: 6px;
+        align-self: center;
         margin-top: 4px;
+      }
+
+      .gallery-open-btn {
         align-self: center;
         background: rgba(200, 170, 110, 0.06);
         color: rgba(200, 170, 110, 0.7);
@@ -2951,6 +2985,16 @@ html, body, #root {
           background: color-mix(in srgb, var(--char-color, var(--highlight)) 20%, rgba(200, 170, 110, 0.12));
           border-color: var(--char-color, var(--highlight));
           transform: translateY(-1px);
+        }
+
+        &.chat-btn {
+          color: rgba(130, 200, 170, 0.8);
+          border-color: rgba(130, 200, 170, 0.2);
+
+          &:hover {
+            background: rgba(130, 200, 170, 0.12);
+            border-color: rgba(130, 200, 170, 0.5);
+          }
         }
       }
     }
