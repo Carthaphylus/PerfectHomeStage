@@ -41,7 +41,8 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             case ScreenType.PC_PROFILE:
                 return <PCProfileScreen stage={stage} setScreenType={setScreenType} />;
             case ScreenType.SKIT:
-                return <SkitScreen stage={stage} setScreenType={setScreenType} />;
+                const skitKey = stage().currentState.activeSkit?.characterName || 'none';
+                return <SkitScreen key={skitKey} stage={stage} setScreenType={setScreenType} />;
             default:
                 return <MenuScreen stage={stage} setScreenType={setScreenType} />;
         }
