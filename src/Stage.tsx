@@ -738,9 +738,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         });
 
         try {
-            // Use impersonate to send the message through chub — this triggers
-            // beforePrompt → LLM → afterResponse, which will add the bot reply
+            // 1. Impersonate to put Citrine's message in the chat tree
             await this.messenger.impersonate({ message: text.trim() });
+
+            // 2. Nudge to trigger the bot to respond as the skit character
+            //    stage_directions tells the LLM who to roleplay as
+            await this.messenger.nudge({
+                stage_directions: this.generateSkitDirections(skit, text.trim()),
+            });
+
             return true;
         } catch (e) {
             console.error('Skit send failed:', e);
@@ -764,13 +770,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const charData = CHARACTER_DATA[skit.characterName];
         const servant = this.currentState.servants[skit.characterName];
         const hero = this.currentState.heroes[skit.characterName];
+        const pcName = this.currentState.playerCharacter.name;
 
         const lines: string[] = [];
         lines.push(`[SKIT MODE — Private Conversation at the ${skit.location}]`);
-        lines.push(`You are now roleplaying as ${skit.characterName}.`);
+        lines.push(`You are now roleplaying as ${skit.characterName}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
 
         if (charData) {
-            lines.push(`Personality: ${charData.description}`);
+            lines.push(`${skit.characterName}'s personality: ${charData.description}`);
             lines.push(`Traits: ${charData.traits.join(', ')}`);
         }
         if (servant) {
@@ -779,7 +786,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             lines.push(`Status: ${hero.status}. ${skit.characterName} is a ${hero.heroClass}.`);
         }
 
-        lines.push(`Respond in character as ${skit.characterName}. Use first person. React naturally based on personality and relationship with Citrine.`);
+        // Include recent conversation history for context
+        if (skit.messages.length > 0) {
+            const recent = skit.messages.slice(-10);
+            lines.push('\nRecent conversation:');
+            for (const msg of recent) {
+                lines.push(`${msg.sender}: ${msg.text}`);
+            }
+        }
+
+        lines.push(`\nRespond in character as ${skit.characterName}. Use first person. React naturally based on personality and relationship with ${pcName}.`);
         lines.push(`Keep responses conversational — 1 to 3 paragraphs. Include brief actions or expressions in *asterisks* if appropriate.`);
         lines.push(`Do NOT output stat changes, system information, or break character.`);
 
