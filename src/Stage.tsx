@@ -173,6 +173,19 @@ export interface DungeonProgress {
     lastBoss?: string;
 }
 
+// Skit conversation message
+export interface SkitMessage {
+    sender: string;
+    text: string;
+}
+
+// Active skit state
+export interface ActiveSkitState {
+    characterName: string;
+    location: Location;
+    messages: SkitMessage[];
+}
+
 // Personal skill stats (used for skill checks)
 export interface SkillStats {
     power: number;
@@ -210,6 +223,7 @@ type MessageStateType = {
     manorUpgrades: { [upgradeName: string]: ManorUpgrade };
     dungeonProgress?: DungeonProgress;
     currentQuest?: string;
+    activeSkit?: ActiveSkitState | null;
 };
 
 /***
@@ -469,14 +483,31 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     async beforePrompt(userMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {
-        // Parse user message for game commands or state changes
-        const content = userMessage.content.toLowerCase();
-        
-        // Update location if mentioned
-        this.parseLocation(content);
-        
-        // Parse any stat mentions
-        this.parseStats(content);
+        const content = userMessage.content;
+        const skit = this.currentState.activeSkit;
+
+        // If a skit is active, handle skit conversation
+        if (skit) {
+            // Add player message to skit history
+            skit.messages.push({
+                sender: this.currentState.playerCharacter.name,
+                text: content,
+            });
+
+            return {
+                stageDirections: this.generateSkitDirections(skit, content),
+                messageState: this.currentState,
+                modifiedMessage: null,
+                systemMessage: null,
+                error: null,
+                chatState: this.chatState,
+            };
+        }
+
+        // Normal game mode
+        const lower = content.toLowerCase();
+        this.parseLocation(lower);
+        this.parseStats(lower);
 
         return {
             stageDirections: this.generateStageDirections(),
@@ -489,12 +520,28 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     async afterResponse(botMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {
-        // Parse bot response for game state updates
         const content = botMessage.content;
-        
+        const skit = this.currentState.activeSkit;
+
+        // If a skit is active, capture the bot response as the character's reply
+        if (skit) {
+            skit.messages.push({
+                sender: skit.characterName,
+                text: content,
+            });
+
+            return {
+                stageDirections: null,
+                messageState: this.currentState,
+                modifiedMessage: null,
+                systemMessage: null,
+                error: null,
+                chatState: this.chatState,
+            };
+        }
+
+        // Normal game mode
         this.parseGameState(content);
-        
-        // Generate system message with current stats
         const systemMsg = this.generateSystemMessage();
 
         return {
@@ -651,6 +698,62 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     render(): ReactElement {
         return <BaseScreen stage={() => this} />;
+    }
+
+    // ============================
+    // Skit Methods
+    // ============================
+
+    /** Start a conversation skit with a character */
+    startSkit(characterName: string, location: Location): void {
+        this.currentState.activeSkit = {
+            characterName,
+            location,
+            messages: [],
+        };
+    }
+
+    /** End the active skit */
+    endSkit(): void {
+        this.currentState.activeSkit = null;
+    }
+
+    /** Get character bio data by name */
+    getCharacterData(name: string): { color: string; description: string; traits: string[]; details: Record<string, string> } | null {
+        return CHARACTER_DATA[name] || null;
+    }
+
+    /** Get character avatar URL by name */
+    getCharacterAvatar(name: string): string {
+        const key = name.toLowerCase() as keyof typeof CHUB_AVATARS;
+        return CHUB_AVATARS[key] || '';
+    }
+
+    /** Generate stage directions for an active skit */
+    private generateSkitDirections(skit: ActiveSkitState, _userText: string): string {
+        const charData = CHARACTER_DATA[skit.characterName];
+        const servant = this.currentState.servants[skit.characterName];
+        const hero = this.currentState.heroes[skit.characterName];
+
+        const lines: string[] = [];
+        lines.push(`[SKIT MODE — Private Conversation at the ${skit.location}]`);
+        lines.push(`You are now roleplaying as ${skit.characterName}.`);
+
+        if (charData) {
+            lines.push(`Personality: ${charData.description}`);
+            lines.push(`Traits: ${charData.traits.join(', ')}`);
+        }
+        if (servant) {
+            lines.push(`Loyalty: ${servant.loyalty}/100. ${skit.characterName} is a servant (former ${servant.formerClass}).`);
+        } else if (hero) {
+            lines.push(`Status: ${hero.status}. ${skit.characterName} is a ${hero.heroClass}.`);
+        }
+
+        lines.push(`Respond in character as ${skit.characterName}. Use first person. React naturally based on personality and relationship with Citrine.`);
+        lines.push(`Keep responses conversational — 1 to 3 paragraphs. Include brief actions or expressions in *asterisks* if appropriate.`);
+        lines.push(`Do NOT output stat changes, system information, or break character.`);
+
+        return lines.join('\n');
     }
 
     // ============================
