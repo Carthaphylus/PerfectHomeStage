@@ -159,6 +159,21 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
         }
     }, []);
 
+    // Reset all state when character changes (new skit started)
+    const prevCharRef = useRef(activeSkit.characterName);
+    useEffect(() => {
+        if (activeSkit.characterName !== prevCharRef.current) {
+            prevCharRef.current = activeSkit.characterName;
+            setDisplayMsgIndex(-1);
+            setCurrentPage(0);
+            setTypewriterDone(false);
+            setPendingNpcReveal(false);
+            setIsInputMode(false);
+            setInputText('');
+            prevMsgCountRef.current = 0;
+        }
+    }, [activeSkit.characterName]);
+
     // Paginate displayed message
     const pages = displayMsg ? paginateText(displayMsg.text) : [];
     const totalPages = pages.length;
@@ -252,7 +267,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
                 {/* ── INPUT MODE ── */}
                 {!isSending && isInputMode && !pendingNpcReveal && (
-                    <div className="vn-textbox-inner vn-input-mode">
+                    <div className="vn-textbox-inner vn-input-mode vn-speaker-pc">
                         <div className="vn-speaker" style={{ color: '#c8aa6e' }}>{pcName}</div>
                         <textarea
                             ref={inputRef}
@@ -273,7 +288,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
                 {/* ── SENDING: show PC message + waiting dots ── */}
                 {isSending && displayMsg && (
-                    <div className="vn-textbox-inner">
+                    <div className="vn-textbox-inner vn-speaker-pc">
                         <div className="vn-speaker" style={{ color: '#c8aa6e' }}>{pcName}</div>
                         <div className="vn-text">
                             <FormattedText text={collapseWhitespace(displayMsg.text)} />
@@ -299,7 +314,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
                 {/* ── PENDING NPC: still showing PC message + "click to continue" ── */}
                 {!isSending && pendingNpcReveal && displayMsg && (
-                    <div className="vn-textbox-inner" onClick={handleVNClick}>
+                    <div className="vn-textbox-inner vn-speaker-pc" onClick={handleVNClick}>
                         <div className="vn-speaker" style={{ color: '#c8aa6e' }}>{pcName}</div>
                         <div className="vn-text">
                             <FormattedText text={collapseWhitespace(displayMsg.text)} />
@@ -310,7 +325,7 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
 
                 {/* ── NORMAL MESSAGE DISPLAY ── */}
                 {!isSending && !isInputMode && !pendingNpcReveal && displayMsg && (
-                    <div className="vn-textbox-inner" onClick={handleVNClick}>
+                    <div className={`vn-textbox-inner ${isDisplayPlayer ? 'vn-speaker-pc' : ''}`} onClick={handleVNClick}>
                         <div
                             className="vn-speaker"
                             style={{ color: showingChar ? (charData?.color || '#c8aa6e') : '#c8aa6e' }}

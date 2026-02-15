@@ -2521,12 +2521,17 @@ html, body, #root {
     }
 
     .skit-fmt-dialogue {
-      color: var(--char-color, var(--highlight));
+      color: var(--speaker-color, var(--char-color, var(--highlight)));
       font-weight: bold;
     }
 
     .skit-fmt-narration {
       color: var(--text-primary);
+    }
+
+    // Override dialogue color when player is speaking
+    .vn-textbox-inner.vn-speaker-pc {
+      --speaker-color: var(--highlight);
     }
   }
 
