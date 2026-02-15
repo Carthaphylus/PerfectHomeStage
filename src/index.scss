@@ -2073,6 +2073,70 @@ html, body, #root {
         50% { opacity: 1; }
       }
     }
+
+    // ========================================
+    // TEXT FORMATTING STYLES
+    // ========================================
+    .skit-fmt-action {
+      color: rgba(200, 180, 140, 0.55);
+      font-style: italic;
+    }
+
+    .skit-fmt-dialogue {
+      color: var(--char-color, var(--highlight));
+      font-weight: bold;
+    }
+
+    .skit-fmt-narration {
+      color: var(--text-primary);
+    }
+
+    // Player messages: dialogue uses player gold, actions same muted
+    .skit-msg-player {
+      .skit-fmt-dialogue {
+        color: var(--highlight);
+      }
+    }
+
+    // ========================================
+    // TYPING INDICATOR
+    // ========================================
+    .skit-typing-msg {
+      animation: skitMsgIn 0.3s ease-out forwards;
+    }
+
+    .skit-typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 18px !important;
+      min-height: 16px;
+    }
+
+    .typing-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--char-color, rgba(200, 170, 110, 0.6));
+      opacity: 0.4;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+
+      &:nth-child(1) { animation-delay: 0s; }
+      &:nth-child(2) { animation-delay: 0.2s; }
+      &:nth-child(3) { animation-delay: 0.4s; }
+    }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% {
+        transform: scale(0.7);
+        opacity: 0.3;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   }
 
   // ========================================

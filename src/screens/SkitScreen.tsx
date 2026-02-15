@@ -1,6 +1,7 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Servant, Location } from '../Stage';
+import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 
 // Background images for skit locations
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
@@ -115,7 +116,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
 
                 {/* Messages area */}
                 <div className="skit-conversation">
-                    {skitMessages.length === 0 && (
+                    {skitMessages.length === 0 && !isSending && (
                         <div className="skit-empty-hint">
                             <div className="skit-empty-icon">💬</div>
                             <p>Type in the chat below to begin speaking with {activeSkit.characterName}.</p>
@@ -124,6 +125,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                     {skitMessages.map((msg, i) => {
                         const isPlayer = msg.sender === pcName;
                         const avatar = isPlayer ? pcAvatar : charAvatar;
+                        const isLatestNpc = !isPlayer && i === skitMessages.length - 1;
                         return (
                             <div
                                 key={i}
@@ -132,11 +134,23 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                                 <img className="skit-msg-avatar" src={avatar} alt={msg.sender} />
                                 <div className="skit-msg-body">
                                     <span className="skit-msg-name">{msg.sender}</span>
-                                    <div className="skit-msg-text">{msg.text}</div>
+                                    <div className="skit-msg-text">
+                                        {isLatestNpc ? (
+                                            <TypewriterText text={msg.text} speed={40} />
+                                        ) : (
+                                            <FormattedText text={msg.text} />
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
+                    {isSending && (
+                        <TypingIndicator
+                            name={activeSkit.characterName}
+                            avatar={charAvatar}
+                        />
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 

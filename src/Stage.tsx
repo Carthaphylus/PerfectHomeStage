@@ -800,7 +800,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
 
         lines.push(`\nRespond in character as ${skit.characterName}. Use first person. React naturally based on personality and relationship with ${pcName}.`);
-        lines.push(`Keep responses conversational — 1 to 3 paragraphs. Include brief actions or expressions in *asterisks* if appropriate.`);
+        lines.push(`Keep responses conversational — 1 to 3 paragraphs.`);
+
+        // Formatting instructions
+        lines.push(`\n[TEXT FORMATTING RULES]`);
+        lines.push(`Use the following formatting to distinguish actions from dialogue:`);
+        lines.push(`- Wrap physical actions, gestures, expressions, and emotes in single asterisks: *crosses her arms and looks away*`);
+        lines.push(`- Wrap spoken dialogue in double quotes: "I didn't expect to see you here."`);
+        lines.push(`- Narration, inner thoughts, or scene descriptions are written as plain text without any special markers.`);
+        lines.push(`Example: *leans against the doorframe, eyes half-lidded* "You look like you've had a rough day." She tilts her head slightly, considering her next words.`);
+        lines.push(`Always use these formatting conventions consistently. Do NOT use ** (double asterisks) — only single * for actions.`);
+
         lines.push(`Do NOT output stat changes, system information, or break character.`);
 
         return lines.join('\n');
