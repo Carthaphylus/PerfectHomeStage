@@ -159,21 +159,6 @@ export const SkitVNView: FC<SkitVNViewProps> = ({
         }
     }, []);
 
-    // Reset all state when character changes (new skit started)
-    const prevCharRef = useRef(activeSkit.characterName);
-    useEffect(() => {
-        if (activeSkit.characterName !== prevCharRef.current) {
-            prevCharRef.current = activeSkit.characterName;
-            setDisplayMsgIndex(-1);
-            setCurrentPage(0);
-            setTypewriterDone(false);
-            setPendingNpcReveal(false);
-            setIsInputMode(false);
-            setInputText('');
-            prevMsgCountRef.current = 0;
-        }
-    }, [activeSkit.characterName]);
-
     // Paginate displayed message
     const pages = displayMsg ? paginateText(displayMsg.text) : [];
     const totalPages = pages.length;

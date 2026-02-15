@@ -294,6 +294,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     // Skit messages stored outside messageState so setState() can't wipe them
     public skitMessages: SkitMessage[] = [];
 
+    // Monotonic skit version counter — increments every startSkit(), used as React key
+    private _skitId: number = 0;
+
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         super(data);
         const { config, messageState, chatState, users } = data;
@@ -711,20 +714,40 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     // Skit Methods
     // ============================
 
+    /** Get the current skit version (changes on every startSkit) */
+    getSkitId(): number {
+        return this._skitId;
+    }
+
+    /** Get the current active skit (or null) */
+    getActiveSkit(): ActiveSkitState | null {
+        return this.currentState.activeSkit || null;
+    }
+
+    /** Get the current skit messages array */
+    getSkitMessages(): SkitMessage[] {
+        return this.skitMessages;
+    }
+
     /** Start a conversation skit with a character */
     startSkit(characterName: string, location: Location): void {
+        // Wipe any previous skit state cleanly
         this.skitMessages = [];
+        this._skitId++;
         this.currentState.activeSkit = {
             characterName,
             location,
             messages: [],
         };
+        console.log(`[Skit] Started skit #${this._skitId} with ${characterName} at ${location}`);
     }
 
     /** End the active skit */
     endSkit(): void {
+        const prev = this.currentState.activeSkit?.characterName || 'none';
         this.skitMessages = [];
         this.currentState.activeSkit = null;
+        console.log(`[Skit] Ended skit with ${prev}`);
     }
 
     /**
