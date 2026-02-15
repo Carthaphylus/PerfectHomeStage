@@ -369,6 +369,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     const [currentFloor, setCurrentFloor] = useState<FloorType>('1st');
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     const [showBuildPicker, setShowBuildPicker] = useState(false);
+    const [catalogueSelection, setCatalogueSelection] = useState<BaseRoom | null>(null);
     const blueprintContainerRef = useRef<HTMLDivElement>(null);
 
     // ========================================================================
@@ -670,45 +671,15 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                     <span className="stat-value">{getFloorLocation(selectedSlot.floor) === 'outdoors' ? 'Outdoor' : 'Indoor'} slot</span>
                                                 </div>
                                             </div>
-
-                                            {showBuildPicker && (
-                                                <div className="build-picker">
-                                                    <h4>Choose a Room to Build</h4>
-                                                    <div className="build-picker-list">
-                                                        {getBuildableRoomTypes(getFloorLocation(selectedSlot.floor)).map(room => (
-                                                            <div 
-                                                                key={room.type} 
-                                                                className="build-picker-item"
-                                                                onClick={() => handleBuildRoom(room.type)}
-                                                            >
-                                                                <div className="build-picker-image" style={{ backgroundImage: `url(${room.image})` }}></div>
-                                                                <div className="build-picker-info">
-                                                                    <div className="build-picker-name">{room.name}</div>
-                                                                    <div className="build-picker-desc">{room.description}</div>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                     <div className="room-actions">
-                                        {showBuildPicker ? (
-                                            <button 
-                                                className="action-button" 
-                                                onClick={() => setShowBuildPicker(false)}
-                                            >
-                                                Cancel
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                className="action-button primary" 
-                                                onClick={() => setShowBuildPicker(true)}
-                                            >
-                                                🏗️ Build Room
-                                            </button>
-                                        )}
+                                        <button 
+                                            className="action-button primary" 
+                                            onClick={() => setShowBuildPicker(true)}
+                                        >
+                                            🏗️ Build Room
+                                        </button>
                                     </div>
                                 </>
                             ) : (
@@ -796,6 +767,90 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                 </div>
             </div>
             
+            {/* Room Catalogue Overlay */}
+            {showBuildPicker && selectedSlot && (() => {
+                const buildableRooms = getBuildableRoomTypes(getFloorLocation(selectedSlot.floor));
+                const preview = catalogueSelection || buildableRooms[0] || null;
+                return (
+                    <div className="catalogue-overlay" onClick={() => { setShowBuildPicker(false); setCatalogueSelection(null); }}>
+                        <div className="catalogue-panel" onClick={e => e.stopPropagation()}>
+                            <div className="catalogue-header">
+                                <h3>Room Catalogue</h3>
+                                <span className="catalogue-slot-badge">
+                                    {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
+                                </span>
+                                <button className="catalogue-close" onClick={() => { setShowBuildPicker(false); setCatalogueSelection(null); }}>✕</button>
+                            </div>
+                            <div className="catalogue-body">
+                                {/* Left: thumbnail grid */}
+                                <div className="catalogue-grid">
+                                    {buildableRooms.map(room => (
+                                        <div
+                                            key={room.type}
+                                            className={`catalogue-thumb ${preview?.type === room.type ? 'selected' : ''}`}
+                                            onClick={() => setCatalogueSelection(room)}
+                                        >
+                                            <div className="catalogue-thumb-image" style={{ backgroundImage: `url(${room.image})` }}>
+                                                <div className="catalogue-thumb-overlay" />
+                                            </div>
+                                            <span className="catalogue-thumb-name">{room.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Right: detail panel */}
+                                {preview && (
+                                    <div className="catalogue-detail">
+                                        <div className="catalogue-detail-image" style={{ backgroundImage: `url(${preview.image})` }} />
+                                        <div className="catalogue-detail-info">
+                                            <h3 className="catalogue-detail-name">{preview.name}</h3>
+                                            <p className="catalogue-detail-desc">{preview.description}</p>
+
+                                            <div className="catalogue-detail-section">
+                                                <h4>Effects</h4>
+                                                <div className="catalogue-detail-row">
+                                                    <span className="catalogue-detail-label">💰 Income</span>
+                                                    <span className="catalogue-detail-value">+{preview.getIncomePerDay()} gold/day</span>
+                                                </div>
+                                                <div className="catalogue-detail-row">
+                                                    <span className="catalogue-detail-label">📈 Efficiency</span>
+                                                    <span className="catalogue-detail-value">+{preview.getEfficiencyBonus()}%</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="catalogue-detail-section">
+                                                <h4>Costs</h4>
+                                                <div className="catalogue-detail-row">
+                                                    <span className="catalogue-detail-label">🏗️ Build Cost</span>
+                                                    <span className="catalogue-detail-value">{preview.getUpgradeCost()} gold</span>
+                                                </div>
+                                                <div className="catalogue-detail-row">
+                                                    <span className="catalogue-detail-label">🔧 Upkeep</span>
+                                                    <span className="catalogue-detail-value">{Math.round(preview.getIncomePerDay() * 0.3)} gold/day</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="catalogue-detail-section">
+                                                <div className="catalogue-detail-row">
+                                                    <span className="catalogue-detail-label">📍 Placement</span>
+                                                    <span className="catalogue-detail-value">{preview.location}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="catalogue-build-btn"
+                                            onClick={() => { handleBuildRoom(preview.type); setCatalogueSelection(null); }}
+                                        >
+                                            🏗️ Build {preview.name}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
             {/* Confirmation Dialog */}
             {showRemoveConfirm && selectedRoom && (
                 <div className="confirmation-overlay">
