@@ -1743,6 +1743,7 @@ html, body, #root {
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden !important;
 
   // Shared background layer
   .skit-background {
@@ -1846,7 +1847,8 @@ html, body, #root {
     .skit-conversation {
       position: relative;
       z-index: 5;
-      flex: 1;
+      flex: 1 1 0;
+      min-height: 0;
       overflow-y: auto !important;
       padding: 16px 14px;
       display: flex;
@@ -1942,6 +1944,8 @@ html, body, #root {
         display: flex;
         flex-direction: column;
         gap: 3px;
+        min-width: 0;
+        flex: 1;
       }
 
       .skit-msg-name {
