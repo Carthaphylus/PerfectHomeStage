@@ -243,20 +243,22 @@ export const SceneVNView: FC<SceneVNViewProps> = ({
                 {!isSending && isInputMode && !pendingNpcReveal && (
                     <div className="vn-textbox-inner vn-input-mode vn-speaker-pc">
                         <div className="vn-speaker" style={{ color: '#c8aa6e' }}>{pcName}</div>
-                        <textarea
-                            ref={inputRef}
-                            className="vn-input"
-                            placeholder={`What does ${pcName} say or do...`}
-                            value={inputText}
-                            onChange={e => setInputText(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            rows={3}
-                        />
-                        <button
-                            className="vn-send-btn"
-                            onClick={handleSend}
-                            disabled={!inputText.trim() || isSending}
-                        >▶</button>
+                        <div className="vn-input-row">
+                            <textarea
+                                ref={inputRef}
+                                className="vn-input"
+                                placeholder={`What does ${pcName} say or do...`}
+                                value={inputText}
+                                onChange={e => setInputText(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                rows={3}
+                            />
+                            <button
+                                className="vn-send-btn"
+                                onClick={handleSend}
+                                disabled={!inputText.trim() || isSending}
+                            >▶</button>
+                        </div>
                     </div>
                 )}
 

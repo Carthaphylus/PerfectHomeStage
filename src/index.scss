@@ -2004,8 +2004,8 @@ html, body, #root {
       position: relative;
       z-index: 10;
       display: flex;
-      align-items: flex-end;
-      gap: 8px;
+      align-items: center;
+      gap: 10px;
       padding: 10px 12px;
       background:
         linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
@@ -2062,20 +2062,21 @@ html, body, #root {
       }
 
       .skit-send-btn {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         flex-shrink: 0;
         border-radius: 50%;
         border: 1px solid rgba(200, 170, 110, 0.25);
         background: rgba(200, 170, 110, 0.1) !important;
         color: var(--highlight);
-        font-size: 14px;
+        font-size: 13px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.25s;
         padding: 0;
+        align-self: center;
 
         &:hover:not(:disabled) {
           background: rgba(200, 170, 110, 0.2) !important;
@@ -2455,8 +2456,15 @@ html, body, #root {
 
     // ─── Input mode ───
     .vn-input-mode {
+      .vn-input-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+      }
+
       .vn-input {
-        width: 100%;
+        flex: 1;
+        min-width: 0;
         resize: none;
         background: rgba(200, 170, 110, 0.04) !important;
         border: 1px solid rgba(200, 170, 110, 0.12);
@@ -2485,11 +2493,9 @@ html, body, #root {
       }
 
       .vn-send-btn {
-        position: absolute;
-        bottom: 18px;
-        right: 20px;
-        width: 32px;
-        height: 32px;
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         border: 1px solid rgba(200, 170, 110, 0.25);
         background: rgba(200, 170, 110, 0.1) !important;
@@ -2500,6 +2506,7 @@ html, body, #root {
         align-items: center;
         justify-content: center;
         transition: all 0.25s;
+        margin-bottom: 4px;
 
         &:hover:not(:disabled) {
           background: rgba(200, 170, 110, 0.22) !important;
