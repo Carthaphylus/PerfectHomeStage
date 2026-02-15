@@ -724,8 +724,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     /**
      * Send a message in the active skit as Citrine.
-     * Uses the SDK's impersonate API to inject a player message and trigger the bot response.
-     * Returns true if it succeeded.
+     * Adds player message to local history, then uses nudge to get the LLM
+     * to respond in character. We skip impersonate entirely — the conversation
+     * is managed locally and passed via stage_directions.
      */
     async sendSkitMessage(text: string): Promise<boolean> {
         const skit = this.currentState.activeSkit;
@@ -738,11 +739,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         });
 
         try {
-            // 1. Impersonate to put Citrine's message in the chat tree
-            await this.messenger.impersonate({ message: text.trim() });
-
-            // 2. Nudge to trigger the bot to respond as the skit character
-            //    stage_directions tells the LLM who to roleplay as
+            // Use nudge to trigger the bot to respond as the skit character.
+            // The full conversation history + character info is passed via stage_directions.
+            // No impersonate needed — we manage the skit conversation ourselves.
             await this.messenger.nudge({
                 stage_directions: this.generateSkitDirections(skit, text.trim()),
             });
