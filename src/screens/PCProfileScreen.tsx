@@ -1,6 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
+import { CharacterGallery } from './CharacterGallery';
 
 interface PCProfileScreenProps {
     stage: () => Stage;
@@ -9,6 +10,20 @@ interface PCProfileScreenProps {
 
 export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType }) => {
     const pc = stage().currentState.playerCharacter;
+    const [showGallery, setShowGallery] = useState(false);
+
+    if (showGallery) {
+        return (
+            <CharacterGallery
+                stage={stage}
+                charName={pc.name}
+                charAvatar={pc.avatar}
+                charSpecies={pc.details['Species'] || 'character'}
+                charColor={pc.color}
+                onClose={() => setShowGallery(false)}
+            />
+        );
+    }
 
     return (
         <div className="char-profile-screen" style={{ '--char-color': pc.color } as React.CSSProperties}>
@@ -29,6 +44,12 @@ export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType
                         <h3 className="char-name">{pc.name}</h3>
                         <span className="char-title">{pc.title}</span>
                     </div>
+                </div>
+
+                <div className="char-action-btns">
+                    <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
+                        🖼️ Gallery
+                    </button>
                 </div>
 
                 <div className="char-bio-panel">

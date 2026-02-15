@@ -1786,6 +1786,13 @@ html, body, #root {
       .skit-header-right {
         flex: 0 0 auto;
         min-width: 50px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .skit-header-right {
+        justify-content: flex-end;
       }
 
       .skit-header-center {
@@ -1821,6 +1828,22 @@ html, body, #root {
         padding: 3px 8px;
         border: 1px solid rgba(200, 170, 110, 0.1);
         border-radius: 3px;
+      }
+
+      .skit-view-toggle {
+        font-size: 14px;
+        padding: 3px 6px;
+        border: 1px solid rgba(200, 170, 110, 0.15);
+        border-radius: 3px;
+        cursor: pointer;
+        background: rgba(200, 170, 110, 0.06) !important;
+        transition: all 0.25s;
+        line-height: 1;
+
+        &:hover {
+          background: rgba(200, 170, 110, 0.15) !important;
+          border-color: rgba(200, 170, 110, 0.35);
+        }
       }
 
       .skit-end-btn {
@@ -2139,6 +2162,349 @@ html, body, #root {
         transform: scale(1);
         opacity: 1;
       }
+    }
+  }
+
+  // ========================================
+  // VISUAL NOVEL VIEW
+  // ========================================
+  &.skit-vn-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    .vn-view-toggle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 50;
+      font-size: 16px;
+      padding: 4px 8px;
+      border: 1px solid rgba(200, 170, 110, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      background: rgba(18, 12, 24, 0.7) !important;
+      transition: all 0.25s;
+      line-height: 1;
+
+      &:hover {
+        background: rgba(18, 12, 24, 0.9) !important;
+        border-color: rgba(200, 170, 110, 0.4);
+      }
+    }
+  }
+
+  .vn-view {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    user-select: none;
+
+    .vn-background {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6) saturate(0.8);
+      z-index: 0;
+    }
+
+    .vn-bg-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg,
+        rgba(18, 12, 24, 0.2) 0%,
+        rgba(18, 12, 24, 0.05) 40%,
+        rgba(18, 12, 24, 0.15) 70%,
+        rgba(18, 12, 24, 0.5) 100%
+      );
+      z-index: 1;
+    }
+
+    // ─── Top bar ───
+    .vn-top-bar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: linear-gradient(180deg, rgba(18, 12, 24, 0.6), transparent) !important;
+      pointer-events: auto;
+
+      .vn-location {
+        font-size: 8px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+
+      .vn-end-btn {
+        font-size: 12px;
+        color: rgba(212, 118, 106, 0.8);
+        padding: 4px 8px;
+        border: 1px solid rgba(212, 118, 106, 0.2);
+        border-radius: 3px;
+        cursor: pointer;
+        background: transparent !important;
+        transition: all 0.25s;
+
+        &:hover {
+          background: rgba(212, 118, 106, 0.1) !important;
+          border-color: rgba(212, 118, 106, 0.4);
+        }
+      }
+    }
+
+    // ─── Character sprites ───
+    .vn-sprites {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 75%;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .vn-sprite {
+      position: relative;
+      width: 42%;
+      max-height: 100%;
+      display: flex;
+      align-items: flex-end;
+      transition: filter 0.4s, opacity 0.4s, transform 0.4s;
+
+      img {
+        width: 100%;
+        height: auto;
+        max-height: 100%;
+        object-fit: contain;
+        object-position: bottom;
+        filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
+      }
+
+      &.dimmed {
+        filter: brightness(0.5) saturate(0.4);
+        opacity: 0.7;
+        transform: scale(0.95);
+      }
+
+      &.speaking {
+        filter: brightness(1) saturate(1);
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      &.vn-sprite-left {
+        justify-content: flex-start;
+        padding-left: 4%;
+      }
+
+      &.vn-sprite-right {
+        justify-content: flex-end;
+        padding-right: 4%;
+      }
+    }
+
+    // ─── Text box ───
+    .vn-textbox {
+      position: relative;
+      z-index: 15;
+      margin-top: auto;
+      cursor: default;
+      pointer-events: auto;
+    }
+
+    .vn-textbox-inner {
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+        linear-gradient(180deg, rgba(18, 12, 24, 0.92), rgba(12, 8, 16, 0.96)) !important;
+      border-top: 2px solid rgba(200, 170, 110, 0.2);
+      padding: 14px 18px 16px;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .vn-speaker {
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+      align-self: flex-start;
+    }
+
+    .vn-text {
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+
+      &.vn-hint-text {
+        color: var(--text-muted);
+        font-style: italic;
+        text-align: center;
+        padding: 12px 0;
+      }
+    }
+
+    // Typing dots in VN
+    .vn-typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 0;
+
+      .typing-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--char-color, rgba(200, 170, 110, 0.6));
+        opacity: 0.4;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+
+        &:nth-child(1) { animation-delay: 0s; }
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.4s; }
+      }
+    }
+
+    // Page navigation
+    .vn-page-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding-top: 6px;
+    }
+
+    .vn-page-btn {
+      font-size: 10px;
+      color: var(--highlight);
+      background: rgba(200, 170, 110, 0.08) !important;
+      border: 1px solid rgba(200, 170, 110, 0.15);
+      border-radius: 3px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+
+      &:hover:not(:disabled) {
+        background: rgba(200, 170, 110, 0.18) !important;
+        border-color: rgba(200, 170, 110, 0.4);
+      }
+
+      &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+      }
+    }
+
+    .vn-page-count {
+      font-size: 8px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .vn-continue-hint {
+      text-align: center;
+      font-size: 8px;
+      color: var(--text-muted);
+      animation: vnHintPulse 2s infinite;
+      padding-top: 4px;
+    }
+
+    @keyframes vnHintPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    // ─── Input mode ───
+    .vn-input-mode {
+      .vn-input {
+        width: 100%;
+        resize: none;
+        background: rgba(200, 170, 110, 0.04) !important;
+        border: 1px solid rgba(200, 170, 110, 0.12);
+        border-radius: 4px;
+        padding: 10px 12px;
+        color: var(--text-primary);
+        font-size: 11px;
+        line-height: 1.6;
+        font-family: inherit;
+        outline: none;
+        min-height: 50px;
+        max-height: 80px;
+        overflow-y: auto !important;
+        transition: border-color 0.25s;
+
+        &::placeholder {
+          color: var(--text-muted);
+          font-size: 9px;
+          font-style: italic;
+        }
+
+        &:focus {
+          border-color: rgba(200, 170, 110, 0.3);
+          background: rgba(200, 170, 110, 0.06) !important;
+        }
+      }
+
+      .vn-send-btn {
+        position: absolute;
+        bottom: 18px;
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(200, 170, 110, 0.25);
+        background: rgba(200, 170, 110, 0.1) !important;
+        color: var(--highlight);
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s;
+
+        &:hover:not(:disabled) {
+          background: rgba(200, 170, 110, 0.22) !important;
+          border-color: rgba(200, 170, 110, 0.5);
+          transform: scale(1.08);
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    // Text formatting in VN
+    .skit-fmt-action {
+      color: rgba(200, 180, 140, 0.55);
+      font-style: italic;
+    }
+
+    .skit-fmt-dialogue {
+      color: var(--char-color, var(--highlight));
+      font-weight: bold;
+    }
+
+    .skit-fmt-narration {
+      color: var(--text-primary);
     }
   }
 

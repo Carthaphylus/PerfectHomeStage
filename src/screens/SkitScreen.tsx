@@ -2,6 +2,9 @@ import React, { FC, useState, useRef, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Servant, Location } from '../Stage';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
+import { SkitVNView } from './SkitVNView';
+
+type SkitViewMode = 'chat' | 'vn';
 
 // Background images for skit locations
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
@@ -36,6 +39,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
     const [selectedLocation, setSelectedLocation] = useState<Location>(s.currentState.location);
     const [inputText, setInputText] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [viewMode, setViewMode] = useState<SkitViewMode>('chat');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const skitMessages = s.skitMessages;
@@ -91,6 +95,46 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
         const pcAvatar = s.currentState.playerCharacter.avatar;
         const pcName = s.currentState.playerCharacter.name;
 
+        const handleVNSend = async (text: string) => {
+            setIsSending(true);
+            try {
+                await s.sendSkitMessage(text);
+            } finally {
+                setIsSending(false);
+            }
+        };
+
+        // ─── VN MODE ───
+        if (viewMode === 'vn') {
+            return (
+                <div
+                    className="skit-screen skit-active skit-vn-wrapper"
+                    style={{ '--char-color': charData?.color || '#c8aa6e' } as React.CSSProperties}
+                >
+                    <button
+                        className="vn-view-toggle"
+                        onClick={() => setViewMode('chat')}
+                        title="Switch to Chat view"
+                    >
+                        💬
+                    </button>
+                    <SkitVNView
+                        stage={stage}
+                        activeSkit={activeSkit}
+                        bgImage={bg}
+                        charAvatar={charAvatar}
+                        pcAvatar={pcAvatar}
+                        pcName={pcName}
+                        skitMessages={skitMessages}
+                        isSending={isSending}
+                        onSend={handleVNSend}
+                        onEnd={handleEndSkit}
+                    />
+                </div>
+            );
+        }
+
+        // ─── CHAT MODE ───
         return (
             <div
                 className="skit-screen skit-active"
@@ -110,6 +154,13 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType }) => {
                         <span className="skit-header-name">{activeSkit.characterName}</span>
                     </div>
                     <div className="skit-header-right">
+                        <button
+                            className="skit-view-toggle"
+                            onClick={() => setViewMode('vn')}
+                            title="Switch to Visual Novel view"
+                        >
+                            📖
+                        </button>
                         <button className="skit-end-btn" onClick={handleEndSkit}>End</button>
                     </div>
                 </div>
