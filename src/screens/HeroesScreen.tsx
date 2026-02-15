@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
-import { CharacterGallery } from './CharacterGallery';
+import { CharacterProfile } from './CharacterProfile';
 
 interface HeroesScreenProps {
     stage: () => Stage;
@@ -11,54 +11,29 @@ interface HeroesScreenProps {
 export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) => {
     const heroes = Object.values(stage().currentState.heroes);
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
-    const [showGallery, setShowGallery] = useState(false);
 
     // Full profile view when a hero is selected
     if (selectedHero) {
         const h = selectedHero;
 
-        if (showGallery) {
-            return (
-                <CharacterGallery
-                    stage={stage}
-                    charName={h.name}
-                    charAvatar={h.avatar}
-                    charSpecies={h.details['Species'] || 'character'}
-                    charColor={h.color}
-                    onClose={() => setShowGallery(false)}
-                />
-            );
-        }
-
         return (
-            <div className="char-profile-screen" style={{ '--char-color': h.color } as React.CSSProperties}>
-                <div className="screen-header">
-                    <button className="back-button" onClick={() => setSelectedHero(null)}>
-                        &lt; Back
-                    </button>
-                    <h2>{h.name}</h2>
-                    <div className="header-spacer"></div>
-                </div>
-                <div className="char-profile-content">
-                    <div className="char-card">
-                        <div className="char-avatar-frame">
-                            <img src={h.avatar} alt={h.name} />
-                        </div>
-                        <div className="char-info">
-                            <h3 className="char-name">{h.name}</h3>
-                            <span className="char-title">{h.heroClass}</span>
-                            <span className={`char-status-badge status-${h.status}`}>{h.status}</span>
-                            <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
-                                🖼️ Gallery
-                            </button>
-                        </div>
-                    </div>
-                    <div className="char-bio-panel">
-                        <div className="char-bio-section">
-                            <h4>About</h4>
-                            <p>{h.description}</p>
-                        </div>
-
+            <CharacterProfile
+                stage={stage}
+                character={{
+                    name: h.name,
+                    avatar: h.avatar,
+                    color: h.color,
+                    title: h.heroClass,
+                    description: h.description,
+                    traits: h.traits,
+                    details: h.details,
+                }}
+                onBack={() => setSelectedHero(null)}
+                statusBadge={
+                    <span className={`char-status-badge status-${h.status}`}>{h.status}</span>
+                }
+                extraSections={
+                    <>
                         {h.status === 'converting' && (
                             <div className="char-bio-section">
                                 <h4>Conversion Progress</h4>
@@ -68,7 +43,6 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                 </div>
                             </div>
                         )}
-
                         {h.location && (
                             <div className="char-bio-section">
                                 <h4>Status</h4>
@@ -82,35 +56,9 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                 </div>
                             </div>
                         )}
-
-                        <div className="char-bio-section">
-                            <h4>Details</h4>
-                            {Object.entries(h.details).map(([key, value]) => (
-                                <div key={key} className="char-detail-row">
-                                    <span className="char-detail-label">{key}</span>
-                                    {key === 'Gender' ? (
-                                        <span className="char-detail-value char-gender-value">
-                                            <span className="gender-symbol">{value.split(' ')[0]}</span>
-                                            <span>{value.split(' ').slice(1).join(' ')}</span>
-                                        </span>
-                                    ) : (
-                                        <span className="char-detail-value">{value}</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="char-bio-section">
-                            <h4>Traits</h4>
-                            <div className="char-trait-list">
-                                {h.traits.map(t => (
-                                    <span key={t} className="char-trait">{t}</span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    </>
+                }
+            />
         );
     }
 

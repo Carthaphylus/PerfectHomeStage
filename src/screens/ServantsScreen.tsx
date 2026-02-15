@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Servant } from '../Stage';
-import { CharacterGallery } from './CharacterGallery';
+import { CharacterProfile } from './CharacterProfile';
 
 interface ServantsScreenProps {
     stage: () => Stage;
@@ -12,7 +12,6 @@ interface ServantsScreenProps {
 export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene }) => {
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
-    const [showGallery, setShowGallery] = useState(false);
 
     const handleStartChat = (servant: Servant) => {
         const location = stage().currentState.location;
@@ -23,97 +22,43 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
     if (selectedServant) {
         const s = selectedServant;
 
-        if (showGallery) {
-            return (
-                <CharacterGallery
-                    stage={stage}
-                    charName={s.name}
-                    charAvatar={s.avatar}
-                    charSpecies={s.details['Species'] || 'character'}
-                    charColor={s.color}
-                    onClose={() => setShowGallery(false)}
-                />
-            );
-        }
-
         return (
-            <div className="char-profile-screen" style={{ '--char-color': s.color } as React.CSSProperties}>
-                <div className="screen-header">
-                    <button className="back-button" onClick={() => setSelectedServant(null)}>
-                        &lt; Back
+            <CharacterProfile
+                stage={stage}
+                character={{
+                    name: s.name,
+                    avatar: s.avatar,
+                    color: s.color,
+                    title: s.formerClass,
+                    description: s.description,
+                    traits: s.traits,
+                    details: s.details,
+                }}
+                onBack={() => setSelectedServant(null)}
+                extraActions={
+                    <button className="gallery-open-btn chat-btn" onClick={() => handleStartChat(s)}>
+                        💬 Chat
                     </button>
-                    <h2>{s.name}</h2>
-                    <div className="header-spacer"></div>
-                </div>
-                <div className="char-profile-content">
-                    <div className="char-card">
-                        <div className="char-avatar-frame">
-                            <img src={s.avatar} alt={s.name} />
+                }
+                extraSections={
+                    <div className="char-bio-section">
+                        <h4>Service</h4>
+                        <div className="char-detail-row">
+                            <span className="char-detail-label">Loyalty</span>
+                            <span className="char-detail-value">{s.loyalty}%</span>
                         </div>
-                        <div className="char-info">
-                            <h3 className="char-name">{s.name}</h3>
-                            <span className="char-title">{s.formerClass}</span>
-                            <div className="char-action-btns">
-                                <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
-                                    🖼️ Gallery
-                                </button>
-                                <button className="gallery-open-btn chat-btn" onClick={() => handleStartChat(s)}>
-                                    💬 Chat
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="char-bio-panel">
-                        <div className="char-bio-section">
-                            <h4>About</h4>
-                            <p>{s.description}</p>
-                        </div>
-
-                        <div className="char-bio-section">
-                            <h4>Service</h4>
+                        {s.assignedTask && (
                             <div className="char-detail-row">
-                                <span className="char-detail-label">Loyalty</span>
-                                <span className="char-detail-value">{s.loyalty}%</span>
+                                <span className="char-detail-label">Task</span>
+                                <span className="char-detail-value">{s.assignedTask}</span>
                             </div>
-                            {s.assignedTask && (
-                                <div className="char-detail-row">
-                                    <span className="char-detail-label">Task</span>
-                                    <span className="char-detail-value">{s.assignedTask}</span>
-                                </div>
-                            )}
-                            <div className="char-loyalty-bar">
-                                <div className="char-loyalty-fill" style={{ width: `${s.loyalty}%` }} />
-                            </div>
-                        </div>
-
-                        <div className="char-bio-section">
-                            <h4>Details</h4>
-                            {Object.entries(s.details).map(([key, value]) => (
-                                <div key={key} className="char-detail-row">
-                                    <span className="char-detail-label">{key}</span>
-                                    {key === 'Gender' ? (
-                                        <span className="char-detail-value char-gender-value">
-                                            <span className="gender-symbol">{value.split(' ')[0]}</span>
-                                            <span>{value.split(' ').slice(1).join(' ')}</span>
-                                        </span>
-                                    ) : (
-                                        <span className="char-detail-value">{value}</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="char-bio-section">
-                            <h4>Traits</h4>
-                            <div className="char-trait-list">
-                                {s.traits.map(t => (
-                                    <span key={t} className="char-trait">{t}</span>
-                                ))}
-                            </div>
+                        )}
+                        <div className="char-loyalty-bar">
+                            <div className="char-loyalty-fill" style={{ width: `${s.loyalty}%` }} />
                         </div>
                     </div>
-                </div>
-            </div>
+                }
+            />
         );
     }
 
