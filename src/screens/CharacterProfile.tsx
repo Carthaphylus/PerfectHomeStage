@@ -128,7 +128,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                         <h4>Stats</h4>
                         <div className="char-stat-block">
                             {STAT_DEFINITIONS.map(statDef => {
-                                const value = character.stats[statDef.name] || 0;
+                                const value = (character.stats && character.stats[statDef.name]) || 0;
                                 const grade = numberToGrade(value);
                                 const color = getGradeColor(grade);
                                 const totalBlocks = 20;
