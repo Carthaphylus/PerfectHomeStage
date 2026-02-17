@@ -13,7 +13,7 @@ export interface CharacterProfileData {
     description: string;
     traits: string[];
     details: Record<string, string>;
-    stats: Record<StatName, number>;
+    stats?: Record<StatName, number>;
 }
 
 /**
