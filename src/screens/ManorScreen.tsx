@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
-import { Stage } from '../Stage';
+import { Stage, Role, ROOM_ROLES } from '../Stage';
 
 
 // Room images
@@ -27,6 +27,11 @@ import BasementImg from '../assets/Images/ManorFloors/Basement.jpg';
 // Background images
 import GrassBackgroundImg from '../assets/Images/BackGround/grass.jpg';
 import PlankBackgroundImg from '../assets/Images/BackGround/plank.jpg';
+
+// Icons
+import IconPlus from '../assets/Images/Icons/plus.png';
+import IconCross from '../assets/Images/Icons/cross.png';
+import IconChat from '../assets/Images/Icons/chat.png';
 
 // ============================================================================
 // ROOM CLASS SYSTEM
@@ -137,6 +142,11 @@ export abstract class BaseRoom {
 
     getActions(): RoomAction[] {
         return [];
+    }
+
+    /** Roles unlocked by this room type (looked up from ROOM_ROLES registry) */
+    getRoles(): Role[] {
+        return ROOM_ROLES[this.type] || [];
     }
 }
 
@@ -664,11 +674,22 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     
     const handleRemoveRoom = () => {
         if (selectedSlot) {
-            setSlotData(prev => prev.map(s => 
-                s.slotId === selectedSlot.slotId 
-                    ? { ...s, roomType: null, level: 1, occupant: undefined }
-                    : s
-            ));
+            const removedType = selectedSlot.roomType;
+            setSlotData(prev => {
+                const newSlots = prev.map(s => 
+                    s.slotId === selectedSlot.slotId 
+                        ? { ...s, roomType: null, level: 1, occupant: undefined }
+                        : s
+                );
+                // If no other slot still has this room type, unassign its roles
+                if (removedType) {
+                    const stillExists = newSlots.some(s => s.roomType === removedType);
+                    if (!stillExists) {
+                        stage().unassignRolesForRoomType(removedType);
+                    }
+                }
+                return newSlots;
+            });
             setShowRemoveConfirm(false);
             // Update selection to show it's now empty
             const emptyRoom = createRoom(null);
@@ -871,9 +892,24 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                 <>
                                     <div className="room-detail-scrollable">
                                         <div className="room-detail-header">
-                                            <h3>{selectedRoom.name}</h3>
-                                            <span className="room-type-badge">{selectedRoom.type.replace('_', ' ')}</span>
-                                            <span className={`room-location-badge ${selectedRoom.location}`}>{selectedRoom.location}</span>
+                                            <div className="room-header-left">
+                                                <h3>{selectedRoom.name}</h3>
+                                                <div className="room-badges">
+                                                    <span className="room-type-badge">{selectedRoom.type.replace('_', ' ')}</span>
+                                                    <span className={`room-location-badge ${selectedRoom.location}`}>{selectedRoom.location}</span>
+                                                </div>
+                                            </div>
+                                            <div className="room-header-actions">
+                                                <button className="header-action-btn upgrade" title="Upgrade"><img src={IconPlus} alt="Upgrade" /></button>
+                                                <button className="header-action-btn enter" title="Enter"><img src={IconChat} alt="Enter" /></button>
+                                                {selectedRoom.buildable && (
+                                                    <button 
+                                                        className="header-action-btn remove" 
+                                                        title="Remove"
+                                                        onClick={() => setShowRemoveConfirm(true)}
+                                                    ><img src={IconCross} alt="Remove" /></button>
+                                                )}
+                                            </div>
                                         </div>
                                         
                                         <div className="room-preview-image" style={{ backgroundImage: `url(${selectedRoom.image})` }}></div>
@@ -935,23 +971,15 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                         </div>
                                     </div>
                                     
-                                    <div className="room-actions">
-                                        <button className="action-button primary">⬆️ Upgrade</button>
-                                        <button className="action-button">🎭 Enter</button>
-                                        {selectedRoom.getActions().map((action, i) => (
-                                            <button key={i} className="action-button">
-                                                {action.icon} {action.label}
-                                            </button>
-                                        ))}
-                                        {selectedRoom.buildable && (
-                                            <button 
-                                                className="action-button danger" 
-                                                onClick={() => setShowRemoveConfirm(true)}
-                                            >
-                                                🗑️ Remove
-                                            </button>
-                                        )}
-                                    </div>
+                                    {selectedRoom.getActions().length > 0 && (
+                                        <div className="room-actions">
+                                            {selectedRoom.getActions().map((action, i) => (
+                                                <button key={i} className="action-button">
+                                                    {action.icon} {action.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </>
