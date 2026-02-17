@@ -473,32 +473,33 @@ export interface PlayerCharacter {
 // Chub.ai configuration
 export const CHUB_USER = 'Sauron275';
 
-// Character IDs on chub.ai
-export const CHUB_CHARACTER_IDS: Record<string, string> = {
-    citrine: '9731bb4e10d9',
-    felicity: '79e6007def5a',
-    locke: 'ea98d94e3965',
-    sable: '62ce8e0d06a3',
-    veridian: 'ef8cef32f1ff',
-    kova: '24e3aa6fd485',
-    pervis: '8e93f3bc4f21',
+// Character IDs and slugs on chub.ai
+export const CHUB_CHARACTER_IDS: Record<string, { id: string; slug: string }> = {
+    citrine: { id: '9731bb4e10d9', slug: 'citrine' },
+    felicity: { id: '79e6007def5a', slug: 'felicity' },
+    locke: { id: 'ea98d94e3965', slug: 'locke' },
+    sable: { id: '62ce8e0d06a3', slug: 'sable' },
+    veridian: { id: 'ef8cef32f1ff', slug: 'the-cleric' },
+    kova: { id: '24e3aa6fd485', slug: 'the-barbarian' },
+    pervis: { id: '8e93f3bc4f21', slug: 'the-leader' },
 };
 
 // Dynamically construct chub.ai avatar URL
-export function getChubAvatarUrl(characterName: string, characterId: string): string {
-    const slug = characterName.toLowerCase();
-    return `https://avatars.charhub.io/avatars/${CHUB_USER}/${slug}-${characterId}/chara_card_v2.png`;
+export function getChubAvatarUrl(characterKey: string): string {
+    const char = CHUB_CHARACTER_IDS[characterKey.toLowerCase()];
+    if (!char) return '';
+    return `https://avatars.charhub.io/avatars/${CHUB_USER}/${char.slug}-${char.id}/chara_card_v2.png`;
 }
 
-// Legacy fallback URLs (kept for reference, will use dynamic URLs instead)
+// Avatar URLs (dynamically generated)
 export const CHUB_AVATARS = {
-    citrine: getChubAvatarUrl('citrine', CHUB_CHARACTER_IDS.citrine),
-    felicity: getChubAvatarUrl('felicity', CHUB_CHARACTER_IDS.felicity),
-    locke: getChubAvatarUrl('locke', CHUB_CHARACTER_IDS.locke),
-    sable: getChubAvatarUrl('sable', CHUB_CHARACTER_IDS.sable),
-    veridian: getChubAvatarUrl('veridian', CHUB_CHARACTER_IDS.veridian),
-    kova: getChubAvatarUrl('kova', CHUB_CHARACTER_IDS.kova),
-    pervis: getChubAvatarUrl('pervis', CHUB_CHARACTER_IDS.pervis),
+    citrine: getChubAvatarUrl('citrine'),
+    felicity: getChubAvatarUrl('felicity'),
+    locke: getChubAvatarUrl('locke'),
+    sable: getChubAvatarUrl('sable'),
+    veridian: getChubAvatarUrl('veridian'),
+    kova: getChubAvatarUrl('kova'),
+    pervis: getChubAvatarUrl('pervis'),
 };
 
 // Character bio/profile data
