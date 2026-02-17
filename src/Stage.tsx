@@ -14,6 +14,141 @@ export type HeroStatus = 'free' | 'encountered' | 'captured' | 'converting' | 's
 // Location types
 export type Location = 'Manor' | 'Town' | 'Woods' | 'Ruins' | 'Circus' | 'Dungeon' | 'Unknown';
 
+// ──────────────────────────────────────────
+// STAT SYSTEM — Letter Grades (F- to S++)
+// ──────────────────────────────────────────
+
+export type StatName = 'prowess' | 'expertise' | 'attunement' | 'presence' | 'discipline' | 'insight';
+
+export interface StatDefinition {
+    name: StatName;
+    label: string;
+    description: string;
+    icon: string;
+}
+
+export const STAT_DEFINITIONS: StatDefinition[] = [
+    {
+        name: 'prowess',
+        label: 'Prowess',
+        description: 'Physical capability - combat, labor, athletics',
+        icon: '⚔️',
+    },
+    {
+        name: 'expertise',
+        label: 'Expertise',
+        description: 'Skill and craftsmanship - cooking, brewing, crafting',
+        icon: '🔧',
+    },
+    {
+        name: 'attunement',
+        label: 'Attunement',
+        description: 'Magical sensitivity - rituals, potions, mysticism',
+        icon: '✨',
+    },
+    {
+        name: 'presence',
+        label: 'Presence',
+        description: 'Social influence - charm, intimidation, leadership',
+        icon: '👑',
+    },
+    {
+        name: 'discipline',
+        label: 'Discipline',
+        description: 'Self-control and focus - obedience, reliability',
+        icon: '🎯',
+    },
+    {
+        name: 'insight',
+        label: 'Insight',
+        description: 'Perception and learning - teaching, investigation',
+        icon: '🔍',
+    },
+];
+
+// Letter grade tiers (28 grades: F- to S++)
+export const GRADE_TIERS = [
+    'F-', 'F', 'F+',
+    'E-', 'E', 'E+',
+    'D-', 'D', 'D+',
+    'C-', 'C', 'C+',
+    'B-', 'B', 'B+',
+    'A-', 'A', 'A+',
+    'S-', 'S', 'S+', 'S++',
+] as const;
+
+export type StatGrade = typeof GRADE_TIERS[number];
+
+/** Convert 0-100 numeric value to letter grade */
+export function numberToGrade(value: number): StatGrade {
+    const clamped = Math.max(0, Math.min(100, value));
+    
+    // F tier: 0-11
+    if (clamped <= 3) return 'F-';
+    if (clamped <= 7) return 'F';
+    if (clamped <= 11) return 'F+';
+    
+    // E tier: 12-23
+    if (clamped <= 15) return 'E-';
+    if (clamped <= 19) return 'E';
+    if (clamped <= 23) return 'E+';
+    
+    // D tier: 24-35
+    if (clamped <= 27) return 'D-';
+    if (clamped <= 31) return 'D';
+    if (clamped <= 35) return 'D+';
+    
+    // C tier: 36-47
+    if (clamped <= 39) return 'C-';
+    if (clamped <= 43) return 'C';
+    if (clamped <= 47) return 'C+';
+    
+    // B tier: 48-59
+    if (clamped <= 51) return 'B-';
+    if (clamped <= 55) return 'B';
+    if (clamped <= 59) return 'B+';
+    
+    // A tier: 60-71
+    if (clamped <= 63) return 'A-';
+    if (clamped <= 67) return 'A';
+    if (clamped <= 71) return 'A+';
+    
+    // S tier: 72-100
+    if (clamped <= 79) return 'S-';
+    if (clamped <= 89) return 'S';
+    if (clamped <= 96) return 'S+';
+    return 'S++';
+}
+
+/** Convert letter grade to numeric midpoint (for reverse calculations) */
+export function gradeToNumber(grade: StatGrade): number {
+    const gradeMap: Record<StatGrade, number> = {
+        'F-': 2, 'F': 6, 'F+': 10,
+        'E-': 14, 'E': 18, 'E+': 22,
+        'D-': 26, 'D': 30, 'D+': 34,
+        'C-': 38, 'C': 42, 'C+': 46,
+        'B-': 50, 'B': 54, 'B+': 58,
+        'A-': 62, 'A': 66, 'A+': 70,
+        'S-': 76, 'S': 85, 'S+': 93, 'S++': 99,
+    };
+    return gradeMap[grade] || 50;
+}
+
+/** Get color for stat grade tier */
+export function getGradeColor(grade: StatGrade): string {
+    const tier = grade.charAt(0);
+    const colorMap: Record<string, string> = {
+        'F': '#e63946',  // Bright Red
+        'E': '#f77f00',  // Orange
+        'D': '#fcbf49',  // Amber
+        'C': '#90be6d',  // Spring Green
+        'B': '#4ecdc4',  // Turquoise
+        'A': '#457b9d',  // Steel Blue
+        'S': '#9d4edd',  // Vivid Purple
+    };
+    return colorMap[tier] || '#888';
+}
+
 // Hero information
 export interface Hero {
     name: string;
@@ -25,6 +160,7 @@ export interface Hero {
     description: string;
     traits: string[];
     details: Record<string, string>;
+    stats: Record<StatName, number>; // 0-100 values
     location?: string;
 }
 
@@ -305,6 +441,7 @@ export interface Servant {
     description: string;
     traits: string[];
     details: Record<string, string>;
+    stats: Record<StatName, number>; // 0-100 values
     loyalty: number; // 0-100
     assignedTask?: string;
     assignedRole?: string; // role id from ROLE_REGISTRY
@@ -333,7 +470,13 @@ export const CHUB_AVATARS = {
 };
 
 // Character bio/profile data
-export const CHARACTER_DATA: Record<string, { color: string; description: string; traits: string[]; details: Record<string, string> }> = {
+export const CHARACTER_DATA: Record<string, { 
+    color: string; 
+    description: string; 
+    traits: string[]; 
+    details: Record<string, string>;
+    stats: Record<StatName, number>;
+}> = {
     Citrine: {
         color: '#8a7abf',
         description: 'A cunning and enigmatic gray cat witch who has claimed dominion over a crumbling manor on the edge of the wilds. Citrine bends the will of wandering heroes to serve his household, weaving subtle enchantments and honeyed words to convert them into loyal servants. His silvery fur and piercing violet eyes belie a mind that is always three steps ahead. Though his methods are questionable, he seeks to restore the manor to its former grandeur — one thrall at a time.',
@@ -345,6 +488,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Affinity': 'Mind Magic',
             'Alignment': 'Lawful Evil',
             'Goal': 'Restore the manor to glory',
+        },
+        stats: {
+            prowess: 52,
+            expertise: 45,
+            attunement: 88,
+            presence: 82,
+            discipline: 78,
+            insight: 75,
         },
     },
     Felicity: {
@@ -359,6 +510,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Loyalty': 'Absolute',
             'Quirk': 'Hums while she cleans',
         },
+        stats: {
+            prowess: 38,
+            expertise: 85,
+            attunement: 28,
+            presence: 58,
+            discipline: 90,
+            insight: 68,
+        },
     },
     Locke: {
         color: '#6a8caf',
@@ -371,6 +530,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Specialty': 'Security & Logistics',
             'Loyalty': 'Unwavering',
             'Quirk': 'Polishes silverware when thinking',
+        },
+        stats: {
+            prowess: 62,
+            expertise: 72,
+            attunement: 32,
+            presence: 66,
+            discipline: 94,
+            insight: 76,
         },
     },
     Sable: {
@@ -385,6 +552,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Weakness': 'Overconfidence',
             'Quirk': 'Flicks his tail when lying',
         },
+        stats: {
+            prowess: 68,
+            expertise: 74,
+            attunement: 24,
+            presence: 60,
+            discipline: 22,
+            insight: 72,
+        },
     },
     Veridian: {
         color: '#4a9e6a',
@@ -395,6 +570,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Specialty': 'Healing & Warding',
             'Weakness': 'Trusts too easily',
             'Quirk': 'Ears twitch when sensing danger',
+        },
+        stats: {
+            prowess: 42,
+            expertise: 50,
+            attunement: 80,
+            presence: 70,
+            discipline: 65,
+            insight: 74,
         },
     },
     Kova: {
@@ -407,6 +590,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Weakness': 'Easily provoked',
             'Quirk': 'Howls at the moon involuntarily',
         },
+        stats: {
+            prowess: 92,
+            expertise: 32,
+            attunement: 18,
+            presence: 76,
+            discipline: 28,
+            insight: 40,
+        },
     },
     Pervis: {
         color: '#5a6abf',
@@ -417,6 +608,14 @@ export const CHARACTER_DATA: Record<string, { color: string; description: string
             'Specialty': 'Tactics & Inspiration',
             'Weakness': 'Cannot abandon allies',
             'Quirk': 'Nose wiggles when plotting',
+        },
+        stats: {
+            prowess: 58,
+            expertise: 46,
+            attunement: 38,
+            presence: 84,
+            discipline: 70,
+            insight: 82,
         },
     },
 };
@@ -638,6 +837,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Sable.description,
                     traits: CHARACTER_DATA.Sable.traits,
                     details: CHARACTER_DATA.Sable.details,
+                    stats: CHARACTER_DATA.Sable.stats,
                     location: 'Unknown',
                 },
                 'Veridian': {
@@ -650,6 +850,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Veridian.description,
                     traits: CHARACTER_DATA.Veridian.traits,
                     details: CHARACTER_DATA.Veridian.details,
+                    stats: CHARACTER_DATA.Veridian.stats,
                     location: 'Unknown',
                 },
                 'Kova': {
@@ -662,6 +863,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Kova.description,
                     traits: CHARACTER_DATA.Kova.traits,
                     details: CHARACTER_DATA.Kova.details,
+                    stats: CHARACTER_DATA.Kova.stats,
                     location: 'Unknown',
                 },
                 'Pervis': {
@@ -674,6 +876,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Pervis.description,
                     traits: CHARACTER_DATA.Pervis.traits,
                     details: CHARACTER_DATA.Pervis.details,
+                    stats: CHARACTER_DATA.Pervis.stats,
                     location: 'Unknown',
                 },
             },
@@ -686,6 +889,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Felicity.description,
                     traits: CHARACTER_DATA.Felicity.traits,
                     details: CHARACTER_DATA.Felicity.details,
+                    stats: CHARACTER_DATA.Felicity.stats,
                     loyalty: 80,
                     assignedTask: undefined,
                 },
@@ -697,6 +901,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     description: CHARACTER_DATA.Locke.description,
                     traits: CHARACTER_DATA.Locke.traits,
                     details: CHARACTER_DATA.Locke.details,
+                    stats: CHARACTER_DATA.Locke.stats,
                     loyalty: 75,
                     assignedTask: undefined,
                 },
@@ -876,7 +1081,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         for (const heroName of heroNames) {
             if (text.includes(heroName)) {
                 if (!this.currentState.heroes[heroName]) {
-                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {} };
+                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {}, stats: { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 } };
                     this.currentState.heroes[heroName] = {
                         name: heroName,
                         status: 'encountered',
@@ -887,6 +1092,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         description: charData.description,
                         traits: charData.traits,
                         details: charData.details,
+                        stats: charData.stats,
                     };
                 }
                 
@@ -898,7 +1104,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     this.currentState.heroes[heroName].status = 'converting';
                 } else if (text.match(new RegExp(`${heroName}.*(?:servant|slave|obedient|converted)`, 'i'))) {
                     this.currentState.heroes[heroName].status = 'servant';
-                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {} };
+                    const charData = CHARACTER_DATA[heroName] || { color: '#888', description: '', traits: [], details: {}, stats: { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 } };
                     this.currentState.servants[heroName] = {
                         name: heroName,
                         formerClass: this.getHeroClass(heroName),
@@ -907,6 +1113,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         description: charData.description,
                         traits: charData.traits,
                         details: charData.details,
+                        stats: charData.stats,
                         loyalty: 100,
                     };
                     delete this.currentState.heroes[heroName];

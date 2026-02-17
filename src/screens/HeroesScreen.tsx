@@ -27,6 +27,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                     description: h.description,
                     traits: h.traits,
                     details: h.details,
+                    stats: h.stats || { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 },
                 }}
                 onBack={() => setSelectedHero(null)}
                 statusBadge={

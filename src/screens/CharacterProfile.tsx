@@ -1,5 +1,5 @@
 import React, { FC, ReactNode } from 'react';
-import { Stage } from '../Stage';
+import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor } from '../Stage';
 import { CharacterGallery } from './CharacterGallery';
 
 /**
@@ -13,6 +13,7 @@ export interface CharacterProfileData {
     description: string;
     traits: string[];
     details: Record<string, string>;
+    stats: Record<StatName, number>;
 }
 
 /**
@@ -33,6 +34,13 @@ export interface CharacterProfileProps {
 
     /** Extra bio sections rendered between About and Details */
     extraSections?: ReactNode;
+
+    /** Assigned role with traits and color (for servants) */
+    assignedRole?: {
+        name: string;
+        color: string;
+        traits: string[];
+    };
 }
 
 export const CharacterProfile: FC<CharacterProfileProps> = ({
@@ -43,6 +51,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     statusBadge,
     extraActions,
     extraSections,
+    assignedRole,
 }) => {
     const [showGallery, setShowGallery] = React.useState(false);
 
@@ -116,10 +125,77 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                     </div>
 
                     <div className="char-bio-section">
+                        <h4>Stats</h4>
+                        <div className="char-stat-block">
+                            {STAT_DEFINITIONS.map(statDef => {
+                                const value = character.stats[statDef.name] || 0;
+                                const grade = numberToGrade(value);
+                                const color = getGradeColor(grade);
+                                const totalBlocks = 20;
+                                const filledBlocks = Math.round((value / 100) * totalBlocks);
+                                return (
+                                    <div key={statDef.name} className="stat-row">
+                                        <div className="stat-row-left">
+                                            <span 
+                                                className="stat-grade-letter" 
+                                                style={{ color: color }}
+                                            >
+                                                {grade}
+                                            </span>
+                                            <span className="stat-name" style={{ color: color }}>
+                                                {statDef.label}
+                                            </span>
+                                        </div>
+                                        <div className="stat-row-right">
+                                            <div className="stat-blocks-container">
+                                                {Array.from({ length: totalBlocks }).map((_, i) => {
+                                                    const isFilled = i < filledBlocks;
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className={`stat-block ${isFilled ? 'filled' : ''}`}
+                                                            style={isFilled ? {
+                                                                ['--stat-fill-color' as any]: color,
+                                                                borderColor: color,
+                                                            } : {
+                                                                borderColor: color,
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="char-bio-section">
                         <h4>Traits</h4>
-                        <div className="char-trait-list">
-                            {character.traits.map(t => (
-                                <span key={t} className="char-trait">{t}</span>
+                        <div className="char-trait-list">{character.traits.map(t => (
+                                <span 
+                                    key={`innate-${t}`} 
+                                    className="char-trait char-trait-innate"
+                                    style={{
+                                        borderColor: character.color,
+                                        color: character.color,
+                                    }}
+                                >
+                                    {t}
+                                </span>
+                            ))}
+                            {assignedRole?.traits.map(t => (
+                                <span 
+                                    key={`role-${t}`} 
+                                    className="char-trait char-trait-role"
+                                    style={{
+                                        borderColor: assignedRole.color,
+                                        color: assignedRole.color,
+                                    }}
+                                >
+                                    {t}
+                                </span>
                             ))}
                         </div>
                     </div>

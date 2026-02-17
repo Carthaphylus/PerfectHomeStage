@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
-import { Stage, Servant, Role, getRoleById, ROOM_ROLES } from '../Stage';
+import { Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
 
 interface ServantsScreenProps {
@@ -67,8 +67,22 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         description: s.description,
                         traits: s.traits,
                         details: s.details,
+                        stats: s.stats || { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 },
                     }}
                     onBack={() => setSelectedServant(null)}
+                    statusBadge={currentRole && (
+                        <div className="char-role-badge" style={{ 
+                            borderColor: currentRole.color,
+                            color: currentRole.color,
+                        }}>
+                            {currentRole.icon} {currentRole.name}
+                        </div>
+                    )}
+                    assignedRole={currentRole ? {
+                        name: currentRole.name,
+                        color: currentRole.color,
+                        traits: currentRole.traits,
+                    } : undefined}
                     extraActions={
                         <>
                             <button className="gallery-open-btn chat-btn" onClick={() => handleStartChat(s)}>
