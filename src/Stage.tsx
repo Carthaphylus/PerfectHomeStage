@@ -456,7 +456,6 @@ export interface PlayerCharacter {
     description: string;
     traits: string[];
     details: Record<string, string>;
-    stats: Record<StatName, number>;
 }
 
 // Chub.ai avatar URLs
@@ -826,7 +825,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 description: CHARACTER_DATA.Citrine.description,
                 traits: CHARACTER_DATA.Citrine.traits,
                 details: CHARACTER_DATA.Citrine.details,
-                stats: CHARACTER_DATA.Citrine.stats,
             },
             heroes: {
                 'Sable': {

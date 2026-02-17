@@ -22,7 +22,6 @@ export const PCProfileScreen: FC<PCProfileScreenProps> = ({ stage, setScreenType
                 description: pc.description,
                 traits: pc.traits,
                 details: pc.details,
-                stats: pc.stats,
             }}
             onBack={() => setScreenType(ScreenType.MENU)}
             backLabel="&lt; Menu"

@@ -124,52 +124,54 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                         ))}
                     </div>
 
-                    <div className="char-bio-section">
-                        <h4>Stats</h4>
-                        <div className="char-stat-block">
-                            {STAT_DEFINITIONS.map(statDef => {
-                                const value = (character.stats && character.stats[statDef.name]) || 0;
-                                const grade = numberToGrade(value);
-                                const color = getGradeColor(grade);
-                                const totalBlocks = 20;
-                                const filledBlocks = Math.round((value / 100) * totalBlocks);
-                                return (
-                                    <div key={statDef.name} className="stat-row">
-                                        <div className="stat-row-left">
-                                            <span 
-                                                className="stat-grade-letter" 
-                                                style={{ color: color }}
-                                            >
-                                                {grade}
-                                            </span>
-                                            <span className="stat-name" style={{ color: color }}>
-                                                {statDef.label}
-                                            </span>
-                                        </div>
-                                        <div className="stat-row-right">
-                                            <div className="stat-blocks-container">
-                                                {Array.from({ length: totalBlocks }).map((_, i) => {
-                                                    const isFilled = i < filledBlocks;
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            className={`stat-block ${isFilled ? 'filled' : ''}`}
-                                                            style={isFilled ? {
-                                                                ['--stat-fill-color' as any]: color,
-                                                                borderColor: color,
-                                                            } : {
-                                                                borderColor: color,
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
+                    {character.stats && (
+                        <div className="char-bio-section">
+                            <h4>Stats</h4>
+                            <div className="char-stat-block">
+                                {STAT_DEFINITIONS.map(statDef => {
+                                    const value = (character.stats && character.stats[statDef.name]) || 0;
+                                    const grade = numberToGrade(value);
+                                    const color = getGradeColor(grade);
+                                    const totalBlocks = 20;
+                                    const filledBlocks = Math.round((value / 100) * totalBlocks);
+                                    return (
+                                        <div key={statDef.name} className="stat-row">
+                                            <div className="stat-row-left">
+                                                <span 
+                                                    className="stat-grade-letter" 
+                                                    style={{ color: color }}
+                                                >
+                                                    {grade}
+                                                </span>
+                                                <span className="stat-name" style={{ color: color }}>
+                                                    {statDef.label}
+                                                </span>
+                                            </div>
+                                            <div className="stat-row-right">
+                                                <div className="stat-blocks-container">
+                                                    {Array.from({ length: totalBlocks }).map((_, i) => {
+                                                        const isFilled = i < filledBlocks;
+                                                        return (
+                                                            <div
+                                                                key={i}
+                                                                className={`stat-block ${isFilled ? 'filled' : ''}`}
+                                                                style={isFilled ? {
+                                                                    ['--stat-fill-color' as any]: color,
+                                                                    borderColor: color,
+                                                                } : {
+                                                                    borderColor: color,
+                                                                }}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="char-bio-section">
                         <h4>Traits</h4>

@@ -71,14 +71,6 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     'Alignment': 'Lawful Evil',
                     'Goal': 'Restore the manor to glory',
                 },
-                stats: {
-                    prowess: 52,
-                    expertise: 45,
-                    attunement: 88,
-                    presence: 82,
-                    discipline: 78,
-                    insight: 75,
-                },
             },
             heroes: {
                 'Sable': {
