@@ -139,14 +139,26 @@ export function getGradeColor(grade: StatGrade): string {
     const tier = grade.charAt(0);
     const colorMap: Record<string, string> = {
         'F': '#e63946',  // Bright Red
-        'E': '#f77f00',  // Orange
-        'D': '#fcbf49',  // Amber
-        'C': '#90be6d',  // Spring Green
-        'B': '#4ecdc4',  // Turquoise
-        'A': '#457b9d',  // Steel Blue
-        'S': '#9d4edd',  // Vivid Purple
+        'E': '#77669b',  // Purple
+        'D': '#4e659e',  // Blue
+        'C': '#298f7f',  // Cyan
+        'B': '#228417',  // Lime Green
+        'A': '#ff9100',  // Orange-Yellow
+        'S': '#ffdd00',  // Gold
     };
     return colorMap[tier] || '#888';
+}
+
+export function getStatColor(statName: StatName): string {
+    const colorMap: Record<StatName, string> = {
+        'prowess': '#c74e4e',      // Red - Physical/Combat
+        'expertise': '#d87833',    // Orange - Crafting/Skill
+        'attunement': '#9971bf',   // Purple - Magic/Mysticism
+        'presence': '#cebe7d',     // Yellow/Gold - Social/Leadership
+        'discipline': '#4fba83',   // Blue - Self-control/Focus
+        'insight': '#6ca0db',      // Green - Perception/Learning
+    };
+    return colorMap[statName] || '#888';
 }
 
 // Hero information
@@ -458,15 +470,35 @@ export interface PlayerCharacter {
     details: Record<string, string>;
 }
 
-// Chub.ai avatar URLs
+// Chub.ai configuration
+export const CHUB_USER = 'Sauron275';
+
+// Character IDs on chub.ai
+export const CHUB_CHARACTER_IDS: Record<string, string> = {
+    citrine: '9731bb4e10d9',
+    felicity: '79e6007def5a',
+    locke: 'ea98d94e3965',
+    sable: '62ce8e0d06a3',
+    veridian: 'ef8cef32f1ff',
+    kova: '24e3aa6fd485',
+    pervis: '8e93f3bc4f21',
+};
+
+// Dynamically construct chub.ai avatar URL
+export function getChubAvatarUrl(characterName: string, characterId: string): string {
+    const slug = characterName.toLowerCase();
+    return `https://avatars.charhub.io/avatars/${CHUB_USER}/${slug}-${characterId}/chara_card_v2.png`;
+}
+
+// Legacy fallback URLs (kept for reference, will use dynamic URLs instead)
 export const CHUB_AVATARS = {
-    citrine: 'https://avatars.charhub.io/avatars/Sauron275/citrine-9731bb4e10d9/chara_card_v2.png',
-    felicity: 'https://avatars.charhub.io/avatars/Sauron275/felicity-79e6007def5a/chara_card_v2.png',
-    locke: 'https://avatars.charhub.io/avatars/Sauron275/locke-ea98d94e3965/chara_card_v2.png',
-    sable: 'https://avatars.charhub.io/avatars/Sauron275/sable-62ce8e0d06a3/chara_card_v2.png',
-    veridian: 'https://avatars.charhub.io/avatars/Sauron275/the-cleric-ef8cef32f1ff/chara_card_v2.png',
-    kova: 'https://avatars.charhub.io/avatars/Sauron275/the-barbarian-24e3aa6fd485/chara_card_v2.png',
-    pervis: 'https://avatars.charhub.io/avatars/Sauron275/the-leader-8e93f3bc4f21/chara_card_v2.png',
+    citrine: getChubAvatarUrl('citrine', CHUB_CHARACTER_IDS.citrine),
+    felicity: getChubAvatarUrl('felicity', CHUB_CHARACTER_IDS.felicity),
+    locke: getChubAvatarUrl('locke', CHUB_CHARACTER_IDS.locke),
+    sable: getChubAvatarUrl('sable', CHUB_CHARACTER_IDS.sable),
+    veridian: getChubAvatarUrl('veridian', CHUB_CHARACTER_IDS.veridian),
+    kova: getChubAvatarUrl('kova', CHUB_CHARACTER_IDS.kova),
+    pervis: getChubAvatarUrl('pervis', CHUB_CHARACTER_IDS.pervis),
 };
 
 // Character bio/profile data

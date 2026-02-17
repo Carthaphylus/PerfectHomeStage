@@ -1,5 +1,5 @@
 import React, { FC, ReactNode } from 'react';
-import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor } from '../Stage';
+import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../Stage';
 import { CharacterGallery } from './CharacterGallery';
 
 /**
@@ -131,7 +131,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                 {STAT_DEFINITIONS.map(statDef => {
                                     const value = (character.stats && character.stats[statDef.name]) || 0;
                                     const grade = numberToGrade(value);
-                                    const color = getGradeColor(grade);
+                                    const gradeColor = getGradeColor(grade);
+                                    const statColor = getStatColor(statDef.name);
                                     const totalBlocks = 20;
                                     const filledBlocks = Math.round((value / 100) * totalBlocks);
                                     return (
@@ -139,11 +140,11 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                             <div className="stat-row-left">
                                                 <span 
                                                     className="stat-grade-letter" 
-                                                    style={{ color: color }}
+                                                    style={{ color: gradeColor }}
                                                 >
                                                     {grade}
                                                 </span>
-                                                <span className="stat-name" style={{ color: color }}>
+                                                <span className="stat-name" style={{ color: statColor }}>
                                                     {statDef.label}
                                                 </span>
                                             </div>
@@ -156,10 +157,10 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                                                 key={i}
                                                                 className={`stat-block ${isFilled ? 'filled' : ''}`}
                                                                 style={isFilled ? {
-                                                                    ['--stat-fill-color' as any]: color,
-                                                                    borderColor: color,
+                                                                    ['--stat-fill-color' as any]: character.color,
+                                                                    borderColor: character.color,
                                                                 } : {
-                                                                    borderColor: color,
+                                                                    borderColor: character.color,
                                                                 }}
                                                             />
                                                         );
