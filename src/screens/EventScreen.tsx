@@ -133,6 +133,15 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         }, 300);
     };
 
+    const handleForceChoice = (choice: EventChoice, result: 'success' | 'failure') => {
+        setFadeState('out');
+        setTimeout(() => {
+            const updated = stage().advanceEvent(choice.id, result);
+            onEventUpdate(updated);
+            setFadeState('in');
+        }, 300);
+    };
+
     const handleContinue = () => {
         setFadeState('out');
         setTimeout(() => {
@@ -445,24 +454,39 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                 ) : showChoices ? (
                     <div className="event-choices">
                         {visibleChoices.map((choice) => (
-                            <button
-                                key={choice.id}
-                                className={`event-btn event-btn-choice ${choice.skillCheck ? 'has-check' : ''}`}
-                                onClick={() => handleChoice(choice)}
-                                title={choice.tooltip || ''}
-                            >
-                                <span className="choice-label">{choice.label}</span>
+                            <div key={choice.id} className="event-choice-row">
+                                <button
+                                    className={`event-btn event-btn-choice ${choice.skillCheck ? 'has-check' : ''}`}
+                                    onClick={() => handleChoice(choice)}
+                                    title={choice.tooltip || ''}
+                                >
+                                    <span className="choice-label">{choice.label}</span>
+                                    {choice.skillCheck && (
+                                        <span className="choice-check-badge">
+                                            {choice.skillCheck.skill.toUpperCase()} DC {choice.skillCheck.difficulty}
+                                        </span>
+                                    )}
+                                    {choice.consumeItem && (
+                                        <span className="choice-item-cost">
+                                            Uses: {getItemDefinition(choice.consumeItem).icon} {choice.consumeItem}
+                                        </span>
+                                    )}
+                                </button>
                                 {choice.skillCheck && (
-                                    <span className="choice-check-badge">
-                                        {choice.skillCheck.skill.toUpperCase()} DC {choice.skillCheck.difficulty}
-                                    </span>
+                                    <div className="event-debug-btns">
+                                        <button
+                                            className="event-debug-btn debug-success"
+                                            onClick={() => handleForceChoice(choice, 'success')}
+                                            title="Debug: Force success"
+                                        >✓</button>
+                                        <button
+                                            className="event-debug-btn debug-fail"
+                                            onClick={() => handleForceChoice(choice, 'failure')}
+                                            title="Debug: Force failure"
+                                        >✗</button>
+                                    </div>
                                 )}
-                                {choice.consumeItem && (
-                                    <span className="choice-item-cost">
-                                        Uses: {getItemDefinition(choice.consumeItem).icon} {choice.consumeItem}
-                                    </span>
-                                )}
-                            </button>
+                            </div>
                         ))}
                     </div>
                 ) : showChatButton ? (

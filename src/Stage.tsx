@@ -2028,7 +2028,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     /** Advance the event by choosing an option. Returns updated ActiveEvent. */
-    advanceEvent(choiceId?: string): ActiveEvent | null {
+    advanceEvent(choiceId?: string, forceResult?: 'success' | 'failure'): ActiveEvent | null {
         const event = this._activeEvent;
         if (!event) return null;
 
@@ -2065,8 +2065,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             // Skill check branching
             if (choice.skillCheck) {
                 const check = choice.skillCheck;
-                const playerSkillValue = this.currentState.stats.skills[check.skill] || 0;
-                const result = rollSkillCheck(playerSkillValue, check.difficulty, check.modifier || 0);
+                let result: { roll: number; total: number; success: boolean };
+
+                if (forceResult) {
+                    // Debug: force outcome
+                    result = { roll: forceResult === 'success' ? 100 : 1, total: forceResult === 'success' ? 999 : 0, success: forceResult === 'success' };
+                    console.log(`[Event] Skill check (${check.skill}): FORCED ${forceResult.toUpperCase()}`);
+                } else {
+                    const playerSkillValue = this.currentState.stats.skills[check.skill] || 0;
+                    result = rollSkillCheck(playerSkillValue, check.difficulty, check.modifier || 0);
+                    console.log(`[Event] Skill check (${check.skill}): rolled ${result.roll}, total ${result.total} vs DC ${check.difficulty} → ${result.success ? 'SUCCESS' : 'FAIL'}`);
+                }
 
                 event.lastSkillCheck = {
                     skill: check.skill,
@@ -2076,7 +2085,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 };
 
                 nextStepId = result.success ? check.successStep : check.failureStep;
-                console.log(`[Event] Skill check (${check.skill}): rolled ${result.roll}, total ${result.total} vs DC ${check.difficulty} → ${result.success ? 'SUCCESS' : 'FAIL'}`);
             } else {
                 nextStepId = choice.nextStep;
             }

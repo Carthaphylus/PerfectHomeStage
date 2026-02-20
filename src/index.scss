@@ -4055,6 +4055,56 @@ html, body, #root {
     gap: 8px;
   }
 
+  .event-choice-row {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .event-debug-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .event-debug-btn {
+    width: 28px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+    padding: 0;
+
+    &.debug-success {
+      background: rgba(80, 180, 80, 0.1) !important;
+      border-color: rgba(80, 180, 80, 0.3);
+      color: #6cd46c;
+
+      &:hover {
+        background: rgba(80, 180, 80, 0.25) !important;
+        border-color: rgba(80, 180, 80, 0.6);
+      }
+    }
+
+    &.debug-fail {
+      background: rgba(200, 80, 80, 0.1) !important;
+      border-color: rgba(200, 80, 80, 0.3);
+      color: #e06060;
+
+      &:hover {
+        background: rgba(200, 80, 80, 0.25) !important;
+        border-color: rgba(200, 80, 80, 0.6);
+      }
+    }
+  }
+
   .event-btn {
     display: flex;
     align-items: center;
