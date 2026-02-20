@@ -183,6 +183,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                     trait={t}
                                     className="char-trait char-trait-innate"
                                     color={character.color}
+                                    source="character"
                                 />
                             ))}
                             {assignedRole?.traits.map(t => (
@@ -191,6 +192,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                     trait={t}
                                     className="char-trait char-trait-role"
                                     color={assignedRole.color}
+                                    source="room"
                                 />
                             ))}
                         </div>

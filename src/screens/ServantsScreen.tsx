@@ -128,6 +128,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                                         trait={trait}
                                                         className="char-trait char-trait-role"
                                                         color={currentRole.color}
+                                                        source="room"
                                                     />
                                                 ))}
                                             </div>
@@ -399,6 +400,7 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                                                     trait={t}
                                                     className="role-preview-trait"
                                                     color={previewRole.color}
+                                                    source="room"
                                                 />
                                             ))}
                                         </div>

@@ -1,24 +1,33 @@
 import React, { FC, useState, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { getTraitDefinition } from '../Stage';
+import { getTraitDefinition, TraitScope } from '../Stage';
 
 interface TraitChipProps {
     trait: string;
     className?: string;
     color?: string;
+    source?: TraitScope;
 }
 
-export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color }) => {
+export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color, source }) => {
     const definition = getTraitDefinition(trait);
+    const displayScope = source || definition.scope;
     const chipRef = useRef<HTMLSpanElement>(null);
     const [show, setShow] = useState(false);
     const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     const scopeIcon: Record<string, string> = {
         character: '◆',
-        role: '★',
+        role: '⌂',
         room: '⌂',
         situational: '✦',
+    };
+
+    const scopeLabel: Record<string, string> = {
+        character: 'character',
+        role: 'room role',
+        room: 'room role',
+        situational: 'situational',
     };
 
     const handleMouseEnter = useCallback(() => {
@@ -49,9 +58,9 @@ export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color }) 
         >
             <span className="trait-tooltip-head">
                 <span className="trait-tooltip-title">{definition.name}</span>
-                <span className={`trait-tooltip-scope scope-${definition.scope}`}>
-                    <span className="scope-icon">{scopeIcon[definition.scope] || '✦'}</span>
-                    <span className="scope-label">{definition.scope}</span>
+                <span className={`trait-tooltip-scope scope-${displayScope}`}>
+                        <span className="scope-icon">{scopeIcon[displayScope] || '✦'}</span>
+                        <span className="scope-label">{scopeLabel[displayScope] || displayScope}</span>
                 </span>
             </span>
 
