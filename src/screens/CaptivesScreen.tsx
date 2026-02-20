@@ -9,9 +9,54 @@ interface CaptivesScreenProps {
 }
 
 export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType }) => {
+    const [, forceUpdate] = useState(0);
     const allHeroes = Object.values(stage().currentState.heroes);
     const captives = allHeroes.filter(h => h.status === 'captured' || h.status === 'converting');
     const [selectedCaptive, setSelectedCaptive] = useState<Hero | null>(null);
+
+    const debugFree = (heroName: string) => {
+        const hero = stage().currentState.heroes[heroName];
+        if (hero) {
+            hero.status = 'free';
+            hero.brainwashing = 0;
+            setSelectedCaptive(null);
+            forceUpdate(n => n + 1);
+        }
+    };
+
+    const debugBrainwash = (heroName: string, delta: number) => {
+        const hero = stage().currentState.heroes[heroName];
+        if (hero) {
+            hero.brainwashing = Math.max(0, Math.min(100, hero.brainwashing + delta));
+            if (hero.brainwashing > 0 && hero.status === 'captured') {
+                hero.status = 'converting';
+            }
+            setSelectedCaptive({ ...hero });
+            forceUpdate(n => n + 1);
+        }
+    };
+
+    const debugConvert = (heroName: string) => {
+        const hero = stage().currentState.heroes[heroName];
+        if (hero) {
+            const charData = (stage() as any).constructor === undefined ? undefined : undefined;
+            stage().currentState.servants[heroName] = {
+                name: heroName,
+                formerClass: hero.heroClass,
+                avatar: hero.avatar,
+                color: hero.color,
+                description: hero.description,
+                traits: hero.traits,
+                details: hero.details,
+                stats: hero.stats,
+                love: 50,
+                obedience: 100,
+            };
+            delete stage().currentState.heroes[heroName];
+            setSelectedCaptive(null);
+            forceUpdate(n => n + 1);
+        }
+    };
 
     // Full profile view when a captive is selected
     if (selectedCaptive) {
@@ -72,6 +117,17 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType }
                                 </div>
                             </>
                         )}
+                        <div className="debug-section">
+                            <h4>🛠 Debug</h4>
+                            <div className="debug-btn-row">
+                                <button className="debug-btn debug-free" onClick={() => debugFree(h.name)}>🔓 Free</button>
+                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, 10)}>🌀 +10</button>
+                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, -10)}>🌀 -10</button>
+                                {brainwashingComplete && (
+                                    <button className="debug-btn debug-convert" onClick={() => debugConvert(h.name)}>✨ Convert</button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 }
             />
@@ -109,6 +165,13 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType }
                                     <span className="captive-card-class">{hero.heroClass}</span>
                                     <span className={`captive-card-status status-${hero.status}`}>{hero.status}</span>
                                 </div>
+                                <button
+                                    className="debug-btn debug-free-small"
+                                    onClick={(e) => { e.stopPropagation(); debugFree(hero.name); }}
+                                    title="Debug: Free captive"
+                                >
+                                    🔓
+                                </button>
                                 <div className="captive-brainwashing-bar">
                                     <div
                                         className="captive-brainwashing-fill"

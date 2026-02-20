@@ -9,10 +9,20 @@ interface HeroesScreenProps {
 }
 
 export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) => {
+    const [, forceUpdate] = useState(0);
     const allHeroes = Object.values(stage().currentState.heroes);
     // Only show free and encountered heroes — captured/converting go to Captives screen
     const heroes = allHeroes.filter(h => h.status === 'free' || h.status === 'encountered');
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
+
+    const debugCapture = (heroName: string) => {
+        const hero = stage().currentState.heroes[heroName];
+        if (hero) {
+            hero.status = 'captured';
+            setSelectedHero(null);
+            forceUpdate(n => n + 1);
+        }
+    };
 
     // Full profile view when a hero is selected
     if (selectedHero) {
@@ -50,6 +60,10 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                 </div>
                             </div>
                         )}
+                        <div className="char-bio-section debug-section">
+                            <h4>🛠 Debug</h4>
+                            <button className="debug-btn debug-capture" onClick={() => debugCapture(h.name)}>⛓️ Capture</button>
+                        </div>
                     </>
                 }
             />
@@ -87,6 +101,13 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                     <span className="hero-card-class">{hero.heroClass}</span>
                                     <span className={`hero-card-status status-${hero.status}`}>{hero.status}</span>
                                 </div>
+                                <button
+                                    className="debug-btn debug-capture-small"
+                                    onClick={(e) => { e.stopPropagation(); debugCapture(hero.name); }}
+                                    title="Debug: Capture hero"
+                                >
+                                    ⛓️
+                                </button>
                                 {hero.status === 'converting' && (
                                     <div className="hero-conversion-bar">
                                         <div

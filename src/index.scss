@@ -3788,6 +3788,80 @@ html, body, #root {
   }
 }
 
+// Debug buttons
+.debug-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 100, 100, 0.25);
+
+  h4 {
+    color: rgba(255, 120, 120, 0.8) !important;
+    font-size: 9px !important;
+  }
+}
+
+.debug-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.debug-btn {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+
+  &.debug-capture {
+    border: 1px solid rgba(255, 160, 60, 0.4);
+    background: rgba(255, 160, 60, 0.1) !important;
+    color: rgba(255, 160, 60, 0.9);
+    &:hover { background: rgba(255, 160, 60, 0.25) !important; transform: translateY(-1px); }
+  }
+
+  &.debug-free {
+    border: 1px solid rgba(100, 200, 120, 0.4);
+    background: rgba(100, 200, 120, 0.1) !important;
+    color: rgba(100, 200, 120, 0.9);
+    &:hover { background: rgba(100, 200, 120, 0.25) !important; transform: translateY(-1px); }
+  }
+
+  &.debug-brainwash {
+    border: 1px solid rgba(212, 168, 67, 0.4);
+    background: rgba(212, 168, 67, 0.1) !important;
+    color: rgba(212, 168, 67, 0.9);
+    &:hover { background: rgba(212, 168, 67, 0.25) !important; transform: translateY(-1px); }
+  }
+
+  &.debug-convert {
+    border: 1px solid rgba(180, 130, 255, 0.4);
+    background: rgba(180, 130, 255, 0.1) !important;
+    color: rgba(180, 130, 255, 0.9);
+    &:hover { background: rgba(180, 130, 255, 0.25) !important; transform: translateY(-1px); }
+  }
+
+  &.debug-capture-small, &.debug-free-small {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 3px 6px;
+    font-size: 10px;
+    border: 1px solid rgba(255, 160, 60, 0.3);
+    background: rgba(30, 20, 40, 0.8) !important;
+    border-radius: 4px;
+    z-index: 5;
+    &:hover { background: rgba(50, 35, 65, 0.9) !important; transform: scale(1.1); }
+  }
+
+  &.debug-free-small {
+    border-color: rgba(100, 200, 120, 0.3);
+  }
+}
+
 // ==========================================
 // Servants Screen
 // ==========================================
