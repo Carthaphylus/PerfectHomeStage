@@ -876,6 +876,237 @@ export interface DungeonProgress {
     lastBoss?: string;
 }
 
+// ==========================================
+// Event System
+// ==========================================
+
+/** Effect applied when entering a step or choosing an option */
+export interface EventEffect {
+    type:
+        | 'modify_brainwashing'   // target = hero name, value = delta
+        | 'modify_love'           // target = servant name, value = delta
+        | 'modify_obedience'      // target = servant name, value = delta
+        | 'modify_gold'           // value = delta
+        | 'add_item'              // target = item name, value = quantity
+        | 'remove_item'           // target = item name, value = quantity
+        | 'set_hero_status'       // target = hero name, value unused, status field
+        | 'convert_to_servant'    // target = hero name
+        | 'modify_skill'          // target = skill key (power/wisdom/charm/speed), value = delta
+        | 'custom';               // handled by caller
+    target?: string;
+    value?: number;
+    status?: string;
+}
+
+/** Skill check that gates a choice or determines branching */
+export interface EventSkillCheck {
+    skill: keyof SkillStats;      // power | wisdom | charm | speed
+    difficulty: number;           // 1-100 DC
+    successStep: string;          // step id on success
+    failureStep: string;          // step id on failure
+    /** bonus/penalty from items, traits, etc. (added to roll) */
+    modifier?: number;
+}
+
+/** A player choice within a step */
+export interface EventChoice {
+    id: string;
+    label: string;
+    tooltip?: string;             // hover hint
+    nextStep: string;             // step to go to (ignored if skillCheck is present — it overrides)
+    skillCheck?: EventSkillCheck; // optional check when picking this choice
+    requiresItem?: string;        // must have this item to see the choice
+    consumeItem?: string;         // consume 1 of this item when chosen
+    effects?: EventEffect[];      // applied immediately on choice
+    condition?: (ctx: EventContext) => boolean; // dynamic visibility
+}
+
+/** A single step/node in the event graph */
+export interface EventStep {
+    id: string;
+    text: string;                 // narrative text (supports {target}, {pc} placeholders)
+    speaker?: string;             // character portrait to show (name)
+    image?: string;               // optional background/illustration
+    choices?: EventChoice[];
+    effects?: EventEffect[];      // applied on entering this step
+    nextStep?: string;            // auto-continue (for narration-only steps)
+    isEnding?: boolean;           // terminal node — shows "Finish" button
+    onEnter?: (ctx: EventContext) => void; // custom logic hook
+}
+
+/** Full event definition (a template — reusable) */
+export interface EventDefinition {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    category: 'brainwashing' | 'social' | 'exploration' | 'combat' | 'manor' | 'misc';
+    steps: Record<string, EventStep>;
+    startStep: string;
+}
+
+/** Runtime context passed to callbacks and used by the engine */
+export interface EventContext {
+    stage: Stage;
+    target?: string;              // e.g. hero being brainwashed
+    eventId: string;
+    vars: Record<string, any>;    // arbitrary per-run variables
+}
+
+/** Runtime state of an active event */
+export interface ActiveEvent {
+    definitionId: string;
+    currentStepId: string;
+    target?: string;
+    log: string[];                // visited step IDs
+    vars: Record<string, any>;   // runtime variables
+    appliedEffects: EventEffect[];
+    lastSkillCheck?: {
+        skill: string;
+        roll: number;
+        difficulty: number;
+        success: boolean;
+    };
+}
+
+// ---- Skill check roll helper ----
+export function rollSkillCheck(
+    playerSkill: number,
+    difficulty: number,
+    modifier: number = 0
+): { roll: number; total: number; success: boolean } {
+    // Roll 1-100, add skill value / 2, add modifier, compare to difficulty
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const total = roll + Math.floor(playerSkill / 2) + modifier;
+    return { roll, total, success: total >= difficulty };
+}
+
+// ==========================================
+// Event Registry
+// ==========================================
+
+/**
+ * Brainwashing Session event — the core conditioning event for captives.
+ * Uses the player's Charm vs the captive's Discipline.
+ */
+export const EVENT_BRAINWASHING: EventDefinition = {
+    id: 'brainwashing_session',
+    name: 'Conditioning Session',
+    description: 'Attempt to break a captive\'s will through hypnotic conditioning.',
+    icon: '🌀',
+    category: 'brainwashing',
+    startStep: 'intro',
+    steps: {
+        intro: {
+            id: 'intro',
+            text: '*You enter the dungeon chamber where {target} is held. The enchanted shackles glow faintly as you approach, keeping the captive\'s resistance suppressed.*\n\n*You light a spiral incense and let the golden smoke fill the room, preparing the atmosphere for the session.*',
+            speaker: 'Citrine',
+            nextStep: 'approach',
+            effects: [],
+        },
+        approach: {
+            id: 'approach',
+            text: '*{target} watches you warily, muscles tense against the restraints. You can see the defiance in their eyes — but also the faintest flicker of uncertainty.*\n\nHow do you approach the conditioning?',
+            choices: [
+                {
+                    id: 'gentle',
+                    label: '🌀 Gentle Persuasion',
+                    tooltip: 'Use soft words and the pendant\'s glow to ease them into a trance. (Charm check)',
+                    nextStep: 'gentle_success',
+                    skillCheck: {
+                        skill: 'charm',
+                        difficulty: 55,
+                        successStep: 'gentle_success',
+                        failureStep: 'gentle_fail',
+                    },
+                },
+                {
+                    id: 'forceful',
+                    label: '⚡ Forceful Domination',
+                    tooltip: 'Overwhelm their mind with raw arcane power. (Power check)',
+                    nextStep: 'forceful_success',
+                    skillCheck: {
+                        skill: 'power',
+                        difficulty: 60,
+                        successStep: 'forceful_success',
+                        failureStep: 'forceful_fail',
+                    },
+                },
+                {
+                    id: 'elixir',
+                    label: '🧪 Administer Elixir',
+                    tooltip: 'Use an Obedience Elixir to soften their resistance first. Guaranteed progress.',
+                    nextStep: 'elixir_result',
+                    requiresItem: 'Obedience Elixir',
+                    consumeItem: 'Obedience Elixir',
+                },
+                {
+                    id: 'talk',
+                    label: '💬 Just Talk',
+                    tooltip: 'No conditioning — just speak with the captive. (No skill check)',
+                    nextStep: 'talk_result',
+                },
+            ],
+        },
+        gentle_success: {
+            id: 'gentle_success',
+            text: '*Your voice drops to a honeyed whisper as the pendant\'s spiral catches the candlelight. {target}\'s eyes follow it involuntarily, pupils dilating...*\n\n*"That\'s it... just let go... there\'s no need to fight anymore..."*\n\n*Their eyelids flutter, resistance crumbling. The session is a success.*',
+            speaker: 'Citrine',
+            effects: [
+                { type: 'modify_brainwashing', value: 20 },
+            ],
+            nextStep: 'session_end',
+        },
+        gentle_fail: {
+            id: 'gentle_fail',
+            text: '*You begin your soothing incantation, but {target} snaps their gaze away from the pendant, gritting their teeth.*\n\n*"Your tricks won\'t work on me, witch."*\n\n*The session yields little progress — their will holds strong for now.*',
+            effects: [
+                { type: 'modify_brainwashing', value: 5 },
+            ],
+            nextStep: 'session_end',
+        },
+        forceful_success: {
+            id: 'forceful_success',
+            text: '*You channel raw arcane energy through the Visor, the golden spiral blazing to life. {target} cries out as wave after wave of compulsion crashes against their mental barriers...*\n\n*When it\'s over, they slump in the restraints, eyes glazed and breathing ragged. Significant progress.*',
+            speaker: 'Citrine',
+            effects: [
+                { type: 'modify_brainwashing', value: 25 },
+            ],
+            nextStep: 'session_end',
+        },
+        forceful_fail: {
+            id: 'forceful_fail',
+            text: '*You pour your will into the assault, but {target}\'s mental defenses are formidable. They let out a defiant roar, and the psychic backlash sends you staggering.*\n\n*"Is that all you have?!" they snarl. The session barely scratches their resolve.*',
+            effects: [
+                { type: 'modify_brainwashing', value: 3 },
+            ],
+            nextStep: 'session_end',
+        },
+        elixir_result: {
+            id: 'elixir_result',
+            text: '*You uncork the shimmering elixir and hold it to {target}\'s lips. They resist at first, but the enchanted restraints hold them still. The golden liquid slides down their throat...*\n\n*Almost immediately, their eyes glaze over and their body relaxes. The elixir does its work, softening their mental barriers from within. Reliable progress, no check required.*',
+            speaker: 'Citrine',
+            effects: [
+                { type: 'modify_brainwashing', value: 15 },
+            ],
+            nextStep: 'session_end',
+        },
+        talk_result: {
+            id: 'talk_result',
+            text: '*You pull up a chair and simply... talk to {target}. About their past, their motivations, what they fought for. They\'re suspicious at first, but eventually a few guarded words slip out.*\n\n*No conditioning today — but understanding your subject is its own form of progress.*',
+            effects: [
+                { type: 'modify_brainwashing', value: 2 },
+            ],
+            nextStep: 'session_end',
+        },
+        session_end: {
+            id: 'session_end',
+            text: '*You extinguish the incense and step back, reviewing the session. {target} sags in the restraints, exhaustion evident on their face.*\n\n*Another session complete. Their will erodes a little more each time...*',
+            isEnding: true,
+        },
+    },
+};
+
 // Scene conversation message
 export interface SceneMessage {
     sender: string;
@@ -1647,6 +1878,269 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         lines.push(`Do NOT output stat changes, system information, or break character.`);
 
         return lines.join('\n');
+    }
+
+    // ============================
+    // Event System Engine
+    // ============================
+
+    private _activeEvent: ActiveEvent | null = null;
+    private _eventRegistry: Record<string, EventDefinition> = {
+        [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
+    };
+
+    /** Register a new event definition at runtime */
+    registerEvent(def: EventDefinition): void {
+        this._eventRegistry[def.id] = def;
+    }
+
+    /** Get an event definition by ID */
+    getEventDefinition(id: string): EventDefinition | null {
+        return this._eventRegistry[id] || null;
+    }
+
+    /** Start an event. Returns the initial ActiveEvent state (React should own this). */
+    startEvent(definitionId: string, target?: string): ActiveEvent | null {
+        const def = this._eventRegistry[definitionId];
+        if (!def) {
+            console.error(`[Event] Unknown event: ${definitionId}`);
+            return null;
+        }
+
+        const startStep = def.steps[def.startStep];
+        if (!startStep) {
+            console.error(`[Event] Missing start step: ${def.startStep}`);
+            return null;
+        }
+
+        const event: ActiveEvent = {
+            definitionId,
+            currentStepId: def.startStep,
+            target,
+            log: [def.startStep],
+            vars: {},
+            appliedEffects: [],
+            lastSkillCheck: undefined,
+        };
+
+        this._activeEvent = event;
+
+        // Apply entry effects of the start step
+        if (startStep.effects && startStep.effects.length > 0) {
+            this.applyEffects(startStep.effects, event);
+        }
+
+        console.log(`[Event] Started "${def.name}" ${target ? `targeting ${target}` : ''}`);
+        return { ...event };
+    }
+
+    /** Advance the event by choosing an option. Returns updated ActiveEvent. */
+    advanceEvent(choiceId?: string): ActiveEvent | null {
+        const event = this._activeEvent;
+        if (!event) return null;
+
+        const def = this._eventRegistry[event.definitionId];
+        if (!def) return null;
+
+        const currentStep = def.steps[event.currentStepId];
+        if (!currentStep) return null;
+
+        let nextStepId: string | undefined;
+
+        if (choiceId && currentStep.choices) {
+            // Player made a choice
+            const choice = currentStep.choices.find(c => c.id === choiceId);
+            if (!choice) {
+                console.warn(`[Event] Invalid choice: ${choiceId}`);
+                return { ...event };
+            }
+
+            // Consume item if required
+            if (choice.consumeItem) {
+                const inv = this.currentState.inventory[choice.consumeItem];
+                if (inv && inv.quantity > 0) {
+                    inv.quantity -= 1;
+                    if (inv.quantity <= 0) delete this.currentState.inventory[choice.consumeItem];
+                }
+            }
+
+            // Apply choice effects
+            if (choice.effects) {
+                this.applyEffects(choice.effects, event);
+            }
+
+            // Skill check branching
+            if (choice.skillCheck) {
+                const check = choice.skillCheck;
+                const playerSkillValue = this.currentState.stats.skills[check.skill] || 0;
+                const result = rollSkillCheck(playerSkillValue, check.difficulty, check.modifier || 0);
+
+                event.lastSkillCheck = {
+                    skill: check.skill,
+                    roll: result.roll,
+                    difficulty: check.difficulty,
+                    success: result.success,
+                };
+
+                nextStepId = result.success ? check.successStep : check.failureStep;
+                console.log(`[Event] Skill check (${check.skill}): rolled ${result.roll}, total ${result.total} vs DC ${check.difficulty} → ${result.success ? 'SUCCESS' : 'FAIL'}`);
+            } else {
+                nextStepId = choice.nextStep;
+            }
+        } else if (currentStep.nextStep) {
+            // Auto-advance narration step
+            nextStepId = currentStep.nextStep;
+        }
+
+        if (!nextStepId) {
+            console.warn('[Event] No next step resolved');
+            return { ...event };
+        }
+
+        const nextStep = def.steps[nextStepId];
+        if (!nextStep) {
+            console.error(`[Event] Missing step: ${nextStepId}`);
+            return { ...event };
+        }
+
+        // Advance to new step
+        event.currentStepId = nextStepId;
+        event.log.push(nextStepId);
+
+        // Apply entry effects of the new step
+        if (nextStep.effects) {
+            this.applyEffects(nextStep.effects, event);
+        }
+
+        // Run custom hook if present
+        const ctx: EventContext = {
+            stage: this,
+            target: event.target,
+            eventId: event.definitionId,
+            vars: event.vars,
+        };
+        if (nextStep.onEnter) {
+            nextStep.onEnter(ctx);
+        }
+
+        this._activeEvent = event;
+        return { ...event };
+    }
+
+    /** End/cleanup the current event */
+    endEvent(): void {
+        if (this._activeEvent) {
+            console.log(`[Event] Ended event "${this._activeEvent.definitionId}"`);
+            this._activeEvent = null;
+        }
+    }
+
+    /** Get current active event (read-only copy) */
+    getActiveEvent(): ActiveEvent | null {
+        return this._activeEvent ? { ...this._activeEvent } : null;
+    }
+
+    /** Apply an array of effects to game state */
+    private applyEffects(effects: EventEffect[], event: ActiveEvent): void {
+        for (const fx of effects) {
+            const effectTarget = fx.target || event.target || '';
+            switch (fx.type) {
+                case 'modify_brainwashing': {
+                    const hero = this.currentState.heroes[effectTarget];
+                    if (hero) {
+                        hero.brainwashing = Math.max(0, Math.min(100, hero.brainwashing + (fx.value || 0)));
+                        if (hero.brainwashing > 0 && hero.status === 'captured') {
+                            hero.status = 'converting';
+                        }
+                    }
+                    break;
+                }
+                case 'modify_love': {
+                    const servant = this.currentState.servants[effectTarget];
+                    if (servant) {
+                        servant.love = Math.max(0, Math.min(100, servant.love + (fx.value || 0)));
+                    }
+                    break;
+                }
+                case 'modify_obedience': {
+                    const servant = this.currentState.servants[effectTarget];
+                    if (servant) {
+                        servant.obedience = Math.max(0, Math.min(100, servant.obedience + (fx.value || 0)));
+                    }
+                    break;
+                }
+                case 'modify_gold': {
+                    this.currentState.stats.gold = Math.max(0, this.currentState.stats.gold + (fx.value || 0));
+                    break;
+                }
+                case 'modify_skill': {
+                    const skillKey = effectTarget as keyof SkillStats;
+                    if (skillKey in this.currentState.stats.skills) {
+                        this.currentState.stats.skills[skillKey] = Math.max(0,
+                            this.currentState.stats.skills[skillKey] + (fx.value || 0));
+                    }
+                    break;
+                }
+                case 'add_item': {
+                    const existing = this.currentState.inventory[effectTarget];
+                    if (existing) {
+                        existing.quantity += (fx.value || 1);
+                    } else {
+                        this.currentState.inventory[effectTarget] = {
+                            name: effectTarget,
+                            quantity: fx.value || 1,
+                            type: getItemDefinition(effectTarget).type,
+                        };
+                    }
+                    break;
+                }
+                case 'remove_item': {
+                    const item = this.currentState.inventory[effectTarget];
+                    if (item) {
+                        item.quantity -= (fx.value || 1);
+                        if (item.quantity <= 0) delete this.currentState.inventory[effectTarget];
+                    }
+                    break;
+                }
+                case 'set_hero_status': {
+                    const hero = this.currentState.heroes[effectTarget];
+                    if (hero && fx.status) {
+                        hero.status = fx.status as any;
+                    }
+                    break;
+                }
+                case 'convert_to_servant': {
+                    const hero = this.currentState.heroes[effectTarget];
+                    if (hero) {
+                        this.currentState.servants[effectTarget] = {
+                            name: hero.name,
+                            formerClass: hero.heroClass,
+                            avatar: hero.avatar,
+                            color: hero.color,
+                            description: hero.description,
+                            traits: hero.traits,
+                            details: hero.details,
+                            stats: hero.stats,
+                            love: 50,
+                            obedience: 100,
+                        };
+                        delete this.currentState.heroes[effectTarget];
+                        this.currentState.stats.servants += 1;
+                    }
+                    break;
+                }
+                case 'custom':
+                    // Handled externally
+                    break;
+            }
+            event.appliedEffects.push(fx);
+        }
+    }
+
+    /** Check if the player has a particular item (by name, optional min quantity) */
+    hasItem(itemName: string, minQty: number = 1): boolean {
+        const inv = this.currentState.inventory[itemName];
+        return !!inv && inv.quantity >= minQty;
     }
 
     // ============================

@@ -6,9 +6,10 @@ import { CharacterProfile } from './CharacterProfile';
 interface CaptivesScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
+    startEvent: (definitionId: string, target?: string, returnTo?: ScreenType) => void;
 }
 
-export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType }) => {
+export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, startEvent }) => {
     const [, forceUpdate] = useState(0);
     const allHeroes = Object.values(stage().currentState.heroes);
     const captives = allHeroes.filter(h => h.status === 'captured' || h.status === 'converting');
@@ -103,6 +104,14 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType }
                         {brainwashingComplete && (
                             <button className="captive-convert-btn" disabled>
                                 ✨ Begin Conversion Scene
+                            </button>
+                        )}
+                        {!brainwashingComplete && (
+                            <button
+                                className="captive-convert-btn conditioning-btn"
+                                onClick={() => startEvent('brainwashing_session', h.name, ScreenType.CAPTIVES)}
+                            >
+                                🌀 Begin Conditioning Session
                             </button>
                         )}
                         {h.location && (
