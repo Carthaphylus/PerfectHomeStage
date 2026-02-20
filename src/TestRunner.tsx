@@ -76,7 +76,7 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 'Sable': {
                     name: 'Sable',
                     status: 'converting',
-                    conversionProgress: 65,
+                    brainwashing: 65,
                     heroClass: 'Thief',
                     avatar: 'https://avatars.charhub.io/avatars/Sauron275/sable-62ce8e0d06a3/chara_card_v2.png',
                     color: '#c4943a',
@@ -89,7 +89,7 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 'Veridian': {
                     name: 'Veridian',
                     status: 'captured',
-                    conversionProgress: 20,
+                    brainwashing: 20,
                     heroClass: 'Cleric',
                     avatar: 'https://avatars.charhub.io/avatars/Sauron275/the-cleric-ef8cef32f1ff/chara_card_v2.png',
                     color: '#4a9e6a',
@@ -102,7 +102,7 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 'Kova': {
                     name: 'Kova',
                     status: 'encountered',
-                    conversionProgress: 0,
+                    brainwashing: 0,
                     heroClass: 'Barbarian',
                     avatar: 'https://avatars.charhub.io/avatars/Sauron275/the-barbarian-24e3aa6fd485/chara_card_v2.png',
                     color: '#b84a4a',
@@ -123,7 +123,8 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     traits: ['Devoted', 'Meticulous', 'Cheerful', 'Perceptive', 'Territorial'],
                     details: { 'Species': 'Pink Cat', 'Gender': '♀ Female', 'Former Role': 'Handmaiden', 'Specialty': 'Household Management', 'Loyalty': 'Absolute', 'Quirk': 'Hums while she cleans' },
                     stats: { prowess: 38, expertise: 85, attunement: 28, presence: 58, discipline: 90, insight: 68 },
-                    loyalty: 100,
+                    love: 80,
+                    obedience: 75,
                     assignedTask: 'Brewing potions',
                 },
                 'Locke': {
@@ -135,7 +136,8 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     traits: ['Stoic', 'Vigilant', 'Disciplined', 'Resourceful', 'Loyal'],
                     details: { 'Species': 'Gray Fox', 'Gender': '♂ Male', 'Former Role': 'Butler', 'Specialty': 'Security & Logistics', 'Loyalty': 'Unwavering', 'Quirk': 'Polishes silverware when thinking' },
                     stats: { prowess: 62, expertise: 72, attunement: 32, presence: 66, discipline: 94, insight: 76 },
-                    loyalty: 85,
+                    love: 60,
+                    obedience: 85,
                     assignedTask: 'Guard duty',
                 },
             },

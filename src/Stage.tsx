@@ -237,7 +237,7 @@ export function getTraitDefinition(traitName: string): TraitDefinition {
 export interface Hero {
     name: string;
     status: HeroStatus;
-    conversionProgress: number; // 0-100
+    brainwashing: number; // 0-100 — golden spiral progress
     heroClass: string;
     avatar: string;
     color: string;
@@ -526,7 +526,8 @@ export interface Servant {
     traits: string[];
     details: Record<string, string>;
     stats: Record<StatName, number>; // 0-100 values
-    loyalty: number; // 0-100
+    love: number; // 0-100
+    obedience: number; // 0-100
     assignedTask?: string;
     assignedRole?: string; // role id from ROLE_REGISTRY
 }
@@ -935,7 +936,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 'Sable': {
                     name: 'Sable',
                     status: 'free',
-                    conversionProgress: 0,
+                    brainwashing: 0,
                     heroClass: 'Thief',
                     avatar: CHUB_AVATARS.sable,
                     color: CHARACTER_DATA.Sable.color,
@@ -948,7 +949,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 'Veridian': {
                     name: 'Veridian',
                     status: 'free',
-                    conversionProgress: 0,
+                    brainwashing: 0,
                     heroClass: 'Cleric',
                     avatar: CHUB_AVATARS.veridian,
                     color: CHARACTER_DATA.Veridian.color,
@@ -961,7 +962,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 'Kova': {
                     name: 'Kova',
                     status: 'free',
-                    conversionProgress: 0,
+                    brainwashing: 0,
                     heroClass: 'Barbarian',
                     avatar: CHUB_AVATARS.kova,
                     color: CHARACTER_DATA.Kova.color,
@@ -974,7 +975,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 'Pervis': {
                     name: 'Pervis',
                     status: 'free',
-                    conversionProgress: 0,
+                    brainwashing: 0,
                     heroClass: 'Leader',
                     avatar: CHUB_AVATARS.pervis,
                     color: CHARACTER_DATA.Pervis.color,
@@ -995,7 +996,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     traits: CHARACTER_DATA.Felicity.traits,
                     details: CHARACTER_DATA.Felicity.details,
                     stats: CHARACTER_DATA.Felicity.stats,
-                    loyalty: 80,
+                    love: 80,
+                    obedience: 75,
                     assignedTask: undefined,
                 },
                 'Locke': {
@@ -1007,7 +1009,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     traits: CHARACTER_DATA.Locke.traits,
                     details: CHARACTER_DATA.Locke.details,
                     stats: CHARACTER_DATA.Locke.stats,
-                    loyalty: 75,
+                    love: 60,
+                    obedience: 85,
                     assignedTask: undefined,
                 },
             },
@@ -1190,7 +1193,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     this.currentState.heroes[heroName] = {
                         name: heroName,
                         status: 'encountered',
-                        conversionProgress: 0,
+                        brainwashing: 0,
                         heroClass: this.getHeroClass(heroName),
                         avatar: this.getHeroAvatar(heroName),
                         color: charData.color,
@@ -1219,7 +1222,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         traits: charData.traits,
                         details: charData.details,
                         stats: charData.stats,
-                        loyalty: 100,
+                        love: 100,
+                        obedience: 100,
                     };
                     delete this.currentState.heroes[heroName];
                     this.chatState.totalServantsConverted++;
@@ -1474,9 +1478,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 lines.push(`Traits: ${charData.traits.join(', ')}`);
             }
             if (servant) {
-                lines.push(`Loyalty: ${servant.loyalty}/100. ${name} is a servant (former ${servant.formerClass}).`);
+                lines.push(`Love: ${servant.love}/100. Obedience: ${servant.obedience}/100. ${name} is a servant (former ${servant.formerClass}).`);
             } else if (hero) {
-                lines.push(`Status: ${hero.status}. ${name} is a ${hero.heroClass}.`);
+                lines.push(`Status: ${hero.status}. ${name} is a ${hero.heroClass}.${hero.status === 'captured' || hero.status === 'converting' ? ` Brainwashing: ${hero.brainwashing}/100.` : ''}`);
             }
         }
 

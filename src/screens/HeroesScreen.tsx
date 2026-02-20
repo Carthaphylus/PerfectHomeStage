@@ -9,7 +9,9 @@ interface HeroesScreenProps {
 }
 
 export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) => {
-    const heroes = Object.values(stage().currentState.heroes);
+    const allHeroes = Object.values(stage().currentState.heroes);
+    // Only show free and encountered heroes — captured/converting go to Captives screen
+    const heroes = allHeroes.filter(h => h.status === 'free' || h.status === 'encountered');
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
 
     // Full profile view when a hero is selected
@@ -35,15 +37,6 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                 }
                 extraSections={
                     <>
-                        {h.status === 'converting' && (
-                            <div className="char-bio-section">
-                                <h4>Conversion Progress</h4>
-                                <div className="char-conversion-bar">
-                                    <div className="char-conversion-fill" style={{ width: `${h.conversionProgress}%` }} />
-                                    <span className="char-conversion-text">{h.conversionProgress}%</span>
-                                </div>
-                            </div>
-                        )}
                         {h.location && (
                             <div className="char-bio-section">
                                 <h4>Status</h4>
@@ -53,7 +46,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                 </div>
                                 <div className="char-detail-row">
                                     <span className="char-detail-label">Status</span>
-                                    <span className="char-detail-value">{h.status}</span>
+                                    <span className="char-detail-value" style={{ textTransform: 'capitalize' }}>{h.status}</span>
                                 </div>
                             </div>
                         )}
@@ -98,9 +91,9 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                     <div className="hero-conversion-bar">
                                         <div
                                             className="hero-conversion-fill"
-                                            style={{ width: `${hero.conversionProgress}%` }}
+                                            style={{ width: `${hero.brainwashing}%` }}
                                         />
-                                        <span className="hero-conversion-text">{hero.conversionProgress}%</span>
+                                        <span className="hero-conversion-text">{hero.brainwashing}%</span>
                                     </div>
                                 )}
                             </div>

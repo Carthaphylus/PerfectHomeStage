@@ -101,8 +101,12 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         <div className="char-bio-section">
                             <h4>Service</h4>
                             <div className="char-detail-row">
-                                <span className="char-detail-label">Loyalty</span>
-                                <span className="char-detail-value">{s.loyalty}%</span>
+                                <span className="char-detail-label">Love</span>
+                                <span className="char-detail-value">{s.love}%</span>
+                            </div>
+                            <div className="char-detail-row">
+                                <span className="char-detail-label">Obedience</span>
+                                <span className="char-detail-value">{s.obedience}%</span>
                             </div>
                             {currentRole && (
                                 <div className="char-detail-row">
@@ -148,9 +152,23 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                     <span className="char-detail-value">{s.assignedTask}</span>
                                 </div>
                             )}
-                            <div className="char-loyalty-bar">
-                                <div className="char-loyalty-fill" style={{ width: `${s.loyalty}%` }} />
+                            <div className="servant-stat-bars">
+                                <div className="servant-stat-bar love-bar">
+                                    <span className="servant-stat-bar-label">Love</span>
+                                    <div className="servant-stat-bar-track">
+                                        <div className="servant-stat-bar-fill" style={{ width: `${s.love}%` }} />
+                                    </div>
+                                    <span className="servant-stat-bar-value">{s.love}%</span>
+                                </div>
+                                <div className="servant-stat-bar obedience-bar">
+                                    <span className="servant-stat-bar-label">Obedience</span>
+                                    <div className="servant-stat-bar-track">
+                                        <div className="servant-stat-bar-fill" style={{ width: `${s.obedience}%` }} />
+                                    </div>
+                                    <span className="servant-stat-bar-value">{s.obedience}%</span>
+                                </div>
                             </div>
+                            <div className="conditioned-badge">🌀 Fully Conditioned</div>
                         </div>
                     }
                 />
@@ -221,12 +239,19 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                         </button>
                                     )}
 
-                                    <div className="servant-loyalty-bar">
-                                        <div
-                                            className="servant-loyalty-fill"
-                                            style={{ width: `${servant.loyalty}%` }}
-                                        />
-                                        <span className="servant-loyalty-text">{servant.loyalty}%</span>
+                                    <div className="servant-card-bars">
+                                        <div className="servant-mini-bar love-bar">
+                                            <span className="servant-mini-bar-label">❤️</span>
+                                            <div className="servant-mini-bar-track">
+                                                <div className="servant-mini-bar-fill" style={{ width: `${servant.love}%` }} />
+                                            </div>
+                                        </div>
+                                        <div className="servant-mini-bar obedience-bar">
+                                            <span className="servant-mini-bar-label">⛓️</span>
+                                            <div className="servant-mini-bar-track">
+                                                <div className="servant-mini-bar-fill" style={{ width: `${servant.obedience}%` }} />
+                                            </div>
+                                        </div>
                                     </div>
                                     <button
                                         className="servant-chat-btn"

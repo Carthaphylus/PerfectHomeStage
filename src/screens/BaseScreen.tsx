@@ -5,6 +5,7 @@ import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
 import { SceneScreen } from './SceneScreen';
 import { HeroesScreen } from './HeroesScreen';
+import { CaptivesScreen } from './CaptivesScreen';
 import { ServantsScreen } from './ServantsScreen';
 import { PCProfileScreen } from './PCProfileScreen';
 import { StatBar } from './StatBar';
@@ -14,6 +15,7 @@ export enum ScreenType {
     MANOR = 'manor',
     WORLD_MAP = 'world_map',
     HEROES = 'heroes',
+    CAPTIVES = 'captives',
     SERVANTS = 'servants',
     SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
@@ -62,6 +64,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             )}
             {screenType === ScreenType.HEROES && (
                 <HeroesScreen stage={stage} setScreenType={setScreenType} />
+            )}
+            {screenType === ScreenType.CAPTIVES && (
+                <CaptivesScreen stage={stage} setScreenType={setScreenType} />
             )}
             {screenType === ScreenType.SERVANTS && (
                 <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} />
