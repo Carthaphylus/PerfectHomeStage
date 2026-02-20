@@ -1,6 +1,7 @@
 import React, { FC, ReactNode } from 'react';
 import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../Stage';
 import { CharacterGallery } from './CharacterGallery';
+import { TraitChip } from './TraitChip';
 
 /**
  * Shared character data shape — every profile passes this.
@@ -157,10 +158,10 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                                                 key={i}
                                                                 className={`stat-block ${isFilled ? 'filled' : ''}`}
                                                                 style={isFilled ? {
-                                                                    ['--stat-fill-color' as any]: character.color,
-                                                                    borderColor: character.color,
+                                                                    ['--stat-fill-color' as any]: statColor,
+                                                                    borderColor: statColor,
                                                                 } : {
-                                                                    borderColor: character.color,
+                                                                    borderColor: statColor,
                                                                 }}
                                                             />
                                                         );
@@ -177,28 +178,20 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                     <div className="char-bio-section">
                         <h4>Traits</h4>
                         <div className="char-trait-list">{character.traits.map(t => (
-                                <span 
+                                <TraitChip
                                     key={`innate-${t}`} 
+                                    trait={t}
                                     className="char-trait char-trait-innate"
-                                    style={{
-                                        borderColor: character.color,
-                                        color: character.color,
-                                    }}
-                                >
-                                    {t}
-                                </span>
+                                    color={character.color}
+                                />
                             ))}
                             {assignedRole?.traits.map(t => (
-                                <span 
+                                <TraitChip
                                     key={`role-${t}`} 
+                                    trait={t}
                                     className="char-trait char-trait-role"
-                                    style={{
-                                        borderColor: assignedRole.color,
-                                        color: assignedRole.color,
-                                    }}
-                                >
-                                    {t}
-                                </span>
+                                    color={assignedRole.color}
+                                />
                             ))}
                         </div>
                     </div>

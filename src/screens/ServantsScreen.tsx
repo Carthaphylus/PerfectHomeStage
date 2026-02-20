@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
+import { TraitChip } from './TraitChip';
 
 interface ServantsScreenProps {
     stage: () => Stage;
@@ -120,7 +121,16 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                     {currentRole.traits.length > 0 && (
                                         <div className="role-trait-row">
                                             <span className="char-detail-label">Granted Traits</span>
-                                            <span className="char-detail-value">{currentRole.traits.join(', ')}</span>
+                                            <div className="role-trait-chip-row">
+                                                {currentRole.traits.map((trait, index) => (
+                                                    <TraitChip
+                                                        key={`${trait}-${index}`}
+                                                        trait={trait}
+                                                        className="char-trait char-trait-role"
+                                                        color={currentRole.color}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                     <button
@@ -384,7 +394,12 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                                         <h5>Granted Traits</h5>
                                         <div className="role-preview-traits">
                                             {previewRole.traits.map((t, i) => (
-                                                <span key={i} className="role-preview-trait">{t}</span>
+                                                <TraitChip
+                                                    key={i}
+                                                    trait={t}
+                                                    className="role-preview-trait"
+                                                    color={previewRole.color}
+                                                />
                                             ))}
                                         </div>
                                     </div>
