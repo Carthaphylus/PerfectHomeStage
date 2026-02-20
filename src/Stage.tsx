@@ -908,6 +908,16 @@ export interface EventSkillCheck {
     modifier?: number;
 }
 
+/** Chat phase config — opens AI roleplay within an event step */
+export interface EventChatPhase {
+    context: string;             // Instructions for LLM (supports {target}, {pc} placeholders)
+    speaker: string;             // Character name the AI plays as (supports {target}, {pc})
+    location?: string;           // Background location override for chat UI
+    skippable: boolean;          // Whether the player can skip the chat
+    minMessages?: number;        // Min exchanges before skip/end available (default 0)
+    maxMessages?: number;        // Auto-end chat after this many exchanges
+}
+
 /** A player choice within a step */
 export interface EventChoice {
     id: string;
@@ -931,6 +941,7 @@ export interface EventStep {
     effects?: EventEffect[];      // applied on entering this step
     nextStep?: string;            // auto-continue (for narration-only steps)
     isEnding?: boolean;           // terminal node — shows "Finish" button
+    chatPhase?: EventChatPhase;   // optional AI chat phase after this step's narrative
     onEnter?: (ctx: EventContext) => void; // custom logic hook
 }
 
@@ -967,6 +978,8 @@ export interface ActiveEvent {
         difficulty: number;
         success: boolean;
     };
+    chatPhaseActive: boolean;
+    chatMessageCount: number;
 }
 
 // ---- Skill check roll helper ----
@@ -1055,6 +1068,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 20 },
             ],
+            chatPhase: {
+                context: 'After a successful gentle hypnosis attempt by {pc}, {target} has fallen into a light trance. They are relaxed, suggestible, and dreamy. Their resistance is lowered but their personality still shows through. They respond with soft, pliant words and occasional flickers of their former defiance.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: false,
+                minMessages: 3,
+            },
             nextStep: 'session_end',
         },
         gentle_fail: {
@@ -1063,6 +1083,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 5 },
             ],
+            chatPhase: {
+                context: '{target} has resisted {pc}\'s gentle hypnosis attempt. They are defiant and slightly smug about their success, but drowsy from the effort of resisting. They taunt {pc} but are still physically restrained in the dungeon.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: true,
+                minMessages: 1,
+            },
             nextStep: 'session_end',
         },
         forceful_success: {
@@ -1072,6 +1099,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 25 },
             ],
+            chatPhase: {
+                context: '{target} has been overwhelmed by {pc}\'s forceful mental assault. They are dazed, disoriented, and barely coherent. Their mental barriers have been shattered for now. They respond in fragmented, confused sentences, struggling to remember why they were resisting.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: false,
+                minMessages: 3,
+            },
             nextStep: 'session_end',
         },
         forceful_fail: {
@@ -1080,6 +1114,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 3 },
             ],
+            chatPhase: {
+                context: '{target} has successfully repelled {pc}\'s forceful psychic attack and is furious. They are emboldened by their victory and taunt {pc} aggressively, though they remain physically restrained in the dungeon.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: true,
+                minMessages: 1,
+            },
             nextStep: 'session_end',
         },
         elixir_result: {
@@ -1089,6 +1130,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 15 },
             ],
+            chatPhase: {
+                context: '{target} has been administered an Obedience Elixir by {pc}. The magical potion has softened their mental barriers \u2014 they feel warm, cooperative, and slightly hazy. They answer questions willingly and may reveal things about their past or allies. The effect is temporary but strong.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: false,
+                minMessages: 2,
+            },
             nextStep: 'session_end',
         },
         talk_result: {
@@ -1097,6 +1145,13 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             effects: [
                 { type: 'modify_brainwashing', value: 2 },
             ],
+            chatPhase: {
+                context: '{pc} is having a normal conversation with {target}. No conditioning is happening \u2014 this is a genuine attempt to talk and understand the captive. {target} is suspicious but willing to engage cautiously. They may open up about their motivations or try to negotiate their freedom.',
+                speaker: '{target}',
+                location: 'Dungeon',
+                skippable: false,
+                minMessages: 3,
+            },
             nextStep: 'session_end',
         },
         session_end: {
@@ -1444,6 +1499,23 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const content = userMessage.content;
         const scene = this._activeScene;
 
+        // If an event chat phase is active, handle it
+        if (this._activeEvent?.chatPhaseActive) {
+            const pcName = this.currentState.playerCharacter.name;
+            const lastMsg = this._eventMessages[this._eventMessages.length - 1];
+            if (!lastMsg || lastMsg.sender !== pcName || lastMsg.text !== content) {
+                this._eventMessages.push({ sender: pcName, text: content });
+            }
+            return {
+                stageDirections: this.generateEventChatDirections(content),
+                messageState: this.currentState,
+                modifiedMessage: null,
+                systemMessage: null,
+                error: null,
+                chatState: this.chatState,
+            };
+        }
+
         // If a scene is active, handle scene conversation
         if (scene) {
             // Only add to history if not already added by sendSceneMessage
@@ -1484,6 +1556,24 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     async afterResponse(botMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {
         const content = botMessage.content;
         const scene = this._activeScene;
+
+        // If an event chat phase is active, capture the NPC reply
+        if (this._activeEvent?.chatPhaseActive) {
+            const def = this._eventRegistry[this._activeEvent.definitionId];
+            const step = def?.steps[this._activeEvent.currentStepId];
+            const speaker = step?.chatPhase?.speaker
+                ?.replace(/\{target\}/g, this._activeEvent.target || '')
+                ?.replace(/\{pc\}/g, this.currentState.playerCharacter.name) || 'NPC';
+            this._eventMessages.push({ sender: speaker, text: content });
+            return {
+                stageDirections: null,
+                messageState: this.currentState,
+                modifiedMessage: null,
+                systemMessage: null,
+                error: null,
+                chatState: this.chatState,
+            };
+        }
 
         // If a scene is active, capture the bot response as the character's reply
         if (scene) {
@@ -1885,6 +1975,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     // ============================
 
     private _activeEvent: ActiveEvent | null = null;
+    private _eventMessages: SceneMessage[] = [];
     private _eventRegistry: Record<string, EventDefinition> = {
         [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
     };
@@ -1921,6 +2012,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             vars: {},
             appliedEffects: [],
             lastSkillCheck: undefined,
+            chatPhaseActive: false,
+            chatMessageCount: 0,
         };
 
         this._activeEvent = event;
@@ -2006,6 +2099,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Advance to new step
         event.currentStepId = nextStepId;
         event.log.push(nextStepId);
+
+        // Reset chat phase state for the new step
+        event.chatPhaseActive = false;
+        event.chatMessageCount = 0;
+        this._eventMessages = [];
 
         // Apply entry effects of the new step
         if (nextStep.effects) {
@@ -2141,6 +2239,124 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     hasItem(itemName: string, minQty: number = 1): boolean {
         const inv = this.currentState.inventory[itemName];
         return !!inv && inv.quantity >= minQty;
+    }
+
+    // ============================
+    // Event Chat Phase Methods
+    // ============================
+
+    /** Start the chat phase for the current event step */
+    startEventChat(): void {
+        if (!this._activeEvent) return;
+        this._activeEvent.chatPhaseActive = true;
+        this._activeEvent.chatMessageCount = 0;
+        this._eventMessages = [];
+        console.log('[Event] Chat phase started');
+    }
+
+    /** End the chat phase (preserves chatMessageCount for UI logic) */
+    endEventChat(): void {
+        if (!this._activeEvent) return;
+        this._activeEvent.chatPhaseActive = false;
+        this._eventMessages = [];
+        console.log(`[Event] Chat phase ended after ${this._activeEvent.chatMessageCount} messages`);
+    }
+
+    /** Get event chat messages (read-only copy) */
+    getEventMessages(): SceneMessage[] {
+        return [...this._eventMessages];
+    }
+
+    /**
+     * Send a player message during the event chat phase.
+     * Returns the NPC reply, or null on failure.
+     */
+    async sendEventMessage(text: string): Promise<SceneMessage | null> {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive || !text.trim()) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        this._eventMessages.push({ sender: pcName, text: text.trim() });
+
+        try {
+            await this.messenger.nudge({
+                stage_directions: this.generateEventChatDirections(text.trim()),
+            });
+
+            // afterResponse() will have pushed the NPC reply
+            const latest = this._eventMessages[this._eventMessages.length - 1];
+            if (latest && latest.sender !== pcName) {
+                event.chatMessageCount += 1;
+                return { ...latest };
+            }
+            return null;
+        } catch (e) {
+            console.error('[Event Chat] Send failed:', e);
+            return null;
+        }
+    }
+
+    /** Generate LLM stage directions for event chat */
+    private generateEventChatDirections(_userText: string): string {
+        const event = this._activeEvent;
+        if (!event) return '';
+
+        const def = this._eventRegistry[event.definitionId];
+        if (!def) return '';
+
+        const step = def.steps[event.currentStepId];
+        if (!step?.chatPhase) return '';
+
+        const chatPhase = step.chatPhase;
+        const pcName = this.currentState.playerCharacter.name;
+        const speakerName = (chatPhase.speaker || 'NPC')
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+        const contextText = chatPhase.context
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+
+        const lines: string[] = [];
+        lines.push(`[EVENT CHAT \u2014 ${def.name}]`);
+        lines.push(`You are now roleplaying as ${speakerName}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
+        lines.push(`\nSituation: ${contextText}`);
+
+        // Character personality data
+        const charData = CHARACTER_DATA[speakerName];
+        const hero = this.currentState.heroes[speakerName];
+        const servant = this.currentState.servants[speakerName];
+
+        if (charData) {
+            lines.push(`\n${speakerName}'s personality: ${charData.description}`);
+            lines.push(`Traits: ${charData.traits.join(', ')}`);
+        }
+        if (hero) {
+            lines.push(`Status: ${hero.status}. ${speakerName} is a ${hero.heroClass}. Brainwashing: ${hero.brainwashing}/100.`);
+        } else if (servant) {
+            lines.push(`Love: ${servant.love}/100. Obedience: ${servant.obedience}/100. ${speakerName} is a servant.`);
+        }
+
+        // Recent conversation context
+        if (this._eventMessages.length > 0) {
+            const recent = this._eventMessages.slice(-10);
+            lines.push('\nRecent conversation:');
+            for (const msg of recent) {
+                lines.push(`${msg.sender}: ${msg.text}`);
+            }
+        }
+
+        lines.push(`\nRespond in character as ${speakerName}. Use first person. React based on personality and current mental state.`);
+        lines.push(`Keep responses conversational \u2014 1 to 3 paragraphs.`);
+
+        // Formatting rules
+        lines.push(`\n[TEXT FORMATTING RULES]`);
+        lines.push(`- Wrap physical actions in single asterisks: *sighs heavily*`);
+        lines.push(`- Wrap spoken dialogue in double quotes: "I can't resist..."`);
+        lines.push(`- Narration is plain text without markers.`);
+        lines.push(`- Do NOT use ** (double asterisks). Only single * for actions.`);
+        lines.push(`Do NOT output stat changes, system information, or break character.`);
+
+        return lines.join('\n');
     }
 
     // ============================

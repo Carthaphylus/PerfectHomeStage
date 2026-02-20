@@ -4162,6 +4162,71 @@ html, body, #root {
   }
 }
 
+// ── Event Chat Mode (skit-style chat inside events) ──
+.event-chat-mode {
+  // When chat mode is active, override event-screen layout
+  // The skit-screen and skit-active classes handle the main layout
+  background: none !important;
+
+  .event-chat-context {
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.65) !important;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.2);
+    margin-bottom: 4px;
+    flex-shrink: 0;
+
+    .event-text-line {
+      margin: 0 0 6px 0;
+      font-size: 9px;
+      line-height: 1.7;
+      color: rgba(232, 220, 200, 0.7);
+
+      &:last-child { margin-bottom: 0; }
+    }
+
+    .event-action {
+      color: rgba(200, 170, 110, 0.7);
+      font-style: italic;
+    }
+
+    .event-dialogue {
+      color: #e8dcc8;
+      font-weight: bold;
+    }
+  }
+
+  .event-chat-maxed {
+    padding: 16px 28px;
+    text-align: center;
+    background: rgba(25, 18, 32, 0.8) !important;
+    border-top: 1px solid rgba(200, 170, 110, 0.1);
+  }
+}
+
+.event-btn-chat {
+  background: rgba(120, 90, 200, 0.15) !important;
+  border: 1px solid rgba(120, 90, 200, 0.35) !important;
+  color: rgba(180, 160, 240, 0.9) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    background: rgba(120, 90, 200, 0.28) !important;
+    border-color: rgba(120, 90, 200, 0.55) !important;
+    transform: translateY(-1px);
+  }
+}
+
 .conditioning-btn {
   background: rgba(200, 170, 110, 0.1) !important;
   border-color: rgba(200, 170, 110, 0.4) !important;

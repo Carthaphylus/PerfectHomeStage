@@ -1,4 +1,4 @@
-import React, { FC, useState, useMemo } from 'react';
+import React, { FC, useState, useMemo, useRef, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import {
     Stage,
@@ -6,9 +6,23 @@ import {
     EventDefinition,
     EventStep,
     EventChoice,
+    EventChatPhase,
+    SceneMessage,
     getItemDefinition,
     getRarityColor,
 } from '../Stage';
+import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
+import DungeonBg from '../assets/Images/Rooms/dungeon.jpg';
+import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
+import WoodsBg from '../assets/Images/Skits/Woods.webp';
+import RuinsBg from '../assets/Images/Skits/Deep Ruins.png';
+
+const EVENT_CHAT_BACKGROUNDS: Record<string, string> = {
+    'Dungeon': DungeonBg,
+    'Manor': ManorBg,
+    'Woods': WoodsBg,
+    'Ruins': RuinsBg,
+};
 
 interface EventScreenProps {
     stage: () => Stage;
@@ -72,6 +86,13 @@ function renderNarrative(text: string): React.ReactNode[] {
 export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType, onEventUpdate, onEnd }) => {
     const [fadeState, setFadeState] = useState<'in' | 'out' | 'none'>('in');
 
+    // ── Event Chat Phase State ──
+    const [chatMessages, setChatMessages] = useState<SceneMessage[]>([]);
+    const [chatInput, setChatInput] = useState('');
+    const [chatSending, setChatSending] = useState(false);
+    const chatEndRef = useRef<HTMLDivElement>(null);
+    const chatInputRef = useRef<HTMLTextAreaElement>(null);
+
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
         return (
@@ -126,6 +147,71 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         onEnd();
     };
 
+    // ── Event Chat Phase ──
+    const chatPhase = currentStep?.chatPhase;
+    const isChatActive = event.chatPhaseActive;
+    const chatCompleted = chatPhase && event.chatMessageCount > 0 && !event.chatPhaseActive;
+
+    // Auto-scroll chat messages
+    useEffect(() => {
+        if (isChatActive) {
+            chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages.length, isChatActive]);
+
+    // Focus chat input when entering chat mode
+    useEffect(() => {
+        if (isChatActive) {
+            setTimeout(() => chatInputRef.current?.focus(), 100);
+        }
+    }, [isChatActive]);
+
+    const handleStartChat = () => {
+        stage().startEventChat();
+        onEventUpdate(stage().getActiveEvent());
+    };
+
+    const handleChatSend = async () => {
+        const text = chatInput.trim();
+        if (!text || chatSending) return;
+        setChatInput('');
+
+        const playerMsg: SceneMessage = { sender: pcName, text };
+        setChatMessages(prev => [...prev, playerMsg]);
+
+        setChatSending(true);
+        try {
+            const reply = await stage().sendEventMessage(text);
+            if (reply) {
+                setChatMessages(prev => [...prev, reply]);
+            }
+            onEventUpdate(stage().getActiveEvent());
+        } finally {
+            setChatSending(false);
+            setTimeout(() => chatInputRef.current?.focus(), 50);
+        }
+    };
+
+    const handleChatKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleChatSend();
+        }
+    };
+
+    const handleEndChat = () => {
+        stage().endEventChat();
+        const updated = stage().getActiveEvent();
+        if (updated) {
+            if (currentStep.nextStep) {
+                const advanced = stage().advanceEvent();
+                onEventUpdate(advanced);
+            } else {
+                onEventUpdate(updated);
+            }
+        }
+    };
+
     if (!currentStep) {
         return (
             <div className="event-screen">
@@ -136,6 +222,129 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     }
 
     const interpolatedText = interpolate(currentStep.text, event.target, pcName);
+
+    // ═══════════════════════════════════════════
+    // CHAT MODE — Skit-style AI chat within event
+    // ═══════════════════════════════════════════
+    if (isChatActive && chatPhase) {
+        const chatSpeaker = interpolate(chatPhase.speaker, event.target, pcName);
+        const chatCharAvatar = stage().getCharacterAvatar(chatSpeaker);
+        const chatPcAvatar = stage().currentState.playerCharacter.avatar;
+        const chatCharData = stage().getCharacterData(chatSpeaker);
+        const canEnd = chatPhase.skippable || event.chatMessageCount >= (chatPhase.minMessages || 0);
+        const atMaxMessages = chatPhase.maxMessages ? event.chatMessageCount >= chatPhase.maxMessages : false;
+        const bg = EVENT_CHAT_BACKGROUNDS[chatPhase.location || 'Dungeon'] || DungeonBg;
+
+        return (
+            <div
+                className="event-screen event-chat-mode skit-screen skit-active"
+                style={{ '--char-color': chatCharData?.color || '#c8aa6e' } as React.CSSProperties}
+            >
+                <div className="skit-background" style={{ backgroundImage: `url(${bg})` }} />
+                <div className="skit-overlay" />
+
+                {/* Header */}
+                <div className="skit-header">
+                    <div className="skit-header-left">
+                        <span className="skit-location-badge">{chatPhase.location || 'Dungeon'}</span>
+                    </div>
+                    <div className="skit-header-center">
+                        <img className="skit-header-avatar" src={chatCharAvatar} alt={chatSpeaker} />
+                        <span className="skit-header-name">{chatSpeaker}</span>
+                    </div>
+                    <div className="skit-header-right">
+                        {canEnd && (
+                            <button className="skit-end-btn" onClick={handleEndChat}>
+                                {chatPhase.skippable && event.chatMessageCount < (chatPhase.minMessages || 0)
+                                    ? 'Skip ▸'
+                                    : 'End Chat ▸'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Chat messages area */}
+                <div className="skit-conversation">
+                    {/* Show narrative context at the top */}
+                    <div className="event-chat-context">
+                        {renderNarrative(interpolatedText)}
+                    </div>
+
+                    {chatMessages.length === 0 && !chatSending && (
+                        <div className="skit-empty-hint">
+                            <div className="skit-empty-icon">💬</div>
+                            <p>Begin speaking with {chatSpeaker}...</p>
+                        </div>
+                    )}
+
+                    {chatMessages.map((msg, i) => {
+                        const isPlayer = msg.sender === pcName;
+                        const msgAvatar = isPlayer ? chatPcAvatar : chatCharAvatar;
+                        const isLatestNpc = !isPlayer && i === chatMessages.length - 1;
+                        return (
+                            <div
+                                key={i}
+                                className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'}`}
+                            >
+                                <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
+                                <div className="skit-msg-body">
+                                    <span className="skit-msg-name">{msg.sender}</span>
+                                    <div className="skit-msg-text">
+                                        {isLatestNpc
+                                            ? <TypewriterText text={msg.text} speed={40} />
+                                            : <FormattedText text={msg.text} />}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {chatSending && <TypingIndicator name={chatSpeaker} avatar={chatCharAvatar} />}
+                    <div ref={chatEndRef} />
+                </div>
+
+                {/* Input bar or max-messages continue */}
+                {!atMaxMessages ? (
+                    <div className="skit-input-bar">
+                        <img className="skit-input-avatar" src={chatPcAvatar} alt={pcName} />
+                        <div className="skit-input-wrapper">
+                            <textarea
+                                ref={chatInputRef}
+                                className="skit-input"
+                                placeholder={`Speak as ${pcName}...`}
+                                value={chatInput}
+                                onChange={e => setChatInput(e.target.value)}
+                                onKeyDown={handleChatKeyDown}
+                                disabled={chatSending}
+                                rows={1}
+                            />
+                        </div>
+                        <button
+                            className={`skit-send-btn ${chatSending ? 'sending' : ''}`}
+                            onClick={handleChatSend}
+                            disabled={chatSending || !chatInput.trim()}
+                        >
+                            {chatSending ? '...' : '▶'}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="event-chat-maxed">
+                        <button className="event-btn event-btn-continue" onClick={handleEndChat}>
+                            Continue ▸
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // NORMAL MODE — Narrative + choices
+    // ═══════════════════════════════════════════
+
+    const showChatButton = chatPhase && !chatCompleted;
+    const showFinish = currentStep.isEnding && !showChatButton;
+    const showChoices = !showFinish && currentStep.choices && visibleChoices.length > 0;
 
     return (
         <div className="event-screen">
@@ -229,11 +438,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
             {/* Actions / choices */}
             <div className="event-actions">
-                {currentStep.isEnding ? (
+                {showFinish ? (
                     <button className="event-btn event-btn-finish" onClick={handleFinish}>
                         ✦ Finish
                     </button>
-                ) : currentStep.choices && visibleChoices.length > 0 ? (
+                ) : showChoices ? (
                     <div className="event-choices">
                         {visibleChoices.map((choice) => (
                             <button
@@ -256,6 +465,10 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             </button>
                         ))}
                     </div>
+                ) : showChatButton ? (
+                    <button className="event-btn event-btn-chat" onClick={handleStartChat}>
+                        💬 Speak with {interpolate(chatPhase!.speaker, event.target, pcName)}
+                    </button>
                 ) : (
                     <button className="event-btn event-btn-continue" onClick={handleContinue}>
                         Continue ▸
