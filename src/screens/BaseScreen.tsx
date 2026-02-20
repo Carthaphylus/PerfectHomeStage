@@ -8,6 +8,7 @@ import { HeroesScreen } from './HeroesScreen';
 import { CaptivesScreen } from './CaptivesScreen';
 import { ServantsScreen } from './ServantsScreen';
 import { PCProfileScreen } from './PCProfileScreen';
+import { InventoryScreen } from './InventoryScreen';
 import { StatBar } from './StatBar';
 
 export enum ScreenType {
@@ -17,6 +18,7 @@ export enum ScreenType {
     HEROES = 'heroes',
     CAPTIVES = 'captives',
     SERVANTS = 'servants',
+    INVENTORY = 'inventory',
     SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
 }
@@ -73,6 +75,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             )}
             {screenType === ScreenType.PC_PROFILE && (
                 <PCProfileScreen stage={stage} setScreenType={setScreenType} />
+            )}
+            {screenType === ScreenType.INVENTORY && (
+                <InventoryScreen stage={stage} setScreenType={setScreenType} />
             )}
 
             {/* Scene: keyed by scene.id so a new scene always mounts fresh */}

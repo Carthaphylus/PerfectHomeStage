@@ -3863,6 +3863,237 @@ html, body, #root {
 }
 
 // ==========================================
+// Inventory Screen
+// ==========================================
+.inventory-screen {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at center, rgba(40, 30, 50, 0.97) 0%, rgba(18, 12, 24, 0.99) 100%) !important;
+
+  .inventory-filters {
+    display: flex;
+    gap: 6px;
+    padding: 10px 18px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+    background: rgba(30, 22, 38, 0.5) !important;
+
+    .inv-filter-btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.3px;
+      border: 1px solid rgba(200, 170, 110, 0.15);
+      background: rgba(200, 170, 110, 0.05) !important;
+      color: rgba(200, 170, 110, 0.5);
+
+      &:hover {
+        background: rgba(200, 170, 110, 0.12) !important;
+        color: rgba(200, 170, 110, 0.8);
+      }
+
+      &.active {
+        background: rgba(200, 170, 110, 0.15) !important;
+        border-color: rgba(200, 170, 110, 0.4);
+        color: #c8aa6e;
+      }
+    }
+  }
+
+  .inventory-layout {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-y: auto !important;
+    min-height: 0;
+  }
+
+  .inventory-grid {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-content: flex-start;
+
+    .empty-message {
+      width: 100%;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 10px;
+    }
+  }
+
+  .inv-item-card {
+    width: 130px;
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg, rgba(45, 35, 50, 0.95) 0%, rgba(38, 28, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(200, 170, 110, 0.12);
+    border-left: 3px solid var(--rarity-color, #c8aa6e);
+    border-radius: 6px;
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+
+    &:hover {
+      border-color: rgba(200, 170, 110, 0.25);
+      border-left-color: var(--rarity-color, #c8aa6e);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                  0 0 8px color-mix(in srgb, var(--rarity-color, #c8aa6e) 20%, transparent);
+    }
+
+    &.selected {
+      border-color: var(--rarity-color, #c8aa6e);
+      border-left-color: var(--rarity-color, #c8aa6e);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-color, #c8aa6e) 25%, transparent);
+      background: rgba(200, 170, 110, 0.06) !important;
+    }
+
+    .inv-item-icon {
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .inv-item-name {
+      font-size: 8px;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1.4;
+      font-weight: bold;
+    }
+
+    .inv-item-qty {
+      font-size: 9px;
+      color: #f0d060;
+      font-weight: bold;
+    }
+
+    .inv-item-rarity {
+      font-size: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 2px 6px;
+      border-radius: 8px;
+
+      &.rarity-common { color: #aaa; background: rgba(170, 170, 170, 0.1); }
+      &.rarity-uncommon { color: #5dba5d; background: rgba(93, 186, 93, 0.1); }
+      &.rarity-rare { color: #5b9bd5; background: rgba(91, 155, 213, 0.1); }
+      &.rarity-epic { color: #b882ff; background: rgba(184, 130, 255, 0.1); }
+      &.rarity-legendary { color: #f0a830; background: rgba(240, 168, 48, 0.12); }
+    }
+  }
+
+  .inv-detail-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg, rgba(45, 35, 50, 0.95) 0%, rgba(38, 28, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    border-top: 3px solid var(--rarity-color, #c8aa6e);
+    border-radius: 6px;
+    padding: 20px;
+    align-self: flex-start;
+
+    .inv-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+
+      .inv-detail-icon {
+        font-size: 36px;
+        line-height: 1;
+      }
+
+      .inv-detail-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .inv-detail-name {
+          font-size: 10px;
+          font-weight: bold;
+          line-height: 1.3;
+        }
+
+        .inv-detail-rarity {
+          font-size: 7px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+
+          &.rarity-common { color: #aaa; }
+          &.rarity-uncommon { color: #5dba5d; }
+          &.rarity-rare { color: #5b9bd5; }
+          &.rarity-epic { color: #b882ff; }
+          &.rarity-legendary { color: #f0a830; }
+        }
+      }
+    }
+
+    .inv-detail-type {
+      font-size: 7px;
+      color: rgba(200, 170, 110, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+    }
+
+    .inv-detail-desc {
+      font-size: 9px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .inv-detail-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(200, 170, 110, 0.1);
+
+      .inv-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .inv-detail-label {
+          font-size: 7px;
+          color: rgba(200, 170, 110, 0.5);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .inv-detail-value {
+          font-size: 9px;
+          color: var(--text-primary);
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
 // Servants Screen
 // ==========================================
 .servants-screen {

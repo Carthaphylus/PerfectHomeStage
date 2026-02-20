@@ -33,8 +33,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
         { label: '🗺️ World Map', screen: ScreenType.WORLD_MAP },
         { label: '🎯 Heroes', screen: ScreenType.HEROES },
         { label: '� Captives', screen: ScreenType.CAPTIVES },
-        { label: '�👥 Servants', screen: ScreenType.SERVANTS },
-    ];
+        { label: '�👥 Servants', screen: ScreenType.SERVANTS },        { label: '🎒 Inventory', screen: ScreenType.INVENTORY },    ];
 
     const flashMessage = (msg: string) => {
         setSaveMessage(msg);

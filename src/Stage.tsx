@@ -733,11 +733,140 @@ export interface ManorUpgrade {
     description?: string;
 }
 
-// Inventory item
+// Inventory system
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type ItemType = 'equipment' | 'consumable' | 'material' | 'key' | 'currency';
+
+export interface ItemDefinition {
+    name: string;
+    type: ItemType;
+    rarity: ItemRarity;
+    icon: string;
+    description: string;
+    stackable: boolean;
+    maxStack: number;
+}
+
 export interface InventoryItem {
     name: string;
     quantity: number;
     type?: string;
+}
+
+// Item registry — canonical definitions for all items
+export const ITEM_REGISTRY: Record<string, ItemDefinition> = {
+    'Hypnotic Pendant': {
+        name: 'Hypnotic Pendant',
+        type: 'equipment',
+        rarity: 'epic',
+        icon: '🔮',
+        description: 'A golden pendant enchanted with a mesmerizing spiral pattern. Amplifies the wearer\'s hypnotic influence over weak-willed targets.',
+        stackable: false,
+        maxStack: 1,
+    },
+    'Arcane Visor': {
+        name: 'Arcane Visor',
+        type: 'equipment',
+        rarity: 'legendary',
+        icon: '👓',
+        description: 'Citrine\'s signature headset. Projects a golden spiral directly into the target\'s vision, bypassing natural mental defenses.',
+        stackable: false,
+        maxStack: 1,
+    },
+    'Mana Crystal': {
+        name: 'Mana Crystal',
+        type: 'material',
+        rarity: 'uncommon',
+        icon: '💎',
+        description: 'A shard of crystallized arcane energy. Used in enchanting and manor upgrades.',
+        stackable: true,
+        maxStack: 99,
+    },
+    'Obedience Elixir': {
+        name: 'Obedience Elixir',
+        type: 'consumable',
+        rarity: 'rare',
+        icon: '🧪',
+        description: 'A shimmering golden potion that temporarily heightens suggestibility. Increases brainwashing progress when administered.',
+        stackable: true,
+        maxStack: 10,
+    },
+    'Servant Collar': {
+        name: 'Servant Collar',
+        type: 'equipment',
+        rarity: 'rare',
+        icon: '⭕',
+        description: 'An ornate collar inscribed with binding runes. Worn by fully converted servants as a mark of devotion.',
+        stackable: true,
+        maxStack: 5,
+    },
+    'Spiral Incense': {
+        name: 'Spiral Incense',
+        type: 'consumable',
+        rarity: 'uncommon',
+        icon: '🌀',
+        description: 'Burns with a hypnotic golden smoke that fills a room. Creates an atmosphere conducive to conditioning.',
+        stackable: true,
+        maxStack: 20,
+    },
+    'Enchanted Shackles': {
+        name: 'Enchanted Shackles',
+        type: 'key',
+        rarity: 'rare',
+        icon: '⛓️',
+        description: 'Arcane restraints that dampen a captive\'s willpower. Required to hold particularly strong-willed heroes.',
+        stackable: true,
+        maxStack: 5,
+    },
+    'Gold Coin': {
+        name: 'Gold Coin',
+        type: 'currency',
+        rarity: 'common',
+        icon: '🪙',
+        description: 'Standard currency. Used for manor improvements, hiring, and trade.',
+        stackable: true,
+        maxStack: 9999,
+    },
+    'Dreamcatcher Herb': {
+        name: 'Dreamcatcher Herb',
+        type: 'material',
+        rarity: 'common',
+        icon: '🌿',
+        description: 'A fragrant herb found in the woods. Used to brew potions and burn as incense.',
+        stackable: true,
+        maxStack: 50,
+    },
+    'Memory Fragment': {
+        name: 'Memory Fragment',
+        type: 'key',
+        rarity: 'epic',
+        icon: '✨',
+        description: 'A shard of a hero\'s memories, extracted during conditioning. Can be used to unlock deeper obedience or returned to restore free will.',
+        stackable: true,
+        maxStack: 10,
+    },
+};
+
+export function getItemDefinition(itemName: string): ItemDefinition {
+    return ITEM_REGISTRY[itemName] || {
+        name: itemName,
+        type: 'material' as ItemType,
+        rarity: 'common' as ItemRarity,
+        icon: '📦',
+        description: 'An unknown item.',
+        stackable: true,
+        maxStack: 99,
+    };
+}
+
+export function getRarityColor(rarity: ItemRarity): string {
+    switch (rarity) {
+        case 'common': return '#b0b0b0';
+        case 'uncommon': return '#5aaa5a';
+        case 'rare': return '#5a8aee';
+        case 'epic': return '#b45aee';
+        case 'legendary': return '#ee9a2a';
+    }
 }
 
 // Dungeon progress
@@ -1014,7 +1143,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     assignedTask: undefined,
                 },
             },
-            inventory: {},
+            inventory: {
+                'Arcane Visor': { name: 'Arcane Visor', quantity: 1, type: 'equipment' },
+                'Hypnotic Pendant': { name: 'Hypnotic Pendant', quantity: 1, type: 'equipment' },
+                'Gold Coin': { name: 'Gold Coin', quantity: 250, type: 'currency' },
+                'Mana Crystal': { name: 'Mana Crystal', quantity: 8, type: 'material' },
+                'Spiral Incense': { name: 'Spiral Incense', quantity: 5, type: 'consumable' },
+                'Obedience Elixir': { name: 'Obedience Elixir', quantity: 2, type: 'consumable' },
+                'Servant Collar': { name: 'Servant Collar', quantity: 2, type: 'equipment' },
+                'Enchanted Shackles': { name: 'Enchanted Shackles', quantity: 3, type: 'key' },
+                'Dreamcatcher Herb': { name: 'Dreamcatcher Herb', quantity: 12, type: 'material' },
+            },
             manorUpgrades: {},
         };
     }
