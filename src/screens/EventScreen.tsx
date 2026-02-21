@@ -142,6 +142,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [chatMessages, setChatMessages] = useState<SceneMessage[]>([]);
     const [chatInput, setChatInput] = useState('');
     const [chatSending, setChatSending] = useState(false);
+    const [chatStarted, setChatStarted] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -217,7 +218,8 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     // ── Event Chat Phase ──
     const chatPhase = currentStep?.chatPhase;
     const isChatActive = event.chatPhaseActive;
-    const chatCompleted = chatPhase && event.chatMessageCount > 0 && !event.chatPhaseActive;
+    // Chat is complete once it was started and then ended, regardless of message count
+    const chatCompleted = chatPhase && !event.chatPhaseActive && chatStarted;
 
     // Auto-scroll chat messages
     useEffect(() => {
@@ -234,6 +236,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     }, [isChatActive]);
 
     const handleStartChat = () => {
+        setChatStarted(true);
         stage().startEventChat();
         onEventUpdate(stage().getActiveEvent());
     };
