@@ -247,6 +247,7 @@ export interface Hero {
     stats: Record<StatName, number>; // 0-100 values
     location?: string;
     personalHistory?: string; // editable summary of what happened to this character
+    backstory?: string; // editable backstory / personality flavor for richer RP
 }
 
 // Role definition — permanent (reassignable) fixture for a servant
@@ -532,6 +533,7 @@ export interface Servant {
     assignedTask?: string;
     assignedRole?: string; // role id from ROLE_REGISTRY
     personalHistory?: string; // editable summary of what happened to this character
+    backstory?: string; // editable backstory / personality flavor for richer RP
 }
 
 // Player character info
@@ -544,6 +546,7 @@ export interface PlayerCharacter {
     traits: string[];
     details: Record<string, string>;
     personalHistory?: string;
+    backstory?: string; // editable backstory / personality flavor for richer RP
 }
 
 // Chub.ai configuration
@@ -3105,6 +3108,86 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         target.personalHistory = history;
     }
 
+    /**
+     * Get a character's backstory text.
+     */
+    getCharacterBackstory(characterName: string): string {
+        const pc = this.currentState.playerCharacter;
+        if (pc.name === characterName) return pc.backstory || '';
+        const hero = this.currentState.heroes[characterName];
+        const servant = this.currentState.servants[characterName];
+        return hero?.backstory || servant?.backstory || '';
+    }
+
+    /**
+     * Set a character's backstory (for editable UI).
+     */
+    setCharacterBackstory(characterName: string, backstory: string): void {
+        const pc = this.currentState.playerCharacter;
+        if (pc.name === characterName) { pc.backstory = backstory; return; }
+        const hero = this.currentState.heroes[characterName];
+        const servant = this.currentState.servants[characterName];
+        const target = hero || servant;
+        if (!target) return;
+        target.backstory = backstory;
+    }
+
+    /**
+     * Generate a backstory for a character using the LLM.
+     * Uses the hardcoded CHARACTER_DATA as seed and creates a richer, more personal backstory.
+     */
+    async generateCharacterBackstory(characterName: string): Promise<string | null> {
+        const charData = CHARACTER_DATA[characterName];
+        if (!charData) return null;
+
+        const gender = charData.details?.['Gender'] || 'unknown';
+        const species = charData.details?.['Species'] || 'unknown';
+        const charClass = charData.details?.['Class'] || charData.details?.['Former Role'] || 'unknown';
+        const existing = this.getCharacterBackstory(characterName);
+
+        const prompt = [
+            `[SYSTEM] Write a short, vivid backstory for the character ${characterName}.`,
+            `Use the following seed info but expand it with personality, quirks, inner conflicts, and emotional depth.`,
+            `Make the character feel ALIVE — not a flat archetype. Give them habits, fears, small joys, contradictions.`,
+            ``,
+            `[SEED INFO]`,
+            `Name: ${characterName}`,
+            `Species: ${species}`,
+            `Gender: ${gender}`,
+            `Class/Role: ${charClass}`,
+            `Base Description: ${charData.description}`,
+            `Traits: ${charData.traits.join(', ')}`,
+            charData.details ? `Details: ${Object.entries(charData.details).map(([k, v]) => `${k}: ${v}`).join(', ')}` : '',
+            existing ? `\n[EXISTING BACKSTORY — refine and expand, don't contradict]:\n${existing}` : '',
+            ``,
+            `[RULES]`,
+            `- Write 3-5 sentences.`,
+            `- Use third person and present/past tense.`,
+            `- Use correct pronouns for ${gender}.`,
+            `- Include at least one personal habit, fear, or quirk not in the seed info.`,
+            `- Do NOT mention game mechanics, stats, or the player.`,
+            `- Do NOT use clichés like "little did they know" or "only time will tell".`,
+            ``,
+            `[BACKSTORY]:`,
+        ].filter(Boolean).join('\n');
+
+        try {
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 300,
+                stop: [],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+            return response?.result?.trim() || null;
+        } catch (e) {
+            console.error(`[Backstory] Generation failed for ${characterName}:`, e);
+            return null;
+        }
+    }
+
     /** Get event chat messages (read-only copy) */
     getEventMessages(): SceneMessage[] {
         return [...this._eventMessages];
@@ -3516,14 +3599,25 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const servant = this.currentState.servants[speakerName];
 
         lines.push(`\n[CHARACTER: ${speakerName}]`);
-        if (charData) {
+
+        // Use backstory if available, otherwise fall back to hardcoded description
+        const backstory = hero?.backstory || servant?.backstory;
+        if (backstory && backstory.trim()) {
+            lines.push(`Backstory: ${backstory.trim()}`);
+        } else if (charData) {
             lines.push(`Personality: ${charData.description}`);
+        }
+
+        if (charData) {
             lines.push(`Traits: ${charData.traits.join(', ')}`);
             if (charData.details) {
                 const detailParts = Object.entries(charData.details).map(([k, v]) => `${k}: ${v}`);
                 lines.push(`Details: ${detailParts.join(', ')}`);
             }
         }
+
+        // ── ROLEPLAY DEPTH ──
+        lines.push(`\nPlay ${speakerName} as a real person, not a flat archetype. Show inner conflict, hesitation, humor, or vulnerability when appropriate. React to the situation naturally — not every response needs to be dramatic or defiant. Small gestures, pauses, and mixed feelings make the character feel alive.`);
 
         // ── PERSONAL HISTORY (persistent memory across scenes) ──
         const history = hero?.personalHistory || servant?.personalHistory;
