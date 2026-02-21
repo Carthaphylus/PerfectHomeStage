@@ -7677,3 +7677,489 @@ html, body, #root {
 .icon-pink    { color: #f48fb1; }
 .icon-orange  { color: #ffa726; }
 .icon-teal    { color: #26a69a; }
+
+// ═══════════════════════════════════════
+// CONVERSION SCREEN
+// ═══════════════════════════════════════
+
+.conversion-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d0d0d;
+  overflow: hidden;
+}
+
+.conversion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(20, 18, 14, 0.95);
+  border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+  z-index: 10;
+
+  h2 {
+    font-size: 11px;
+    font-family: 'Press Start 2P', monospace;
+    color: #c8aa6e;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+  }
+}
+
+.conversion-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 16px;
+  text-align: center;
+
+  h3 {
+    font-size: 14px;
+    font-family: 'Press Start 2P', monospace;
+    color: #c8aa6e;
+    margin: 12px 0 8px;
+  }
+}
+
+.conversion-intro-text {
+  font-size: 11px;
+  color: rgba(200, 170, 110, 0.8);
+  line-height: 1.6;
+  max-width: 380px;
+}
+
+.conversion-intro-subtext {
+  font-size: 10px;
+  color: rgba(200, 170, 110, 0.5);
+  margin-top: 4px;
+}
+
+.conversion-portrait {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(200, 170, 110, 0.4);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.conversion-portrait-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 170, 110, 0.3);
+  animation: conversionPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.converting-glow {
+  border-color: rgba(251, 191, 36, 0.5);
+  animation: conversionPulse 1s ease-in-out infinite;
+}
+
+.complete-glow {
+  border-color: rgba(74, 222, 128, 0.5);
+  animation: conversionPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes conversionPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+// ── Mode selection cards ──
+
+.conversion-mode-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px 20px;
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.conversion-mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  border-radius: 6px;
+  background: rgba(200, 170, 110, 0.05);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+
+  &:hover {
+    background: rgba(200, 170, 110, 0.12);
+    border-color: rgba(200, 170, 110, 0.4);
+    transform: translateY(-2px);
+  }
+
+  &.mode-predefined {
+    border-color: rgba(167, 139, 250, 0.3);
+    &:hover { border-color: rgba(167, 139, 250, 0.6); background: rgba(167, 139, 250, 0.08); }
+  }
+  &.mode-freeform {
+    border-color: rgba(56, 189, 248, 0.3);
+    &:hover { border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.08); }
+  }
+}
+
+.mode-card-icon {
+  color: #c8aa6e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mode-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mode-card-title {
+  font-size: 10px;
+  font-family: 'Press Start 2P', monospace;
+  color: #c8aa6e;
+}
+
+.mode-card-desc {
+  font-size: 10px;
+  color: rgba(200, 180, 140, 0.6);
+  line-height: 1.5;
+}
+
+// ── Archetype picker layout ──
+
+.archetype-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+.archetype-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  border-right: 1px solid rgba(200, 170, 110, 0.1);
+}
+
+.archetype-group {
+  margin-bottom: 10px;
+}
+
+.archetype-group-header {
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.8;
+}
+
+.archetype-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  background: none;
+
+  &:hover {
+    background: rgba(200, 170, 110, 0.06);
+    border-color: rgba(200, 170, 110, 0.15);
+  }
+
+  &.previewing {
+    background: rgba(200, 170, 110, 0.1);
+    border-color: rgba(200, 170, 110, 0.3);
+  }
+}
+
+.archetype-row-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.archetype-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.archetype-row-name {
+  font-size: 9px;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.archetype-row-desc {
+  font-size: 9px;
+  color: rgba(200, 180, 140, 0.5);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Archetype preview panel ──
+
+.archetype-preview {
+  width: 260px;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.archetype-preview-icon {
+  margin-top: 10px;
+}
+
+.archetype-preview-name {
+  font-size: 12px;
+  font-family: 'Press Start 2P', monospace;
+  margin: 0;
+}
+
+.archetype-preview-category {
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+}
+
+.archetype-preview-desc {
+  font-size: 10px;
+  color: rgba(200, 180, 140, 0.7);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.archetype-preview-section {
+  width: 100%;
+
+  h4 {
+    font-size: 8px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba(200, 170, 110, 0.6);
+    margin: 8px 0 4px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.archetype-preview-personality {
+  font-size: 9px;
+  color: rgba(200, 180, 140, 0.65);
+  line-height: 1.6;
+  background: rgba(200, 170, 110, 0.04);
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 2px solid rgba(200, 170, 110, 0.2);
+}
+
+.archetype-preview-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.archetype-trait-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: rgba(74, 222, 128, 0.12);
+  color: rgba(74, 222, 128, 0.9);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.archetype-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+
+  p {
+    font-size: 9px;
+    color: rgba(200, 180, 140, 0.4);
+  }
+}
+
+.archetype-select-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid rgba(200, 170, 110, 0.4);
+  border-radius: 4px;
+  background: rgba(200, 170, 110, 0.15);
+  color: #fff;
+  font-size: 9px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
+  }
+}
+
+// ── Conversion chat (reuses skit styles) ──
+
+.conversion-chat-mode {
+  // Reuses .skit-screen, .skit-active, etc. from the existing skit styles
+}
+
+.conversion-fill {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+// ── Conversion loading ──
+
+.conversion-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+
+  h3 {
+    font-size: 12px;
+    font-family: 'Press Start 2P', monospace;
+    color: #c8aa6e;
+  }
+}
+
+.conversion-loading-text {
+  font-size: 10px;
+  color: rgba(200, 170, 110, 0.6);
+  line-height: 1.6;
+}
+
+.conversion-spinner {
+  animation: spin 2s linear infinite;
+}
+
+// ── Conversion complete ──
+
+.conversion-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 24px 20px;
+  gap: 10px;
+  overflow-y: auto;
+
+  h3 {
+    font-size: 14px;
+    font-family: 'Press Start 2P', monospace;
+    color: #c8aa6e;
+    margin: 8px 0 4px;
+  }
+}
+
+.conversion-archetype-badge {
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  color: rgba(251, 191, 36, 0.9);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 3px 10px;
+  border-radius: 3px;
+}
+
+.conversion-result-section {
+  width: 100%;
+  max-width: 400px;
+
+  h4 {
+    font-size: 8px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba(200, 170, 110, 0.6);
+    margin: 12px 0 6px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.conversion-result-description {
+  font-size: 10px;
+  color: rgba(200, 180, 140, 0.75);
+  line-height: 1.6;
+  background: rgba(200, 170, 110, 0.04);
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 2px solid rgba(74, 222, 128, 0.4);
+}
+
+.conversion-result-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.conversion-result-subtext {
+  font-size: 9px;
+  color: rgba(200, 170, 110, 0.5);
+  margin-top: 8px;
+}
+
+// ── Conversion-ready button state ──
+.captive-convert-btn.conversion-ready {
+  opacity: 1 !important;
+  cursor: pointer !important;
+  background: rgba(212, 168, 67, 0.15) !important;
+  border-color: rgba(212, 168, 67, 0.5);
+  animation: conversionReadyPulse 2s ease-in-out infinite;
+
+  &:hover {
+    background: rgba(212, 168, 67, 0.25) !important;
+    border-color: rgba(212, 168, 67, 0.7);
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes conversionReadyPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 168, 67, 0.2); }
+  50% { box-shadow: 0 0 12px 2px rgba(212, 168, 67, 0.3); }
+}
+

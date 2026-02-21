@@ -10,6 +10,7 @@ import { ServantsScreen } from './ServantsScreen';
 import { PCProfileScreen } from './PCProfileScreen';
 import { InventoryScreen } from './InventoryScreen';
 import { EventScreen } from './EventScreen';
+import { ConversionScreen } from './ConversionScreen';
 import { StatBar } from './StatBar';
 
 export enum ScreenType {
@@ -23,6 +24,7 @@ export enum ScreenType {
     EVENT = 'event',
     SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
+    CONVERSION = 'conversion',
 }
 
 interface BaseScreenProps {
@@ -38,6 +40,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
 
     // Event data owned by React state
     const [activeEvent, setActiveEvent] = useState<ActiveEvent | null>(null);
+
+    // Conversion target name
+    const [conversionTarget, setConversionTarget] = useState<string | null>(null);
 
     /**
      * Start a scene: creates it on Stage (for API use), stores snapshot in React state,
@@ -71,6 +76,18 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         setScreenType(returnScreen);
     }, [returnScreen]);
 
+    /** Start a conversion: navigate to conversion screen */
+    const startConversion = useCallback((heroName: string) => {
+        setConversionTarget(heroName);
+        setScreenType(ScreenType.CONVERSION);
+    }, []);
+
+    /** End conversion: navigates to servants screen */
+    const endConversion = useCallback(() => {
+        setConversionTarget(null);
+        setScreenType(ScreenType.SERVANTS);
+    }, []);
+
     const showStatBar = screenType !== ScreenType.MENU;
 
     return (
@@ -90,7 +107,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 <HeroesScreen stage={stage} setScreenType={setScreenType} />
             )}
             {screenType === ScreenType.CAPTIVES && (
-                <CaptivesScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} />
+                <CaptivesScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} startConversion={startConversion} />
             )}
             {screenType === ScreenType.SERVANTS && (
                 <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} />
@@ -111,6 +128,17 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                     setScreenType={setScreenType}
                     onEventUpdate={setActiveEvent}
                     onEnd={endEvent}
+                />
+            )}
+
+            {/* Conversion screen */}
+            {screenType === ScreenType.CONVERSION && conversionTarget && (
+                <ConversionScreen
+                    key={`conversion-${conversionTarget}`}
+                    stage={stage}
+                    heroName={conversionTarget}
+                    setScreenType={setScreenType}
+                    onComplete={endConversion}
                 />
             )}
 
