@@ -24,6 +24,7 @@ import {
     Droplets, Sun, Feather, Gem, Heart, Crown, Sparkles, Waves,
     Brain, Ghost, Skull, Shield, Star, Zap, Wind, CircleDot,
     ScanEye, TestTubes, Moon, Hand, MessageCircle,
+    Pencil, RotateCcw, Check, X,
 } from 'lucide-react';
 
 // ── Spell Icon Component ──
@@ -151,6 +152,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [actionResults, setActionResults] = useState<ActionResult[]>([]);
     const [executingAction, setExecutingAction] = useState(false);
     const [attachedAction, setAttachedAction] = useState<{ action: ConditioningAction; forceResult?: 'success' | 'failure' } | null>(null);
+
+    // ── Edit / Regenerate State ──
+    const [editingMsgIndex, setEditingMsgIndex] = useState<number | null>(null);
+    const [editText, setEditText] = useState('');
+    const [regenerating, setRegenerating] = useState(false);
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -294,6 +300,87 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleChatSend();
+        }
+    };
+
+    // ── Edit / Regenerate Handlers ──
+
+    const handleStartEdit = (msgIndex: number) => {
+        const msg = chatMessages[msgIndex];
+        if (!msg) return;
+        // Show the raw text for editing (with action prefix stripped)
+        let text = msg.text;
+        text = text.replace(/^\*uses [^*]+\*\s*/, '').replace(/^\*attempts [^*]+, but fails\*\s*/, '');
+        setEditingMsgIndex(msgIndex);
+        setEditText(text);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingMsgIndex(null);
+        setEditText('');
+    };
+
+    const handleSaveEdit = async () => {
+        if (editingMsgIndex === null || chatSending || regenerating) return;
+        const newText = editText.trim();
+        if (!newText) return;
+
+        const oldMsg = chatMessages[editingMsgIndex];
+        if (!oldMsg) return;
+
+        // Preserve the action prefix if the original message had one
+        const actionMatch = oldMsg.text.match(/^(\*(?:uses|attempts) [^*]+(?:, but fails)?\*)\s*/);
+        const fullText = actionMatch ? `${actionMatch[1]} ${newText}` : newText;
+
+        // Truncate chatMessages: keep up to and including the edited message, remove everything after
+        const updatedMessages = chatMessages.slice(0, editingMsgIndex);
+        updatedMessages.push({ sender: oldMsg.sender, text: fullText });
+        setChatMessages(updatedMessages);
+
+        // Sync _eventMessages to match
+        stage().setEventMessages(updatedMessages);
+
+        setEditingMsgIndex(null);
+        setEditText('');
+
+        // Re-send to get a new NPC reply
+        setRegenerating(true);
+        setChatSending(true);
+        try {
+            const reply = await stage().regenerateEventResponse();
+            if (reply) {
+                setChatMessages(prev => [...prev, reply]);
+            }
+            onEventUpdate(stage().getActiveEvent());
+        } finally {
+            setRegenerating(false);
+            setChatSending(false);
+        }
+    };
+
+    const handleRegenerate = async () => {
+        if (chatSending || regenerating || chatMessages.length === 0) return;
+
+        // Find the last NPC message and remove it
+        const lastMsg = chatMessages[chatMessages.length - 1];
+        if (lastMsg.sender === pcName) return; // Can't regen a player message
+
+        const trimmed = chatMessages.slice(0, -1);
+        setChatMessages(trimmed);
+        stage().setEventMessages(trimmed);
+
+        // Re-send to get a new NPC reply
+        setRegenerating(true);
+        setChatSending(true);
+        try {
+            const reply = await stage().regenerateEventResponse();
+            if (reply) {
+                setChatMessages(prev => [...prev, reply]);
+            }
+            onEventUpdate(stage().getActiveEvent());
+        } finally {
+            setRegenerating(false);
+            setChatSending(false);
         }
     };
 
@@ -511,19 +598,66 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         }
                         const msgAvatar = isPlayer ? chatPcAvatar : chatCharAvatar;
                         const isLatestNpc = !isPlayer && idx === chatItems.length - 1;
+                        const isEditing = editingMsgIndex === item.index;
+                        const isLastNpcMsg = !isPlayer && item.index === chatMessages.length - 1;
+                        const canEdit = isPlayer && !chatSending && !regenerating && editingMsgIndex === null;
+                        const canRegen = isLastNpcMsg && !chatSending && !regenerating && editingMsgIndex === null;
+
                         return (
                             <div
                                 key={`msg-${item.index}`}
-                                className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'}`}
+                                className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'} ${isEditing ? 'skit-msg-editing' : ''}`}
                             >
                                 <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
                                 <div className="skit-msg-body">
                                     <span className="skit-msg-name">{msg.sender}</span>
-                                    <div className="skit-msg-text">
-                                        {isLatestNpc
-                                            ? <TypewriterText text={msg.text} speed={40} />
-                                            : <FormattedText text={isPlayer ? displayText : msg.text} />}
-                                    </div>
+                                    {isEditing ? (
+                                        <div className="skit-msg-edit-area">
+                                            <textarea
+                                                className="skit-msg-edit-input"
+                                                value={editText}
+                                                onChange={e => setEditText(e.target.value)}
+                                                rows={3}
+                                                autoFocus
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSaveEdit();
+                                                    }
+                                                    if (e.key === 'Escape') handleCancelEdit();
+                                                }}
+                                            />
+                                            <div className="skit-msg-edit-buttons">
+                                                <button className="skit-edit-btn skit-edit-save" onClick={handleSaveEdit} title="Save & regenerate">
+                                                    <Check size={11} /> Save
+                                                </button>
+                                                <button className="skit-edit-btn skit-edit-cancel" onClick={handleCancelEdit} title="Cancel">
+                                                    <X size={11} /> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="skit-msg-text">
+                                            {isLatestNpc
+                                                ? <TypewriterText text={msg.text} speed={40} />
+                                                : <FormattedText text={isPlayer ? displayText : msg.text} />}
+                                        </div>
+                                    )}
+                                    {/* Edit / Regenerate controls */}
+                                    {!isEditing && (canEdit || canRegen) && (
+                                        <div className="skit-msg-actions">
+                                            {canEdit && (
+                                                <button className="skit-msg-action-btn" onClick={() => handleStartEdit(item.index)} title="Edit message">
+                                                    <Pencil size={10} />
+                                                </button>
+                                            )}
+                                            {canRegen && (
+                                                <button className="skit-msg-action-btn" onClick={handleRegenerate} title="Regenerate response">
+                                                    <RotateCcw size={10} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );

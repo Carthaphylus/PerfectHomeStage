@@ -2937,6 +2937,40 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return [...this._eventMessages];
     }
 
+    /** Replace all event messages (for edit/regenerate support) */
+    setEventMessages(messages: SceneMessage[]): void {
+        this._eventMessages = [...messages];
+    }
+
+    /**
+     * Re-nudge the LLM using the last player message to get a new NPC response.
+     * Used for regenerating responses after editing or on explicit regen.
+     */
+    async regenerateEventResponse(): Promise<SceneMessage | null> {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const lastPlayerMsg = [...this._eventMessages].reverse().find(m => m.sender === pcName);
+        if (!lastPlayerMsg) return null;
+
+        try {
+            await this.messenger.nudge({
+                stage_directions: this.generateEventChatDirections(lastPlayerMsg.text),
+            });
+
+            // afterResponse() will have pushed the NPC reply
+            const latest = this._eventMessages[this._eventMessages.length - 1];
+            if (latest && latest.sender !== pcName) {
+                return { ...latest };
+            }
+            return null;
+        } catch (e) {
+            console.error('[Event Chat] Regenerate failed:', e);
+            return null;
+        }
+    }
+
     /**
      * Send a player message during the event chat phase.
      * Returns the NPC reply, or null on failure.
