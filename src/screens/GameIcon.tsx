@@ -17,7 +17,7 @@ import {
     HelpCircle, Image, Flower2, ChevronLeft, RefreshCw, Infinity,
     Diamond, ArrowLeftRight, Users, Zap, CircleDot,
     // Scene
-    Footprints, ShieldAlert, HeartCrack, LockKeyhole, Orbit,
+    Footprints, ShieldAlert, HeartCrack, LockKeyhole, Orbit, Flame,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -102,6 +102,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     zap: Zap,
     'circle-dot': CircleDot,
     orbit: Orbit,
+    flame: Flame,
 
     // ── Scene / Special ──
     footprints: Footprints,

@@ -28,8 +28,8 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
         { id: 'Manor', name: 'The Manor', x: 73, y: 45, discovered: true, description: 'Your domain of power' },
         { id: 'Town', name: 'Town', x: 52, y: 40, discovered: true, description: 'A bustling settlement' },
         { id: 'Woods', name: 'The Woods', x: 28.5, y: 67.5, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
-        { id: 'Ruins', name: 'Ancient Ruins', x: 44, y: 75, discovered: stage().chatState.discoveredLocations.includes('Ruins'), description: 'Crumbling structures of old' },
-        { id: 'Circus', name: 'Circus', x: 79, y: 90, discovered: stage().chatState.discoveredLocations.includes('Circus'), description: 'A place of wonder and danger' },
+        { id: 'Ruins', name: 'Ancient Ruins', x: 44, y: 75, discovered: true, description: 'Crumbling structures of old' },
+        { id: 'Circus', name: 'Circus', x: 79, y: 90, discovered: true, description: 'A place of wonder and danger' },
     ];
 
     const discoveredLocations = locations.filter(l => l.discovered);
@@ -38,33 +38,60 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
     const activeIndex = selectedIndex;
     const activeLocation = activeIndex >= 0 ? locations[activeIndex] : null;
 
-    // Keyboard navigation — cycle through discovered locations
+    // Keyboard navigation — spatial: go to nearest location in arrow direction
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (discoveredLocations.length === 0) return;
 
-        const currentDiscIdx = selectedIndex >= 0
-            ? discoveredLocations.findIndex(l => l === locations[selectedIndex])
-            : -1;
+        const dirMap: Record<string, { dx: number; dy: number }> = {
+            ArrowRight: { dx: 1, dy: 0 },
+            ArrowLeft:  { dx: -1, dy: 0 },
+            ArrowDown:  { dx: 0, dy: 1 },
+            ArrowUp:    { dx: 0, dy: -1 },
+        };
 
-        let nextDiscIdx = currentDiscIdx;
+        const dir = dirMap[e.key];
 
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        if (dir) {
             e.preventDefault();
-            nextDiscIdx = currentDiscIdx < discoveredLocations.length - 1 ? currentDiscIdx + 1 : 0;
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            nextDiscIdx = currentDiscIdx > 0 ? currentDiscIdx - 1 : discoveredLocations.length - 1;
+
+            // Nothing selected yet — pick the first discovered location
+            if (selectedIndex < 0) {
+                setSelectedIndex(locations.indexOf(discoveredLocations[0]));
+                return;
+            }
+
+            const current = locations[selectedIndex];
+            let bestIdx = -1;
+            let bestScore = Infinity;
+
+            for (const loc of discoveredLocations) {
+                if (loc === current) continue;
+                const dx = loc.x - current.x;
+                const dy = loc.y - current.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist === 0) continue;
+
+                // cosAngle: how aligned the candidate is with the pressed direction (1 = perfect, 0 = perpendicular)
+                const cosAngle = (dx * dir.dx + dy * dir.dy) / dist;
+
+                // Must be broadly in the right direction (within ~75° cone)
+                if (cosAngle <= 0.26) continue;
+
+                // Score = distance / cosAngle² — heavily rewards directional alignment
+                const score = dist / (cosAngle * cosAngle);
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestIdx = locations.indexOf(loc);
+                }
+            }
+
+            if (bestIdx >= 0) {
+                setSelectedIndex(bestIdx);
+            }
         } else if (e.key === 'Enter' && activeLocation?.discovered) {
             e.preventDefault();
             handleExplore(activeLocation);
-            return;
-        } else {
-            return;
         }
-
-        const nextLoc = discoveredLocations[nextDiscIdx];
-        const globalIdx = locations.indexOf(nextLoc);
-        setSelectedIndex(globalIdx);
     }, [selectedIndex, discoveredLocations, activeLocation]);
 
     useEffect(() => {

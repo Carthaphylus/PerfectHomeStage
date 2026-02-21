@@ -180,7 +180,7 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                                     onClick={(e) => { e.stopPropagation(); debugFree(hero.name); }}
                                     title="Debug: Free captive"
                                 >
-                                    unlock
+                                    <GameIcon icon="unlock" size={12} />
                                 </button>
                                 <div className="captive-brainwashing-bar">
                                     <div

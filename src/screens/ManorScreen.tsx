@@ -1064,7 +1064,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             className="catalogue-build-btn"
                                             onClick={() => { handleBuildRoom(preview.type); setCatalogueSelection(null); }}
                                         >
-                                            hammer Build {preview.name}
+                                            <GameIcon icon="hammer" size={12} /> Build {preview.name}
                                         </button>
                                     </div>
                                 )}
