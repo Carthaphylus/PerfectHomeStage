@@ -3,6 +3,7 @@ import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 import { Location } from '../Stage';
 import MapImage from '../assets/Images/Skits/Map.webp';
+import { GameIcon } from './GameIcon';
 
 interface WorldMapScreenProps {
     stage: () => Stage;
@@ -55,7 +56,7 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
                     &lt; Menu
                 </button>
                 <h2>World Map</h2>
-                <div className="current-location">📍 {stage().currentState.location}</div>
+                <div className="current-location"><GameIcon icon="map-pin" size={12} /> {stage().currentState.location}</div>
             </div>
 
             {/* Map */}
@@ -71,7 +72,7 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
                         onClick={() => handleLocationClick(location)}
                     >
                         <div className="location-marker">
-                            {location.discovered ? '📍' : '❓'}
+                            <GameIcon icon={location.discovered ? 'map-pin' : 'help-circle'} size={16} />
                         </div>
                         {location.discovered && (
                             <div className="location-name">{location.name}</div>
@@ -86,7 +87,7 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
                     <h3>{selectedLocation.name}</h3>
                     <p>{selectedLocation.description}</p>
                     <button className="explore-button" onClick={handleExplore}>
-                        🚶 Explore
+                        <GameIcon icon="footprints" size={12} /> Explore
                     </button>
                 </div>
             )}

@@ -2,6 +2,7 @@ import React, { FC, ReactNode } from 'react';
 import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../Stage';
 import { CharacterGallery } from './CharacterGallery';
 import { TraitChip } from './TraitChip';
+import { GameIcon } from './GameIcon';
 
 /**
  * Shared character data shape — every profile passes this.
@@ -92,7 +93,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                     </div>
                     <div className="char-action-btns">
                         <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
-                            🖼️ Gallery
+                            <GameIcon icon="image" size={12} /> Gallery
                         </button>
                         {extraActions}
                     </div>

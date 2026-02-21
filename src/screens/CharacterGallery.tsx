@@ -1,5 +1,6 @@
 import React, { FC, useState } from 'react';
 import { Stage } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 // Generation slot types
 export type GenerationSlotType =
@@ -21,31 +22,31 @@ const GENERATION_SLOTS: GenerationSlot[] = [
         type: 'bg_removed',
         label: 'No Background',
         description: 'Portrait with transparent background',
-        icon: '🖼️',
+        icon: 'image',
     },
     {
         type: 'hypno_citrine',
         label: 'Citrine\u2019s Trance',
         description: 'Golden glowing eyes, drooling, happy trance',
-        icon: '✨',
+        icon: 'sparkle',
     },
     {
         type: 'hypno_julian',
         label: 'Julian\u2019s Trance',
         description: 'Blue glowing eyes, blank and empty trance',
-        icon: '💎',
+        icon: 'diamond',
     },
     {
         type: 'hypno_flores',
         label: 'Flores\u2019s Trance',
         description: 'Purple glowing eyes, drooling, drained, blushing',
-        icon: '🌸',
+        icon: 'flower',
     },
     {
         type: 'outfit_lingerie',
         label: 'Lingerie',
         description: 'Character in lingerie outfit',
-        icon: '👙',
+        icon: 'gem',
     },
 ];
 
@@ -161,7 +162,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
             {expandedImage && (
                 <div className="gallery-lightbox" onClick={() => setExpandedImage(null)}>
                     <img src={expandedImage} alt="Expanded" />
-                    <div className="lightbox-close">✕</div>
+                    <div className="lightbox-close"><GameIcon icon="x" size={14} /></div>
                 </div>
             )}
 
@@ -175,7 +176,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     <div className="page-corner page-corner-bl"></div>
 
                     <button className="gallery-back-btn" onClick={onClose}>
-                        <span className="back-arrow">◀</span>
+                        <span className="back-arrow"><GameIcon icon="chevron-left" size={12} /></span>
                         <span className="back-label">Return</span>
                     </button>
 
@@ -184,10 +185,10 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     </div>
 
                     <div className="book-title-area">
-                        <div className="book-ornament">~ ✦ ~</div>
+                        <div className="book-ornament">~ <GameIcon icon="sparkle" size={10} className="icon-gold" /> ~</div>
                         <h3 className="book-char-name">{charName}</h3>
                         <div className="book-subtitle">{charSpecies}</div>
-                        <div className="book-ornament">~ ✦ ~</div>
+                        <div className="book-ornament">~ <GameIcon icon="sparkle" size={10} className="icon-gold" /> ~</div>
                     </div>
 
                     {error && (
@@ -230,14 +231,14 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                                             )}
                                             {!isLoading && !imageUrl && (
                                                 <div className="gallery-empty">
-                                                    <span className="gallery-empty-icon">{slot.icon}</span>
+                                                    <span className="gallery-empty-icon"><GameIcon icon={slot.icon} size={20} /></span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
                                     <div className="gallery-slot-label">
-                                        <span className="slot-icon">{slot.icon}</span>
+                                        <span className="slot-icon"><GameIcon icon={slot.icon} size={12} /></span>
                                         {slot.label}
                                     </div>
 
@@ -246,7 +247,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                                         onClick={() => handleGenerate(slot)}
                                         disabled={isAnyLoading}
                                     >
-                                        {isLoading ? '✦ Conjuring...' : imageUrl ? '↻ Redo' : '✦ Conjure'}
+                                        {isLoading ? <><GameIcon icon="sparkle" size={12} /> Conjuring...</> : imageUrl ? <><GameIcon icon="refresh-cw" size={12} /> Redo</> : <><GameIcon icon="sparkle" size={12} /> Conjure</>}
                                     </button>
                                 </div>
                             );

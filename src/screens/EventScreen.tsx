@@ -18,6 +18,7 @@ import {
     ConditioningTier,
 } from '../Stage';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
+import { GameIcon } from './GameIcon';
 import {
     Music, Orbit, Cloud, Eye, Wand2, Link2, Flame, FlaskConical,
     Droplets, Sun, Feather, Gem, Heart, Crown, Sparkles, Waves,
@@ -459,7 +460,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
                     {chatItems.length === 0 && !chatSending && (
                         <div className="skit-empty-hint">
-                            <div className="skit-empty-icon">💬</div>
+                            <div className="skit-empty-icon"><GameIcon icon="message-circle" size={24} className="icon-gold" /></div>
                             <p>Begin speaking with {chatSpeaker}...</p>
                         </div>
                     )}
@@ -474,7 +475,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                         <span className="action-result-icon"><SpellIcon icon={action?.icon || 'zap'} size={12} /></span>
                                         <span className="action-result-name">{action?.label || ar.actionId}</span>
                                         <span className={`action-result-verdict ${ar.success ? 'success' : 'fail'}`}>
-                                            {ar.success ? '✓ Success' : '✗ Failed'}
+                                            {ar.success ? <><GameIcon icon="check" size={10} /> Success</> : <><GameIcon icon="x" size={10} /> Failed</>}
                                         </span>
                                     </div>
                                     {ar.skillCheck && (
@@ -483,12 +484,13 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                         </div>
                                     )}
                                     <div className="action-result-delta">
-                                        {ar.delta > 0 ? `🌀 +${ar.delta}%` : ar.delta === 0 ? 'No effect' : `🌀 ${ar.delta}%`}
+                                        <span className="delta-icon"><GameIcon icon="orbit" size={11} className="icon-purple" /></span>
+                                        {ar.delta > 0 ? ` +${ar.delta}%` : ar.delta === 0 ? 'No effect' : ` ${ar.delta}%`}
                                         <span className="action-result-bw">→ {ar.newBrainwashing}%</span>
                                     </div>
                                     {ar.thresholdCrossed && (
                                         <div className="conditioning-threshold-banner">
-                                            ⚡ Threshold Reached: <strong>{ar.thresholdCrossed.toUpperCase()}</strong>
+                                            <GameIcon icon="zap" size={12} className="icon-yellow" /> Threshold Reached: <strong>{ar.thresholdCrossed.toUpperCase()}</strong>
                                         </div>
                                     )}
                                 </div>
@@ -589,7 +591,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                                 )}
                                                                 {locked && (
                                                                     <span className="spell-lock">
-                                                                        {onCooldown ? '⏳' : '🔒'}
+                                                                        {onCooldown ? <GameIcon icon="hourglass" size={10} className="icon-muted" /> : <GameIcon icon="lock" size={10} className="icon-muted" />}
                                                                     </span>
                                                                 )}
                                                                 {isAttached && (
@@ -604,13 +606,13 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                                         onClick={() => handleAttachAction(action.id, 'success')}
                                                                         title="Debug: Force success"
                                                                         disabled={executingAction || chatSending}
-                                                                    >✓</button>
+                                                                    ><GameIcon icon="check" size={12} /></button>
                                                                     <button
                                                                         className="event-debug-btn debug-fail"
                                                                         onClick={() => handleAttachAction(action.id, 'failure')}
                                                                         title="Debug: Force failure"
                                                                         disabled={executingAction || chatSending}
-                                                                    >✗</button>
+                                                                    ><GameIcon icon="x" size={12} /></button>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -640,7 +642,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                             [{attachedAction.forceResult}]
                                         </span>
                                     )}
-                                    <button className="attached-action-remove" onClick={handleDetachAction} title="Remove action">✕</button>
+                                    <button className="attached-action-remove" onClick={handleDetachAction} title="Remove action"><GameIcon icon="x" size={12} /></button>
                                 </div>
                             )}
                             <textarea
@@ -661,7 +663,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             onClick={handleChatSend}
                             disabled={chatSending || executingAction || !chatInput.trim()}
                         >
-                            {chatSending ? '...' : attachedAction ? '⚡' : '▶'}
+                            {chatSending ? '...' : attachedAction ? <GameIcon icon="zap" size={14} /> : '▶'}
                         </button>
                     </div>
                 ) : (
@@ -687,7 +689,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         <div className="event-screen">
             {/* Header */}
             <div className="event-header">
-                <span className="event-header-icon">{def.icon}</span>
+                <span className="event-header-icon"><GameIcon icon={def.icon} size={16} /></span>
                 <span className="event-header-title">{def.name}</span>
                 {event.target && (
                     <span className="event-header-target">— {event.target}</span>
@@ -727,7 +729,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             Roll: {event.lastSkillCheck.roll} vs DC {event.lastSkillCheck.difficulty}
                         </span>
                         <span className="skill-result-verdict">
-                            {event.lastSkillCheck.success ? '✓ Success!' : '✗ Failed'}
+                            {event.lastSkillCheck.success ? <><GameIcon icon="check" size={10} /> Success!</> : <><GameIcon icon="x" size={10} /> Failed</>}
                         </span>
                     </div>
                 )}
@@ -736,36 +738,37 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                 {currentStep.effects && currentStep.effects.length > 0 && (
                     <div className="event-effects-summary">
                         {currentStep.effects.map((fx, i) => {
-                            let label = '';
+                            let iconKey = '';
+                            let text = '';
                             const sign = (fx.value || 0) >= 0 ? '+' : '';
                             switch (fx.type) {
                                 case 'modify_brainwashing':
-                                    label = `🌀 Brainwashing ${sign}${fx.value}%`;
+                                    iconKey = 'orbit'; text = `Brainwashing ${sign}${fx.value}%`;
                                     break;
                                 case 'modify_love':
-                                    label = `❤️ Love ${sign}${fx.value}`;
+                                    iconKey = 'heart'; text = `Love ${sign}${fx.value}`;
                                     break;
                                 case 'modify_obedience':
-                                    label = `⛓️ Obedience ${sign}${fx.value}`;
+                                    iconKey = 'link'; text = `Obedience ${sign}${fx.value}`;
                                     break;
                                 case 'modify_gold':
-                                    label = `🪙 Gold ${sign}${fx.value}`;
+                                    iconKey = 'coins'; text = `Gold ${sign}${fx.value}`;
                                     break;
                                 case 'add_item':
-                                    label = `📦 +${fx.value || 1} ${fx.target}`;
+                                    iconKey = 'package'; text = `+${fx.value || 1} ${fx.target}`;
                                     break;
                                 case 'remove_item':
-                                    label = `📦 -${fx.value || 1} ${fx.target}`;
+                                    iconKey = 'package'; text = `-${fx.value || 1} ${fx.target}`;
                                     break;
                                 case 'modify_skill':
-                                    label = `⚡ ${fx.target} ${sign}${fx.value}`;
+                                    iconKey = 'zap'; text = `${fx.target} ${sign}${fx.value}`;
                                     break;
                                 default:
                                     return null;
                             }
                             return (
                                 <span key={i} className={`event-effect-tag ${(fx.value || 0) >= 0 ? 'positive' : 'negative'}`}>
-                                    {label}
+                                    <GameIcon icon={iconKey} size={10} className="effect-tag-icon" /> {text}
                                 </span>
                             );
                         })}
@@ -777,7 +780,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
             <div className="event-actions">
                 {showFinish ? (
                     <button className="event-btn event-btn-finish" onClick={handleFinish}>
-                        ✦ Finish
+                        <GameIcon icon="sparkle" size={12} /> Finish
                     </button>
                 ) : showChoices ? (
                     <div className={`event-choices ${visibleChoices.some(c => CONDITIONING_STRATEGIES[c.id]) ? 'strategy-grid' : ''}`}>
@@ -796,7 +799,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                         onClick={() => handleChoice(choice)}
                                         title={strat.tooltip}
                                     >
-                                        <div className="strategy-card-icon">{strat.icon}</div>
+                                        <div className="strategy-card-icon"><GameIcon icon={strat.icon} size={20} /></div>
                                         <div className="strategy-card-body">
                                             <span className="strategy-card-name">{strat.label}</span>
                                             <span className="strategy-card-desc">{strat.description}</span>
@@ -832,12 +835,12 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                             className="event-debug-btn debug-success"
                                             onClick={() => handleForceChoice(choice, 'success')}
                                             title="Debug: Force success"
-                                        >✓</button>
+                                        ><GameIcon icon="check" size={12} /></button>
                                         <button
                                             className="event-debug-btn debug-fail"
                                             onClick={() => handleForceChoice(choice, 'failure')}
                                             title="Debug: Force failure"
-                                        >✗</button>
+                                        ><GameIcon icon="x" size={12} /></button>
                                     </div>
                                 )}
                             </div>
@@ -846,7 +849,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                     </div>
                 ) : showChatButton ? (
                     <button className="event-btn event-btn-chat" onClick={handleStartChat}>
-                        💬 Speak with {interpolate(chatPhase!.speaker, event.target, pcName)}
+                        <GameIcon icon="message-circle" size={12} /> Speak with {interpolate(chatPhase!.speaker, event.target, pcName)}
                     </button>
                 ) : (
                     <button className="event-btn event-btn-continue" onClick={handleContinue}>

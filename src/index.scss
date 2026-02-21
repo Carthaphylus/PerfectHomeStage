@@ -7066,3 +7066,27 @@ html, body, #root {
     }
   }
 }
+
+// ============================================================================
+// Game Icon Utility Classes
+// ============================================================================
+
+.game-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+// Icon color modifiers
+.icon-gold    { color: #c8aa6e; }
+.icon-blue    { color: #4fc3f7; }
+.icon-green   { color: #66bb6a; }
+.icon-red     { color: #ef5350; }
+.icon-purple  { color: #ab47bc; }
+.icon-yellow  { color: #fdd835; }
+.icon-muted   { color: #666; }
+.icon-pink    { color: #f48fb1; }
+.icon-orange  { color: #ffa726; }
+.icon-teal    { color: #26a69a; }

@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
+import { GameIcon } from './GameIcon';
 
 interface CaptivesScreenProps {
     stage: () => Stage;
@@ -94,16 +95,16 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                             </div>
                             <div className="brainwashing-label">
                                 {brainwashingComplete
-                                    ? '🌀 Fully Conditioned'
+                                    ? <><GameIcon icon="orbit" size={12} className="icon-purple" /> Fully Conditioned</>
                                     : h.status === 'converting'
-                                        ? '🌀 Conditioning in progress...'
-                                        : '🔒 Awaiting conditioning'
+                                        ? <><GameIcon icon="orbit" size={12} className="icon-blue" /> Conditioning in progress...</>
+                                        : <><GameIcon icon="lock" size={12} className="icon-muted" /> Awaiting conditioning</>
                                 }
                             </div>
                         </div>
                         {brainwashingComplete && (
                             <button className="captive-convert-btn" disabled>
-                                ✨ Begin Conversion Scene
+                                <GameIcon icon="sparkle" size={12} className="icon-gold" /> Begin Conversion Scene
                             </button>
                         )}
                         {!brainwashingComplete && (
@@ -111,7 +112,7 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                                 className="captive-convert-btn conditioning-btn"
                                 onClick={() => startEvent('brainwashing_session', h.name, ScreenType.CAPTIVES)}
                             >
-                                🌀 Begin Conditioning Session
+                                <GameIcon icon="orbit" size={12} /> Begin Conditioning Session
                             </button>
                         )}
                         {h.location && (
@@ -127,13 +128,13 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                             </>
                         )}
                         <div className="debug-section">
-                            <h4>🛠 Debug</h4>
+                            <h4><GameIcon icon="settings" size={12} /> Debug</h4>
                             <div className="debug-btn-row">
-                                <button className="debug-btn debug-free" onClick={() => debugFree(h.name)}>🔓 Free</button>
-                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, 10)}>🌀 +10</button>
-                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, -10)}>🌀 -10</button>
+                                <button className="debug-btn debug-free" onClick={() => debugFree(h.name)}><GameIcon icon="unlock" size={12} /> Free</button>
+                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, 10)}><GameIcon icon="orbit" size={12} /> +10</button>
+                                <button className="debug-btn debug-brainwash" onClick={() => debugBrainwash(h.name, -10)}><GameIcon icon="orbit" size={12} /> -10</button>
                                 {brainwashingComplete && (
-                                    <button className="debug-btn debug-convert" onClick={() => debugConvert(h.name)}>✨ Convert</button>
+                                    <button className="debug-btn debug-convert" onClick={() => debugConvert(h.name)}><GameIcon icon="sparkle" size={12} /> Convert</button>
                                 )}
                             </div>
                         </div>
@@ -179,7 +180,7 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                                     onClick={(e) => { e.stopPropagation(); debugFree(hero.name); }}
                                     title="Debug: Free captive"
                                 >
-                                    🔓
+                                    unlock
                                 </button>
                                 <div className="captive-brainwashing-bar">
                                     <div

@@ -1,6 +1,7 @@
 import React, { FC, useState, useRef, useEffect, useCallback } from 'react';
 import { Stage, SceneData, SceneMessage } from '../Stage';
 import { FormattedText, TypewriterText } from './SkitText';
+import { GameIcon } from './GameIcon';
 
 // ============================================================
 // FORMAT-AWARE TEXT PAGINATION
@@ -223,7 +224,7 @@ export const SceneVNView: FC<SceneVNViewProps> = ({
             {/* Top bar */}
             <div className="vn-top-bar" onClick={e => e.stopPropagation()}>
                 <span className="vn-location">{scene.location}</span>
-                <button className="vn-end-btn" onClick={onEnd}>✕</button>
+                <button className="vn-end-btn" onClick={onEnd}><GameIcon icon="x" size={14} /></button>
             </div>
 
             {/* Character sprites */}
@@ -324,7 +325,7 @@ export const SceneVNView: FC<SceneVNViewProps> = ({
                                 <button className="vn-page-btn"
                                     onClick={e => { e.stopPropagation(); handlePrev(); }}
                                     disabled={currentPage === 0}
-                                >◀</button>
+                                ><GameIcon icon="chevron-left" size={14} /></button>
                                 <span className="vn-page-count">{currentPage + 1}/{totalPages}</span>
                                 <button className="vn-page-btn"
                                     onClick={e => { e.stopPropagation(); handleNext(); }}

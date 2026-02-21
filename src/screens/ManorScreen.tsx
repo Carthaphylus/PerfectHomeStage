@@ -1,6 +1,7 @@
 import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Role, ROOM_ROLES } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 
 // Room images
@@ -164,16 +165,16 @@ class YourRoomClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '💤', text: 'Personal rest & recovery', stat: 'rest', value: 1 },
-            { icon: '📋', text: 'Planning bonus', stat: 'planning', value: 1 },
-            { icon: '🔮', text: 'Private hypnosis sessions', stat: 'hypnosis', value: 1 },
+            { icon: 'moon', text: 'Personal rest & recovery', stat: 'rest', value: 1 },
+            { icon: 'clipboard-list', text: 'Planning bonus', stat: 'planning', value: 1 },
+            { icon: 'gem', text: 'Private hypnosis sessions', stat: 'hypnosis', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '💤', label: 'Rest', key: 'rest' },
-            { icon: '📋', label: 'Plan', key: 'plan' },
+            { icon: 'moon', label: 'Rest', key: 'rest' },
+            { icon: 'clipboard-list', label: 'Plan', key: 'plan' },
         ];
     }
 }
@@ -193,17 +194,17 @@ class RitualRoomClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '👹', text: 'Unlocks demon summoning', stat: 'summoning', value: 1 },
-            { icon: '⛧', text: 'Unlocks unholy rituals', stat: 'rituals', value: 1 },
-            { icon: '🖤', text: 'Assigned servant: ++Corruption', stat: 'corruption', value: 2 },
-            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+            { icon: 'skull', text: 'Unlocks demon summoning', stat: 'summoning', value: 1 },
+            { icon: 'pentagram', text: 'Unlocks unholy rituals', stat: 'rituals', value: 1 },
+            { icon: 'heart-crack', text: 'Assigned servant: ++Corruption', stat: 'corruption', value: 2 },
+            { icon: 'brain', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '👹', label: 'Summon Demon', key: 'summon_demon' },
-            { icon: '⛧', label: 'Perform Ritual', key: 'perform_ritual' },
+            { icon: 'skull', label: 'Summon Demon', key: 'summon_demon' },
+            { icon: 'pentagram', label: 'Perform Ritual', key: 'perform_ritual' },
         ];
     }
 }
@@ -223,9 +224,9 @@ class QuartersClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '🛏️', text: `+${this.level * 10} Servant capacity`, stat: 'servant_capacity', value: this.level * 10 },
-            { icon: '❤️', text: 'Assigned servant: +Love', stat: 'love', value: 1 },
-            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+            { icon: 'bed-double', text: `+${this.level * 10} Servant capacity`, stat: 'servant_capacity', value: this.level * 10 },
+            { icon: 'heart', text: 'Assigned servant: +Love', stat: 'love', value: 1 },
+            { icon: 'brain', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
         ];
     }
 }
@@ -245,15 +246,15 @@ class ClassroomClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '📚', text: '+Obedience for all servants (lessons)', stat: 'obedience_all', value: 1 },
-            { icon: '🧠', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
-            { icon: '🎓', text: 'Unlocks skill teaching', stat: 'skills', value: 1 },
+            { icon: 'book-copy', text: '+Obedience for all servants (lessons)', stat: 'obedience_all', value: 1 },
+            { icon: 'brain', text: 'Assigned servant: +Obedience', stat: 'obedience', value: 1 },
+            { icon: 'graduation-cap', text: 'Unlocks skill teaching', stat: 'skills', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '📚', label: 'Start Lesson', key: 'start_lesson' },
+            { icon: 'book-copy', label: 'Start Lesson', key: 'start_lesson' },
         ];
     }
 }
@@ -273,7 +274,7 @@ class StorageClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '📦', text: `+${this.level * 20} Item capacity`, stat: 'item_capacity', value: this.level * 20 },
+            { icon: 'package', text: `+${this.level * 20} Item capacity`, stat: 'item_capacity', value: this.level * 20 },
         ];
     }
 }
@@ -293,15 +294,15 @@ class KitchenClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '🍖', text: '+Manor-wide morale (food)', stat: 'morale', value: 1 },
-            { icon: '💪', text: 'Servant stamina recovery boost', stat: 'stamina', value: 1 },
-            { icon: '🍳', text: 'Unlocks meal recipes', stat: 'recipes', value: 1 },
+            { icon: 'beef', text: '+Manor-wide morale (food)', stat: 'morale', value: 1 },
+            { icon: 'dumbbell', text: 'Servant stamina recovery boost', stat: 'stamina', value: 1 },
+            { icon: 'cooking-pot', text: 'Unlocks meal recipes', stat: 'recipes', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '🍳', label: 'Cook', key: 'cook' },
+            { icon: 'cooking-pot', label: 'Cook', key: 'cook' },
         ];
     }
 }
@@ -321,9 +322,9 @@ class LoungeClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '🛋️', text: '+Manor-wide comfort', stat: 'comfort', value: 1 },
-            { icon: '💬', text: 'Social interaction bonus', stat: 'social', value: 1 },
-            { icon: '❤️', text: '+Loyalty for visiting servants', stat: 'loyalty', value: 1 },
+            { icon: 'armchair', text: '+Manor-wide comfort', stat: 'comfort', value: 1 },
+            { icon: 'message-circle', text: 'Social interaction bonus', stat: 'social', value: 1 },
+            { icon: 'heart', text: '+Loyalty for visiting servants', stat: 'loyalty', value: 1 },
         ];
     }
 }
@@ -355,15 +356,15 @@ class BrewingRoomClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '⚗️', text: 'Unlocks potion crafting', stat: 'potions', value: 1 },
-            { icon: '🧪', text: '+Potion potency', stat: 'potion_potency', value: 1 },
-            { icon: '🌿', text: 'Produces reagents', stat: 'reagents', value: 1 },
+            { icon: 'flask', text: 'Unlocks potion crafting', stat: 'potions', value: 1 },
+            { icon: 'test-tubes', text: '+Potion potency', stat: 'potion_potency', value: 1 },
+            { icon: 'leaf', text: 'Produces reagents', stat: 'reagents', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '⚗️', label: 'Brew', key: 'brew' },
+            { icon: 'flask', label: 'Brew', key: 'brew' },
         ];
     }
 }
@@ -383,9 +384,9 @@ class StableClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '🐴', text: '+Creature capacity', stat: 'creature_capacity', value: 1 },
-            { icon: '💨', text: 'Travel speed bonus', stat: 'travel_speed', value: 1 },
-            { icon: '🧬', text: 'Unlocks creature taming', stat: 'taming', value: 1 },
+            { icon: 'footprints', text: '+Creature capacity', stat: 'creature_capacity', value: 1 },
+            { icon: 'wind', text: 'Travel speed bonus', stat: 'travel_speed', value: 1 },
+            { icon: 'dna', text: 'Unlocks creature taming', stat: 'taming', value: 1 },
         ];
     }
 }
@@ -403,15 +404,15 @@ class DungeonClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '😰', text: 'Interrogation chamber', stat: 'interrogation', value: 1 },
-            { icon: '⛓️', text: 'Punishment training', stat: 'punishment', value: 1 },
-            { icon: '👁️', text: '+Fear generation', stat: 'fear', value: 1 },
+            { icon: 'frown', text: 'Interrogation chamber', stat: 'interrogation', value: 1 },
+            { icon: 'link', text: 'Punishment training', stat: 'punishment', value: 1 },
+            { icon: 'eye', text: '+Fear generation', stat: 'fear', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '😰', label: 'Interrogate', key: 'interrogate' },
+            { icon: 'frown', label: 'Interrogate', key: 'interrogate' },
         ];
     }
 }
@@ -431,15 +432,15 @@ class CellClass extends BaseRoom {
 
     getEffects(): RoomEffect[] {
         return [
-            { icon: '🔒', text: '+1 Captive capacity', stat: 'captive_capacity', value: 1 },
-            { icon: '💫', text: 'Resistance breakdown over time', stat: 'resistance_break', value: 1 },
-            { icon: '😶', text: 'Isolation effect (weakens will)', stat: 'isolation', value: 1 },
+            { icon: 'lock', text: '+1 Captive capacity', stat: 'captive_capacity', value: 1 },
+            { icon: 'sparkle', text: 'Resistance breakdown over time', stat: 'resistance_break', value: 1 },
+            { icon: 'ban', text: 'Isolation effect (weakens will)', stat: 'isolation', value: 1 },
         ];
     }
 
     getActions(): RoomAction[] {
         return [
-            { icon: '😰', label: 'Interrogate', key: 'interrogate' },
+            { icon: 'frown', label: 'Interrogate', key: 'interrogate' },
         ];
     }
 }
@@ -779,7 +780,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
                     <div className="info-section">
                         <div className="info-label">Daily Upkeep</div>
-                        <div className="info-value">🔧 {totalUpkeep} gold/day</div>
+                        <div className="info-value"><GameIcon icon="wrench" size={12} className="icon-gold" /> {totalUpkeep} gold/day</div>
                     </div>
                     
                     <div className="info-divider"></div>
@@ -841,7 +842,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                         </div>
                                     </div>
                                     {slotWithRoom.room.occupant && (
-                                        <div className="room-occupant">👤 {slotWithRoom.room.occupant}</div>
+                                        <div className="room-occupant"><GameIcon icon="user" size={12} /> {slotWithRoom.room.occupant}</div>
                                     )}
                                 </>
                             )}
@@ -867,13 +868,13 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             
                                             <div className="room-stats">
                                                 <div className="stat-row">
-                                                    <span className="stat-label">📍 Location:</span>
+                                                    <span className="stat-label"><GameIcon icon="map-pin" size={12} /> Location:</span>
                                                     <span className="stat-value">
                                                         {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
                                                     </span>
                                                 </div>
                                                 <div className="stat-row">
-                                                    <span className="stat-label">🏷️ Type:</span>
+                                                    <span className="stat-label"><GameIcon icon="tag" size={12} /> Type:</span>
                                                     <span className="stat-value">{getFloorLocation(selectedSlot.floor) === 'outdoors' ? 'Outdoor' : 'Indoor'} slot</span>
                                                 </div>
                                             </div>
@@ -884,7 +885,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             className="action-button primary" 
                                             onClick={() => setShowBuildPicker(true)}
                                         >
-                                            🏗️ Build Room
+                                            <GameIcon icon="hammer" size={12} /> Build Room
                                         </button>
                                     </div>
                                 </>
@@ -919,18 +920,18 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             
                                             <div className="room-stats">
                                                 <div className="stat-row">
-                                                    <span className="stat-label">📍 Location:</span>
+                                                    <span className="stat-label"><GameIcon icon="map-pin" size={12} /> Location:</span>
                                                     <span className="stat-value">
                                                         {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
                                                     </span>
                                                 </div>
                                                 <div className="stat-row">
-                                                    <span className="stat-label">⭐ Level:</span>
+                                                    <span className="stat-label"><GameIcon icon="star" size={12} className="icon-gold" /> Level:</span>
                                                     <span className="stat-value">{selectedRoom.level}</span>
                                                 </div>
                                                 {selectedRoom.occupant && (
                                                     <div className="stat-row">
-                                                        <span className="stat-label">👤 Occupant:</span>
+                                                        <span className="stat-label"><GameIcon icon="user" size={12} /> Occupant:</span>
                                                         <span className="stat-value">{selectedRoom.occupant}</span>
                                                     </div>
                                                 )}
@@ -941,7 +942,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 {selectedRoom.getEffects().length > 0 ? (
                                                     selectedRoom.getEffects().map((effect, i) => (
                                                         <div key={i} className="effect-item">
-                                                            <span className="effect-icon">{effect.icon}</span>
+                                                            <span className="effect-icon"><GameIcon icon={effect.icon} size={12} /></span>
                                                             <span className="effect-text">{effect.text}</span>
                                                         </div>
                                                     ))
@@ -957,7 +958,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 <div className="upgrade-info">
                                                     <h4>Upkeep</h4>
                                                     <div className="upgrade-cost">
-                                                        <span>🔧 {selectedRoom.getUpkeep()} gold/day</span>
+                                                        <span><GameIcon icon="wrench" size={12} className="icon-gold" /> {selectedRoom.getUpkeep()} gold/day</span>
                                                     </div>
                                                 </div>
                                             )}
@@ -965,7 +966,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             <div className="upgrade-info">
                                                 <h4>Next Upgrade</h4>
                                                 <div className="upgrade-cost">
-                                                    <span>💎 Cost: {selectedRoom.getUpgradeCost()} Gold</span>
+                                                    <span><GameIcon icon="diamond" size={12} className="icon-blue" /> Cost: {selectedRoom.getUpgradeCost()} Gold</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -975,7 +976,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                         <div className="room-actions">
                                             {selectedRoom.getActions().map((action, i) => (
                                                 <button key={i} className="action-button">
-                                                    {action.icon} {action.label}
+                                                    <GameIcon icon={action.icon} size={14} /> {action.label}
                                                 </button>
                                             ))}
                                         </div>
@@ -985,7 +986,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                         </>
                     ) : (
                         <div className="no-room-selected">
-                            <div className="placeholder-icon">🏠</div>
+                            <div className="placeholder-icon"><GameIcon icon="home" size={24} className="icon-muted" /></div>
                             <p>Select a room to view details</p>
                         </div>
                     )}
@@ -1004,7 +1005,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                 <span className="catalogue-slot-badge">
                                     {selectedSlot.floor === '1st' ? '1st Floor' : selectedSlot.floor === '2nd' ? '2nd Floor' : selectedSlot.floor === 'basement' ? 'Basement' : 'Outside'}
                                 </span>
-                                <button className="catalogue-close" onClick={() => { setShowBuildPicker(false); setCatalogueSelection(null); }}>✕</button>
+                                <button className="catalogue-close" onClick={() => { setShowBuildPicker(false); setCatalogueSelection(null); }}><GameIcon icon="x" size={14} /></button>
                             </div>
                             <div className="catalogue-body">
                                 {/* Left: thumbnail grid */}
@@ -1035,7 +1036,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 <h4>Effects</h4>
                                                 {preview.getEffects().map((effect, i) => (
                                                     <div key={i} className="catalogue-detail-row">
-                                                        <span className="catalogue-detail-label">{effect.icon} {effect.text}</span>
+                                                        <span className="catalogue-detail-label"><GameIcon icon={effect.icon} size={12} /> {effect.text}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1043,18 +1044,18 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             <div className="catalogue-detail-section">
                                                 <h4>Costs</h4>
                                                 <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label">🏗️ Build Cost</span>
+                                                    <span className="catalogue-detail-label"><GameIcon icon="hammer" size={12} /> Build Cost</span>
                                                     <span className="catalogue-detail-value">{preview.getUpgradeCost()} gold</span>
                                                 </div>
                                                 <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label">🔧 Upkeep</span>
+                                                    <span className="catalogue-detail-label"><GameIcon icon="wrench" size={12} className="icon-gold" /> Upkeep</span>
                                                     <span className="catalogue-detail-value">{preview.getUpkeep()} gold/day</span>
                                                 </div>
                                             </div>
 
                                             <div className="catalogue-detail-section">
                                                 <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label">📍 Placement</span>
+                                                    <span className="catalogue-detail-label"><GameIcon icon="map-pin" size={12} /> Placement</span>
                                                     <span className="catalogue-detail-value">{preview.location}</span>
                                                 </div>
                                             </div>
@@ -1063,7 +1064,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                             className="catalogue-build-btn"
                                             onClick={() => { handleBuildRoom(preview.type); setCatalogueSelection(null); }}
                                         >
-                                            🏗️ Build {preview.name}
+                                            hammer Build {preview.name}
                                         </button>
                                     </div>
                                 )}
@@ -1077,7 +1078,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
             {showRemoveConfirm && selectedRoom && (
                 <div className="confirmation-overlay">
                     <div className="confirmation-dialog">
-                        <h3>⚠️ Remove Room?</h3>
+                        <h3>alert-triangle Remove Room?</h3>
                         <p>Are you sure you want to remove <strong>{selectedRoom.name}</strong>?</p>
                         <p className="warning-text">The room will be cleared and converted to an empty space.</p>
                         

@@ -1,19 +1,20 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, InventoryItem, getItemDefinition, getRarityColor, ItemType } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 interface InventoryScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
 }
 
-const TYPE_FILTERS: { label: string; value: ItemType | 'all' }[] = [
+const TYPE_FILTERS: { label: string; value: ItemType | 'all'; icon?: string }[] = [
     { label: 'All', value: 'all' },
-    { label: '⚔️ Equipment', value: 'equipment' },
-    { label: '🧪 Consumable', value: 'consumable' },
-    { label: '💎 Material', value: 'material' },
-    { label: '🔑 Key', value: 'key' },
-    { label: '🪙 Currency', value: 'currency' },
+    { label: 'Equipment', value: 'equipment', icon: 'swords' },
+    { label: 'Consumable', value: 'consumable', icon: 'test-tubes' },
+    { label: 'Material', value: 'material', icon: 'diamond' },
+    { label: 'Key', value: 'key', icon: 'key' },
+    { label: 'Currency', value: 'currency', icon: 'coins' },
 ];
 
 export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType }) => {
@@ -47,7 +48,7 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                         className={`inv-filter-btn ${filter === f.value ? 'active' : ''}`}
                         onClick={() => setFilter(f.value)}
                     >
-                        {f.label}
+                        {f.icon && <GameIcon icon={f.icon} size={12} />} {f.label}
                     </button>
                 ))}
             </div>
@@ -68,7 +69,7 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                                     style={{ '--rarity-color': rarityColor } as React.CSSProperties}
                                     onClick={() => setSelectedItem(isSelected ? null : item)}
                                 >
-                                    <div className="inv-item-icon">{def.icon}</div>
+                                    <div className="inv-item-icon"><GameIcon icon={def.icon} size={20} /></div>
                                     <div className="inv-item-name">{def.name}</div>
                                     {item.quantity > 1 && (
                                         <div className="inv-item-qty">×{item.quantity}</div>
@@ -85,7 +86,7 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                 {selectedDef && selectedItem && (
                     <div className="inv-detail-panel" style={{ '--rarity-color': getRarityColor(selectedDef.rarity) } as React.CSSProperties}>
                         <div className="inv-detail-header">
-                            <span className="inv-detail-icon">{selectedDef.icon}</span>
+                            <span className="inv-detail-icon"><GameIcon icon={selectedDef.icon} size={20} /></span>
                             <div className="inv-detail-title-group">
                                 <span className="inv-detail-name" style={{ color: getRarityColor(selectedDef.rarity) }}>
                                     {selectedDef.name}

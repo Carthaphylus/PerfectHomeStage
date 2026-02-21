@@ -3,6 +3,7 @@ import { ScreenType } from './BaseScreen';
 import { Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
 import { TraitChip } from './TraitChip';
+import { GameIcon } from './GameIcon';
 
 interface ServantsScreenProps {
     stage: () => Stage;
@@ -76,7 +77,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                             borderColor: currentRole.color,
                             color: currentRole.color,
                         }}>
-                            {currentRole.icon} {currentRole.name}
+                            <GameIcon icon={currentRole.icon} size={12} /> {currentRole.name}
                         </div>
                     )}
                     assignedRole={currentRole ? {
@@ -87,13 +88,13 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                     extraActions={
                         <>
                             <button className="gallery-open-btn chat-btn" onClick={() => handleStartChat(s)}>
-                                💬 Chat
+                                <GameIcon icon="message-circle" size={12} /> Chat
                             </button>
                             <button
                                 className="gallery-open-btn role-btn"
                                 onClick={() => openRoleModal(s)}
                             >
-                                {currentRole ? `${currentRole.icon} Change Role` : '📋 Assign Role'}
+                                {currentRole ? <><GameIcon icon={currentRole.icon} size={12} /> Change Role</> : <><GameIcon icon="clipboard-list" size={12} /> Assign Role</>}
                             </button>
                         </>
                     }
@@ -111,7 +112,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                             {currentRole && (
                                 <div className="char-detail-row">
                                     <span className="char-detail-label">Role</span>
-                                    <span className="char-detail-value">{currentRole.icon} {currentRole.name}</span>
+                                    <span className="char-detail-value"><GameIcon icon={currentRole.icon} size={12} /> {currentRole.name}</span>
                                 </div>
                             )}
                             {currentRole && (
@@ -168,7 +169,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                     <span className="servant-stat-bar-value">{s.obedience}%</span>
                                 </div>
                             </div>
-                            <div className="conditioned-badge">🌀 Fully Conditioned</div>
+                            <div className="conditioned-badge"><GameIcon icon="orbit" size={12} className="icon-purple" /> Fully Conditioned</div>
                         </div>
                     }
                 />
@@ -204,7 +205,6 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                     ) : (
                         servants.map((servant) => {
                             const role = servant.assignedRole ? getRoleById(servant.assignedRole) : undefined;
-                            const subtitleText = role ? `${role.icon} ${role.name}` : servant.formerClass;
                             const subtitleColor = role ? role.color : undefined;
                             return (
                                 <div 
@@ -224,7 +224,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                             onClick={role ? (e) => { e.stopPropagation(); openRoleModal(servant); } : undefined}
                                             title={role ? `Role: ${role.name} — click to change` : undefined}
                                         >
-                                            {subtitleText}
+                                            {role ? <><GameIcon icon={role.icon} size={10} /> {role.name}</> : servant.formerClass}
                                         </span>
                                     </div>
 
@@ -235,19 +235,19 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                             onClick={(e) => { e.stopPropagation(); openRoleModal(servant); }}
                                             title="Assign a role"
                                         >
-                                            📋 Assign Role
+                                            <GameIcon icon="clipboard-list" size={12} /> Assign Role
                                         </button>
                                     )}
 
                                     <div className="servant-card-bars">
                                         <div className="servant-mini-bar love-bar">
-                                            <span className="servant-mini-bar-label">❤️</span>
+                                            <span className="servant-mini-bar-label"><GameIcon icon="heart" size={10} className="icon-red" /></span>
                                             <div className="servant-mini-bar-track">
                                                 <div className="servant-mini-bar-fill" style={{ width: `${servant.love}%` }} />
                                             </div>
                                         </div>
                                         <div className="servant-mini-bar obedience-bar">
-                                            <span className="servant-mini-bar-label">⛓️</span>
+                                            <span className="servant-mini-bar-label"><GameIcon icon="link" size={10} className="icon-purple" /></span>
                                             <div className="servant-mini-bar-track">
                                                 <div className="servant-mini-bar-fill" style={{ width: `${servant.obedience}%` }} />
                                             </div>
@@ -258,7 +258,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                         onClick={(e) => { e.stopPropagation(); handleStartChat(servant); }}
                                         title={`Chat with ${servant.name}`}
                                     >
-                                        💬
+                                        <GameIcon icon="message-circle" size={12} />
                                     </button>
                                 </div>
                             );
@@ -332,15 +332,15 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
         if (isCurrentTarget) {
             holderLabel = '(current)';
         } else if (role.unique && otherHolders.length > 0) {
-            holderLabel = `⇄ ${otherHolders[0].name}`;
+            holderLabel = `${otherHolders[0].name}`;
         } else if (!role.unique && otherHolders.length > 0) {
             holderLabel = `${otherHolders.length} assigned`;
         }
 
         // Button label
-        let btnLabel = 'Assign';
+        let btnLabel: string | JSX.Element = 'Assign';
         if (isCurrentTarget) {
-            btnLabel = '✓';
+            btnLabel = <GameIcon icon="check" size={12} />;
         } else if (role.unique && otherHolders.length > 0) {
             btnLabel = 'Replace';
         }
@@ -351,11 +351,11 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                 className={`role-row ${previewRole?.id === role.id ? 'previewing' : ''} ${isCurrentTarget ? 'current' : ''}`}
                 onClick={() => setPreviewRole(role)}
             >
-                <span className="role-row-icon">{role.icon}</span>
+                <span className="role-row-icon"><GameIcon icon={role.icon} size={16} /></span>
                 <div className="role-row-info">
                     <span className="role-row-name" style={{ color: role.color }}>
                         {role.name}
-                        {!role.unique && <span className="role-row-multi-badge" title="Multiple servants can hold this role">∞</span>}
+                        {!role.unique && <span className="role-row-multi-badge" title="Multiple servants can hold this role"><GameIcon icon="infinity" size={10} /></span>}
                     </span>
                     {holderLabel && (
                         <span className={`role-row-holder ${isCurrentTarget ? 'self' : 'other'}`}>
@@ -378,7 +378,7 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
             <div className="role-modal" onClick={e => e.stopPropagation()}>
                 <div className="role-modal-header">
                     <h3>Assign Role — {target.name}</h3>
-                    <button className="role-modal-close" onClick={onClose}>✕</button>
+                    <button className="role-modal-close" onClick={onClose}><GameIcon icon="x" size={14} /></button>
                 </div>
 
                 <div className="role-modal-body">
@@ -401,10 +401,10 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                     <div className="role-preview">
                         {previewRole ? (
                             <>
-                                <div className="role-preview-icon">{previewRole.icon}</div>
+                                <div className="role-preview-icon"><GameIcon icon={previewRole.icon} size={24} /></div>
                                 <h4 className="role-preview-name" style={{ color: previewRole.color }}>{previewRole.name}</h4>
                                 <span className={`role-preview-uniqueness ${previewRole.unique ? 'unique' : 'shared'}`}>
-                                    {previewRole.unique ? '🔒 Unique Role' : '♾️ Shared Role'}
+                                    {previewRole.unique ? <><GameIcon icon="lock" size={12} /> Unique Role</> : <><GameIcon icon="infinity" size={12} /> Shared Role</>}
                                 </span>
                                 <p className="role-preview-desc">{previewRole.description}</p>
 
@@ -434,7 +434,7 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
 
                                 {previewRole.roomType && (
                                     <div className="role-preview-room">
-                                        📍 {roomLabel(previewRole.roomType)}
+                                        <GameIcon icon="map-pin" size={12} /> {roomLabel(previewRole.roomType)}
                                     </div>
                                 )}
 
@@ -463,7 +463,7 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                             </>
                         ) : (
                             <div className="role-preview-empty">
-                                <div className="role-preview-empty-icon">📋</div>
+                                <div className="role-preview-empty-icon"><GameIcon icon="clipboard-list" size={24} className="icon-muted" /></div>
                                 <p>Select a role to preview</p>
                             </div>
                         )}

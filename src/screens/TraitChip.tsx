@@ -1,6 +1,7 @@
 import React, { FC, useState, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { getTraitDefinition, TraitScope } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 interface TraitChipProps {
     trait: string;
@@ -17,10 +18,10 @@ export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color, so
     const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     const scopeIcon: Record<string, string> = {
-        character: '◆',
-        role: '⌂',
-        room: '⌂',
-        situational: '✦',
+        character: 'diamond',
+        role: 'home',
+        room: 'home',
+        situational: 'sparkle',
     };
 
     const scopeLabel: Record<string, string> = {
@@ -59,7 +60,7 @@ export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color, so
             <span className="trait-tooltip-head">
                 <span className="trait-tooltip-title">{definition.name}</span>
                 <span className={`trait-tooltip-scope scope-${displayScope}`}>
-                        <span className="scope-icon">{scopeIcon[displayScope] || '✦'}</span>
+                        <span className="scope-icon"><GameIcon icon={scopeIcon[displayScope] || 'sparkle'} size={10} /></span>
                         <span className="scope-label">{scopeLabel[displayScope] || displayScope}</span>
                 </span>
             </span>

@@ -3,6 +3,7 @@ import { ScreenType } from './BaseScreen';
 import { Stage, SceneData, SceneMessage } from '../Stage';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { SceneVNView } from './SceneVNView';
+import { GameIcon } from './GameIcon';
 
 type ViewMode = 'chat' | 'vn';
 
@@ -131,7 +132,7 @@ export const SceneScreen: FC<SceneScreenProps> = ({ stage, scene, setScreenType,
                     onClick={() => setViewMode('chat')}
                     title="Switch to Chat view"
                 >
-                    💬
+                    message-circle
                 </button>
                 <SceneVNView
                     stage={stage}
@@ -180,7 +181,7 @@ export const SceneScreen: FC<SceneScreenProps> = ({ stage, scene, setScreenType,
                         onClick={() => setViewMode('vn')}
                         title="Switch to Visual Novel view"
                     >
-                        📖
+                        <GameIcon icon="book-open" size={14} />
                     </button>
                     <button className="skit-end-btn" onClick={handleEnd}>End</button>
                 </div>
@@ -190,7 +191,7 @@ export const SceneScreen: FC<SceneScreenProps> = ({ stage, scene, setScreenType,
             <div className="skit-conversation">
                 {messages.length === 0 && !isSending && (
                     <div className="skit-empty-hint">
-                        <div className="skit-empty-icon">💬</div>
+                        <div className="skit-empty-icon"><GameIcon icon="message-circle" size={24} className="icon-muted" /></div>
                         <p>Type in the chat below to begin speaking with {primaryChar}.</p>
                     </div>
                 )}

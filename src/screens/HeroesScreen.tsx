@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
+import { GameIcon } from './GameIcon';
 
 interface HeroesScreenProps {
     stage: () => Stage;
@@ -61,8 +62,8 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                             </div>
                         )}
                         <div className="char-bio-section debug-section">
-                            <h4>🛠 Debug</h4>
-                            <button className="debug-btn debug-capture" onClick={() => debugCapture(h.name)}>⛓️ Capture</button>
+                            <h4><GameIcon icon="settings" size={12} /> Debug</h4>
+                            <button className="debug-btn debug-capture" onClick={() => debugCapture(h.name)}><GameIcon icon="link" size={12} /> Capture</button>
                         </div>
                     </>
                 }
@@ -106,7 +107,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                     onClick={(e) => { e.stopPropagation(); debugCapture(hero.name); }}
                                     title="Debug: Capture hero"
                                 >
-                                    ⛓️
+                                    <GameIcon icon="link" size={12} />
                                 </button>
                                 {hero.status === 'converting' && (
                                     <div className="hero-conversion-bar">

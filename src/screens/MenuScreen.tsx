@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 import type { SaveFileSlot } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 // Skill icons
 import PowerIcon from '../assets/Images/Stats/Power.webp';
@@ -28,12 +29,14 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
 
     const menuOptions = [
-        { label: '🧙 Profile', screen: ScreenType.PC_PROFILE },
-        { label: '🏰 Manor', screen: ScreenType.MANOR },
-        { label: '🗺️ World Map', screen: ScreenType.WORLD_MAP },
-        { label: '🎯 Heroes', screen: ScreenType.HEROES },
-        { label: '� Captives', screen: ScreenType.CAPTIVES },
-        { label: '�👥 Servants', screen: ScreenType.SERVANTS },        { label: '🎒 Inventory', screen: ScreenType.INVENTORY },    ];
+        { label: 'Profile', icon: 'wand', screen: ScreenType.PC_PROFILE },
+        { label: 'Manor', icon: 'castle', screen: ScreenType.MANOR },
+        { label: 'World Map', icon: 'map', screen: ScreenType.WORLD_MAP },
+        { label: 'Heroes', icon: 'target', screen: ScreenType.HEROES },
+        { label: 'Captives', icon: 'link', screen: ScreenType.CAPTIVES },
+        { label: 'Servants', icon: 'users', screen: ScreenType.SERVANTS },
+        { label: 'Inventory', icon: 'backpack', screen: ScreenType.INVENTORY },
+    ];
 
     const flashMessage = (msg: string) => {
         setSaveMessage(msg);
@@ -49,7 +52,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     const handleSaveToSlot = (slotIndex: number) => {
         const manorSlots = stage().getManorSlots();
         if (!manorSlots || manorSlots.length === 0) {
-            flashMessage('❌ No manor data to save');
+            flashMessage('No manor data to save');
             return;
         }
         const builtCount = manorSlots.filter(s => s.roomType !== null).length;
@@ -57,16 +60,16 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
         const ok = stage().saveToSlot(slotIndex, name, manorSlots, stage().currentState.stats);
         if (ok) {
             setSaveSlots(stage().getSaveSlots());
-            flashMessage(`💾 Saved to Slot ${slotIndex + 1}!`);
+            flashMessage(`Saved to Slot ${slotIndex + 1}!`);
         } else {
-            flashMessage('❌ Save failed');
+            flashMessage('Save failed');
         }
     };
 
     const handleLoadFromSlot = (slotIndex: number) => {
         const saveFile = stage().loadFromSlot(slotIndex);
         if (!saveFile) {
-            flashMessage('❌ Empty slot');
+            flashMessage('Empty slot');
             return;
         }
         stage().syncManorSlots(saveFile.data);
@@ -77,14 +80,14 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             stage().restoreGeneratedImages(saveFile.generatedImages);
         }
         setShowSaveMenu(false);
-        flashMessage(`📂 Loaded Slot ${slotIndex + 1}!`);
+        flashMessage(`Loaded Slot ${slotIndex + 1}!`);
         setScreenType(ScreenType.MANOR);
     };
 
     const handleDeleteSlot = (slotIndex: number) => {
         stage().deleteSlot(slotIndex);
         setSaveSlots(stage().getSaveSlots());
-        flashMessage(`🗑️ Slot ${slotIndex + 1} deleted`);
+        flashMessage(`Slot ${slotIndex + 1} deleted`);
     };
 
     const handleNewGame = () => {
@@ -104,13 +107,13 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 {/* Game Management */}
                 <div className="game-actions">
                     <button className="game-action-btn new-game" onClick={() => setShowNewGameConfirm(true)}>
-                        🆕 New Game
+                        <GameIcon icon="plus-circle" size={12} className="icon-green" /> New Game
                     </button>
                     <button className="game-action-btn save-game" onClick={() => openSaveMenu('save')} disabled={!hasSaveData}>
-                        💾 Save
+                        <GameIcon icon="save" size={12} className="icon-blue" /> Save
                     </button>
                     <button className="game-action-btn load-game" onClick={() => openSaveMenu('load')}>
-                        📂 Load
+                        <GameIcon icon="folder-open" size={12} className="icon-gold" /> Load
                     </button>
                 </div>
 
@@ -124,7 +127,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             className="menu-button"
                             onClick={() => setScreenType(option.screen)}
                         >
-                            {option.label}
+                            <GameIcon icon={option.icon} size={12} className="menu-btn-icon" /> {option.label}
                         </button>
                     ))}
                 </div>
@@ -134,7 +137,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             {showNewGameConfirm && (
                 <div className="confirmation-overlay" onClick={() => setShowNewGameConfirm(false)}>
                     <div className="confirmation-dialog" onClick={(e) => e.stopPropagation()}>
-                        <h3>🆕 New Game</h3>
+                        <h3><GameIcon icon="plus-circle" size={14} className="icon-green" /> New Game</h3>
                         <p>Start a new game? Your current unsaved progress will be lost.</p>
                         <p className="warning-text">Make sure to save first if you want to keep your progress.</p>
                         <div className="confirmation-actions">
@@ -154,8 +157,8 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 <div className="confirmation-overlay" onClick={() => setShowSaveMenu(false)}>
                     <div className="save-menu" onClick={(e) => e.stopPropagation()}>
                         <div className="save-menu-header">
-                            <h3>{saveMenuMode === 'save' ? '💾 Save Game' : '📂 Load Game'}</h3>
-                            <button className="close-btn" onClick={() => setShowSaveMenu(false)}>✕</button>
+                            <h3>{saveMenuMode === 'save' ? <><GameIcon icon="save" size={14} className="icon-blue" /> Save Game</> : <><GameIcon icon="folder-open" size={14} className="icon-gold" /> Load Game</>}</h3>
+                            <button className="close-btn" onClick={() => setShowSaveMenu(false)}><GameIcon icon="x" size={12} /></button>
                         </div>
                         
                         <div className="save-menu-tabs">
@@ -163,13 +166,13 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                                 className={`tab-btn ${saveMenuMode === 'save' ? 'active' : ''}`}
                                 onClick={() => setSaveMenuMode('save')}
                             >
-                                💾 Save
+                                <GameIcon icon="save" size={10} /> Save
                             </button>
                             <button 
                                 className={`tab-btn ${saveMenuMode === 'load' ? 'active' : ''}`}
                                 onClick={() => setSaveMenuMode('load')}
                             >
-                                📂 Load
+                                <GameIcon icon="folder-open" size={10} /> Load
                             </button>
                         </div>
 
@@ -257,7 +260,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                                                 className="slot-btn delete"
                                                 onClick={() => handleDeleteSlot(index)}
                                             >
-                                                🗑️
+                                                <GameIcon icon="trash-2" size={12} className="icon-red" />
                                             </button>
                                         )}
                                     </div>
