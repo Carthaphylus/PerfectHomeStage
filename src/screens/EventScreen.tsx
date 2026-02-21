@@ -577,7 +577,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                                 disabled={locked || executingAction || chatSending}
                                                                 title={locked ? lockReason : action.tooltip}
                                                             >
-                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={16} /></span>
+                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={22} /></span>
                                                                 <span className="spell-name">{action.label}</span>
                                                                 {action.skillCheck && (
                                                                     <span className="spell-dc">
@@ -585,7 +585,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                                     </span>
                                                                 )}
                                                                 {action.consumeItem && (
-                                                                    <span className="spell-cost"><FlaskConical size={8} /></span>
+                                                                    <span className="spell-cost"><FlaskConical size={10} /></span>
                                                                 )}
                                                                 {locked && (
                                                                     <span className="spell-lock">
@@ -633,7 +633,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             {/* Attached action indicator */}
                             {attachedAction && (
                                 <div className={`attached-action-tag category-${attachedAction.action.category}`}>
-                                    <span className="attached-action-icon"><SpellIcon icon={attachedAction.action.icon} size={12} /></span>
+                                    <span className="attached-action-icon"><SpellIcon icon={attachedAction.action.icon} size={16} /></span>
                                     <span className="attached-action-name">{attachedAction.action.label}</span>
                                     {attachedAction.forceResult && (
                                         <span className={`attached-action-force ${attachedAction.forceResult}`}>
