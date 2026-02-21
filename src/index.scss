@@ -2532,10 +2532,12 @@ html, body, #root {
       .skit-input-wrapper {
         flex: 1;
         min-width: 0;
+        overflow: hidden;
       }
 
       .skit-input {
         width: 100%;
+        box-sizing: border-box;
         resize: none;
         background: rgba(200, 170, 110, 0.05) !important;
         border: 1px solid rgba(200, 170, 110, 0.15);
