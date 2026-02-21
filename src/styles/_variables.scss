@@ -1,0 +1,23 @@
+// Gold & parchment color scheme — book / journal aesthetic
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  --bg-dark: #19121e;
+  --bg-medium: #261c2a;
+  --bg-light: #322336;
+  --accent-primary: #c8aa6e;
+  --accent-secondary: #a88c50;
+  --text-primary: #dcd2be;
+  --text-secondary: #b4a58c;
+  --text-muted: #8c7d64;
+  --border-color: rgba(200, 170, 110, 0.2);
+  --highlight: #dcbe82;
+  --gold: rgba(200, 170, 110, 1);
+  --gold-dim: rgba(200, 170, 110, 0.5);
+  --gold-faint: rgba(200, 170, 110, 0.15);
+  --parchment-dark: rgba(45, 35, 50, 0.98);
+  --parchment-darker: rgba(38, 28, 42, 0.98);
+}

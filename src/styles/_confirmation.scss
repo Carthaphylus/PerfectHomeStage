@@ -1,0 +1,93 @@
+// Confirmation Dialog
+.confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  
+  .confirmation-dialog {
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg, rgba(45, 35, 50, 0.98) 0%, rgba(38, 28, 42, 0.98) 100%) !important;
+    border: 2px solid rgba(200, 50, 50, 0.4);
+    border-radius: 6px;
+    padding: 28px;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    text-align: center;
+    
+    h3 {
+      margin: 0 0 16px 0;
+      color: #d4766a;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+    
+    p {
+      color: var(--text-secondary);
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      line-height: 1.5;
+      
+      strong {
+        color: var(--text-primary);
+      }
+    }
+    
+    .warning-text {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+    
+    .confirmation-actions {
+      display: flex;
+      gap: 12px;
+      
+      .confirm-button {
+        flex: 1;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid;
+        
+        &.cancel {
+          background: rgba(200, 170, 110, 0.08) !important;
+          border-color: rgba(200, 170, 110, 0.25);
+          color: var(--text-primary);
+          
+          &:hover {
+            background: rgba(200, 170, 110, 0.14) !important;
+            border-color: rgba(200, 170, 110, 0.35);
+            transform: translateY(-1px);
+          }
+        }
+        
+        &.confirm {
+          background: rgba(200, 50, 50, 0.3) !important;
+          border-color: rgba(200, 50, 50, 0.6);
+          color: #ff6b6b;
+          
+          &:hover {
+            background: rgba(200, 50, 50, 0.5) !important;
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 12px rgba(200, 50, 50, 0.4);
+            transform: translateY(-1px);
+          }
+        }
+      }
+    }
+  }
+}
+

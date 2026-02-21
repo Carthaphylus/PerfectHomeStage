@@ -1,0 +1,623 @@
+// ==========================================
+// Conditioning Session UI
+// ==========================================
+
+.conditioning-progress-header {
+  position: relative;
+  z-index: 5;
+  padding: 6px 16px 8px;
+  background: rgba(18, 12, 24, 0.85);
+  border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+
+  .conditioning-progress-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+  }
+
+  .conditioning-tier-badge {
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px currentColor;
+  }
+
+  .conditioning-bw-value {
+    color: rgba(200, 170, 110, 0.8);
+  }
+
+  .conditioning-strategy-badge {
+    margin-left: auto;
+    color: rgba(180, 160, 240, 0.8);
+    font-size: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .conditioning-progress-track {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: visible;
+  }
+
+  .conditioning-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease, background-color 0.4s ease;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .conditioning-threshold-mark {
+    position: absolute;
+    top: -2px;
+    width: 2px;
+    height: 10px;
+    background: rgba(200, 170, 110, 0.3);
+    border-radius: 1px;
+    transform: translateX(-1px);
+  }
+}
+
+// ═══════════════════════════════════════════
+// Grimoire Panel — Spell Tome Action Selector
+// ═══════════════════════════════════════════
+.grimoire-panel {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(200, 170, 110, 0.08);
+  transition: max-height 0.3s ease;
+
+  &.collapsed {
+    .grimoire-pages {
+      display: none;
+    }
+  }
+
+  .grimoire-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background:
+      linear-gradient(135deg, rgba(60, 40, 30, 0.6) 0%, rgba(45, 30, 40, 0.7) 50%, rgba(60, 40, 30, 0.6) 100%);
+    border: none;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+    border-top: 1px solid rgba(200, 170, 110, 0.1);
+    color: rgba(200, 170, 110, 0.85);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background:
+        linear-gradient(135deg, rgba(80, 55, 35, 0.7) 0%, rgba(60, 40, 50, 0.8) 50%, rgba(80, 55, 35, 0.7) 100%);
+      color: rgba(220, 190, 120, 1);
+    }
+
+    .grimoire-toggle-icon {
+      font-size: 12px;
+    }
+
+    .grimoire-toggle-label {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .grimoire-toggle-count {
+      font-size: 5.5px;
+      color: rgba(180, 160, 240, 0.6);
+      margin-left: 4px;
+    }
+
+    .grimoire-toggle-arrow {
+      font-size: 8px;
+      opacity: 0.5;
+    }
+  }
+
+  .grimoire-pages {
+    position: relative;
+    max-height: 35vh;
+    overflow-y: scroll !important;
+    overflow-x: hidden;
+    padding: 10px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 170, 110, 0.3) rgba(200, 170, 110, 0.04);
+
+    // Parchment background
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(225deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg,
+        rgba(45, 32, 28, 0.95) 0%,
+        rgba(38, 26, 32, 0.96) 40%,
+        rgba(35, 24, 28, 0.97) 100%);
+
+    // Subtle inner glow
+    box-shadow:
+      inset 0 4px 12px rgba(0, 0, 0, 0.3),
+      inset 0 -4px 12px rgba(0, 0, 0, 0.2);
+
+    &::-webkit-scrollbar {
+      width: 6px !important;
+    }
+    &::-webkit-scrollbar-track {
+      background: rgba(60, 40, 30, 0.3) !important;
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.3) !important;
+      border-radius: 3px;
+      &:hover { background: rgba(200, 170, 110, 0.45) !important; }
+    }
+
+  }
+
+  // Decorative corners on the panel wrapper (outside scroll)
+  &.open {
+    position: relative;
+
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      opacity: 0.25;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    &::before {
+      top: 32px; // below the toggle button
+      left: 6px;
+      border-top: 2px solid rgba(200, 170, 110, 0.6);
+      border-left: 2px solid rgba(200, 170, 110, 0.6);
+    }
+
+    &::after {
+      bottom: 4px;
+      right: 6px;
+      border-bottom: 2px solid rgba(200, 170, 110, 0.6);
+      border-right: 2px solid rgba(200, 170, 110, 0.6);
+    }
+  }
+}
+
+// ── Grimoire Chapter (category group) ──
+.grimoire-chapter {
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .grimoire-chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0 4px;
+    margin-bottom: 5px;
+
+    .grimoire-chapter-divider {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.15), transparent);
+    }
+
+    .grimoire-chapter-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(200, 170, 110, 0.6);
+      filter: drop-shadow(0 0 3px rgba(200, 170, 110, 0.2));
+    }
+
+    .grimoire-chapter-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  }
+
+  // Chapter-specific accent colors
+  &.chapter-enchantment .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(180, 140, 255, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(160, 100, 240, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(160, 100, 240, 0.3)); }
+  }
+  &.chapter-hex .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(130, 200, 255, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(100, 180, 240, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(100, 180, 240, 0.3)); }
+  }
+  &.chapter-binding .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(255, 140, 140, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(240, 100, 100, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(240, 100, 100, 0.3)); }
+  }
+  &.chapter-alchemy .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(130, 220, 160, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(100, 200, 140, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(100, 200, 140, 0.3)); }
+  }
+  &.chapter-beguile .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(255, 200, 130, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(240, 180, 100, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(240, 180, 100, 0.3)); }
+  }
+
+  .grimoire-spells {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 5px;
+    padding: 2px 3px 3px;
+  }
+}
+
+// ── Spell Slot (action wrapper) ──
+.grimoire-spell-slot {
+  position: relative;
+
+  .spell-debug {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    gap: 2px;
+    z-index: 2;
+
+    .event-debug-btn {
+      width: 14px;
+      height: 14px;
+      font-size: 7px;
+      padding: 0;
+      line-height: 14px;
+    }
+  }
+}
+
+// ── Spell Card (individual action) ──
+.grimoire-spell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 6px 6px;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  height: 62px;
+  justify-content: center;
+  position: relative;
+
+  // Base parchment card look
+  background:
+    linear-gradient(160deg, rgba(200, 170, 110, 0.06) 0%, rgba(200, 170, 110, 0.02) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+
+  .spell-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    color: rgba(200, 170, 110, 0.85);
+  }
+
+  .spell-name {
+    font-size: 5.5px;
+    color: rgba(200, 170, 110, 0.75);
+    text-align: center;
+    line-height: 1.3;
+    letter-spacing: 0.3px;
+  }
+
+  .spell-dc {
+    font-size: 5px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    background: rgba(120, 90, 200, 0.15);
+    color: rgba(180, 160, 240, 0.7);
+    border: 1px solid rgba(120, 90, 200, 0.2);
+  }
+
+  .spell-cost {
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: rgba(200, 120, 60, 0.1);
+    color: rgba(255, 180, 100, 0.7);
+  }
+
+  .spell-lock {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    font-size: 10px;
+    opacity: 0.5;
+  }
+
+  // Attached glow underlay
+  .spell-attached-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: spellGlow 2s ease-in-out infinite;
+    box-shadow: inset 0 0 12px rgba(200, 170, 110, 0.15);
+  }
+
+  // Available hover
+  &.available {
+    &:hover:not(:disabled) {
+      background: rgba(200, 170, 110, 0.1);
+      border-color: rgba(200, 170, 110, 0.3);
+      transform: scale(1.04);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 8px rgba(200, 170, 110, 0.1);
+
+      .spell-name { color: rgba(200, 170, 110, 0.95); }
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+  }
+
+  // Attached state
+  &.attached {
+    border-color: rgba(200, 170, 110, 0.5);
+    background:
+      linear-gradient(160deg, rgba(200, 170, 110, 0.14) 0%, rgba(200, 170, 110, 0.06) 100%);
+    box-shadow: 0 0 10px rgba(200, 170, 110, 0.12), inset 0 0 8px rgba(200, 170, 110, 0.05);
+
+    .spell-name { color: rgba(220, 190, 130, 1); }
+
+    &.chapter-enchantment {
+      border-color: rgba(160, 100, 240, 0.5);
+      background: linear-gradient(160deg, rgba(160, 100, 240, 0.14) 0%, rgba(160, 100, 240, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(160, 100, 240, 0.15);
+      .spell-name { color: rgba(200, 170, 255, 1); }
+    }
+    &.chapter-hex {
+      border-color: rgba(100, 180, 240, 0.5);
+      background: linear-gradient(160deg, rgba(100, 180, 240, 0.14) 0%, rgba(100, 180, 240, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(100, 180, 240, 0.15);
+    }
+    &.chapter-binding {
+      border-color: rgba(240, 100, 100, 0.5);
+      background: linear-gradient(160deg, rgba(240, 100, 100, 0.14) 0%, rgba(240, 100, 100, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(240, 100, 100, 0.15);
+    }
+    &.chapter-alchemy {
+      border-color: rgba(100, 200, 140, 0.5);
+      background: linear-gradient(160deg, rgba(100, 200, 140, 0.14) 0%, rgba(100, 200, 140, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(100, 200, 140, 0.15);
+    }
+    &.chapter-beguile {
+      border-color: rgba(240, 180, 100, 0.5);
+      background: linear-gradient(160deg, rgba(240, 180, 100, 0.14) 0%, rgba(240, 180, 100, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(240, 180, 100, 0.15);
+    }
+  }
+
+  // Locked state
+  &.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+
+    .spell-name {
+      color: rgba(200, 170, 110, 0.35);
+    }
+  }
+
+  // Category accent borders
+  &.chapter-enchantment {
+    border-color: rgba(160, 100, 240, 0.18);
+    &.available:hover { border-color: rgba(160, 100, 240, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(160, 100, 240, 0.1); }
+  }
+  &.chapter-binding {
+    border-color: rgba(240, 100, 100, 0.18);
+    &.available:hover { border-color: rgba(240, 100, 100, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(240, 100, 100, 0.1); }
+  }
+  &.chapter-alchemy {
+    border-color: rgba(100, 200, 140, 0.18);
+    &.available:hover { border-color: rgba(100, 200, 140, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(100, 200, 140, 0.1); }
+  }
+  &.chapter-hex {
+    border-color: rgba(100, 180, 240, 0.18);
+    &.available:hover { border-color: rgba(100, 180, 240, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(100, 180, 240, 0.1); }
+  }
+  &.chapter-beguile {
+    border-color: rgba(240, 180, 100, 0.18);
+    &.available:hover { border-color: rgba(240, 180, 100, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(240, 180, 100, 0.1); }
+  }
+}
+
+// Inline action result banners in chat
+.conditioning-action-result {
+  margin: 6px 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  flex-shrink: 0;
+  animation: actionResultSlide 0.3s ease;
+
+  &.success {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-left: 3px solid rgba(34, 197, 94, 0.5);
+  }
+
+  &.fail {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-left: 3px solid rgba(239, 68, 68, 0.5);
+  }
+
+  .action-result-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .action-result-icon {
+    display: flex;
+    align-items: center;
+    color: rgba(200, 170, 110, 0.85);
+  }
+
+  .action-result-name {
+    color: rgba(200, 170, 110, 0.9);
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+
+  .action-result-verdict {
+    margin-left: auto;
+    font-size: 6px;
+    font-weight: bold;
+
+    &.success { color: #22c55e; }
+    &.fail { color: #ef4444; }
+  }
+
+  .action-result-check {
+    color: rgba(180, 160, 240, 0.7);
+    margin-bottom: 3px;
+  }
+
+  .action-result-delta {
+    color: rgba(200, 170, 110, 0.7);
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-result-bw {
+    color: rgba(200, 170, 110, 0.5);
+  }
+}
+
+// Threshold reached banner
+.conditioning-threshold-banner {
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 7px;
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: thresholdPulse 0.5s ease;
+}
+
+
+// Strategy card grid for conditioning strategy selection
+.event-choices.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  overflow: visible !important;
+  padding-top: 2px;
+}
+
+.strategy-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--strat-color) 25%, transparent);
+  border-left: 3px solid var(--strat-color);
+  background: color-mix(in srgb, var(--strat-color) 5%, rgba(25, 18, 32, 0.9));
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+  font-family: 'Press Start 2P', monospace;
+  position: relative;
+  overflow: visible !important;
+
+  // Subtle gradient glow on left side
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--strat-color) 8%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--strat-color) 50%, transparent);
+    background: color-mix(in srgb, var(--strat-color) 10%, rgba(25, 18, 32, 0.95));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--strat-color) 15%, transparent);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .strategy-card-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--strat-color) 40%, transparent));
+  }
+
+  .strategy-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .strategy-card-name {
+    font-size: 7.5px;
+    color: var(--strat-color);
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    text-shadow: 0 0 8px color-mix(in srgb, var(--strat-color) 30%, transparent);
+  }
+
+  .strategy-card-desc {
+    font-size: 5.5px;
+    color: rgba(200, 170, 110, 0.5);
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+  }
+
+  .strategy-card-bonus {
+    flex-shrink: 0;
+    font-size: 5.5px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--strat-color) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--strat-color) 20%, transparent);
+    color: var(--strat-color);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+}

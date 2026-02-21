@@ -1,0 +1,103 @@
+// ──────────────────────────────────────────
+// STAT GRADE SYSTEM — Letter grades F- to S++
+// ──────────────────────────────────────────
+
+.stat-grid {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+
+  &.stat-grid-compact {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+  }
+
+  &.stat-grid-normal {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  &.stat-grid-large {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.stat-grade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1.5px solid;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: default;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .stat-icon {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+
+  .stat-grade-letter {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  &.stat-grade-compact {
+    padding: 3px 6px;
+    gap: 2px;
+    font-size: 9px;
+
+    .stat-grade-letter {
+      font-size: 9px;
+    }
+  }
+
+  &.stat-grade-normal {
+    padding: 6px 10px;
+
+    .stat-icon {
+      font-size: 12px;
+    }
+
+    .stat-grade-letter {
+      font-size: 11px;
+    }
+  }
+
+  &.stat-grade-large {
+    padding: 8px 12px;
+    gap: 6px;
+
+    .stat-icon {
+      font-size: 14px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+    }
+
+    .stat-grade-letter {
+      font-size: 13px;
+      margin-left: auto;
+    }
+  }
+}
+

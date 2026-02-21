@@ -1,0 +1,359 @@
+// Build Picker (inside room detail panel)
+// ═══════════════════════════════════════════
+// ROOM CATALOGUE OVERLAY
+// ═══════════════════════════════════════════
+.catalogue-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 4, 10, 0.85);
+  backdrop-filter: blur(5px);
+  animation: catalogueFadeIn 0.2s ease-out;
+}
+
+@keyframes catalogueFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// ── The main panel ──
+.catalogue-panel {
+  width: 96%;
+  max-width: 960px;
+  height: 88vh;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    170deg,
+    hsl(275, 28%, 14%) 0%,
+    hsl(280, 30%, 10%) 50%,
+    hsl(282, 32%, 8%) 100%
+  ) !important;
+  border: 3px solid rgba(200, 170, 110, 0.18);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(200, 170, 110, 0.06),
+    0 30px 100px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  animation: catalogueSlideUp 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes catalogueSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// ── Header bar ──
+.catalogue-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.12);
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.15) !important;
+
+  h3 {
+    margin: 0;
+    font-size: 13px;
+    color: var(--highlight);
+    letter-spacing: 2px;
+  }
+
+  .catalogue-slot-badge {
+    font-size: 8px;
+    color: rgba(200, 170, 110, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 3px 10px;
+    border: 1px solid rgba(200, 170, 110, 0.12);
+    border-radius: 3px;
+    background: rgba(200, 170, 110, 0.04) !important;
+  }
+
+  .catalogue-close {
+    margin-left: auto;
+    background: transparent !important;
+    border: 1px solid rgba(200, 170, 110, 0.1);
+    color: var(--text-muted);
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(200, 170, 110, 0.08) !important;
+      border-color: rgba(200, 170, 110, 0.25);
+      color: var(--highlight);
+    }
+  }
+}
+
+// ── Body: card grid left, detail right ──
+.catalogue-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// ── Left: room card grid ──
+.catalogue-grid {
+  flex: 0 0 50%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto !important;
+  border-right: 1px solid rgba(200, 170, 110, 0.08);
+  align-content: start;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(200, 170, 110, 0.15); border-radius: 4px; }
+}
+
+// ── Individual room card ──
+.catalogue-thumb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid rgba(200, 170, 110, 0.1);
+  background: rgba(15, 10, 22, 0.6) !important;
+
+  // Image fills most of the card
+  .catalogue-thumb-image {
+    position: relative;
+    width: 100%;
+    height: 110px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+
+    .catalogue-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        transparent 40%,
+        rgba(15, 10, 22, 0.85) 100%
+      );
+    }
+  }
+
+  // Name sits in a dark footer
+  .catalogue-thumb-name {
+    padding: 8px 10px;
+    font-size: 9px;
+    color: var(--text-primary);
+    letter-spacing: 0.6px;
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+    transition: color 0.2s;
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-top: 1px solid rgba(200, 170, 110, 0.06);
+  }
+
+  &:hover {
+    border-color: rgba(200, 170, 110, 0.28);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+
+    .catalogue-thumb-name {
+      color: var(--highlight);
+    }
+  }
+
+  &.selected {
+    border-color: rgba(200, 170, 110, 0.55);
+    box-shadow:
+      0 0 16px rgba(200, 170, 110, 0.08),
+      0 6px 24px rgba(0, 0, 0, 0.4);
+
+    .catalogue-thumb-name {
+      color: var(--highlight);
+      background: rgba(200, 170, 110, 0.06) !important;
+    }
+
+    // Glow line at top
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.4), transparent);
+      pointer-events: none;
+    }
+  }
+}
+
+// ── Right: detail panel ──
+.catalogue-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto !important;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.12) !important;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(200, 170, 110, 0.15); border-radius: 4px; }
+
+  // Large preview image
+  .catalogue-detail-image {
+    width: 100%;
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    position: relative;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, transparent 55%, rgba(18, 12, 24, 0.7) 100%);
+      pointer-events: none;
+    }
+  }
+
+  // Info section
+  .catalogue-detail-info {
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+  }
+
+  .catalogue-detail-name {
+    margin: 0;
+    font-size: 15px;
+    color: var(--highlight);
+    letter-spacing: 1.5px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+  }
+
+  .catalogue-detail-desc {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.8;
+    color: var(--text-muted);
+    opacity: 0.8;
+  }
+
+  // Section headers (Effects, Costs)
+  .catalogue-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    h4 {
+      margin: 0 0 2px;
+      font-size: 8px;
+      color: rgba(200, 170, 110, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+    }
+  }
+
+  // Stat rows
+  .catalogue-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-radius: 3px;
+    background: rgba(200, 170, 110, 0.025) !important;
+    border: 1px solid rgba(200, 170, 110, 0.04);
+
+    .catalogue-detail-label {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .catalogue-detail-value {
+      font-size: 10px;
+      color: var(--text-primary);
+      font-weight: bold;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  // Build button
+  .catalogue-build-btn {
+    margin: auto 22px 22px;
+    flex-shrink: 0;
+    padding: 12px 0;
+    background: linear-gradient(
+      180deg,
+      rgba(200, 170, 110, 0.12),
+      rgba(200, 170, 110, 0.06)
+    ) !important;
+    border: 2px solid rgba(200, 170, 110, 0.25);
+    border-radius: 4px;
+    color: var(--highlight);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: linear-gradient(
+        180deg,
+        rgba(200, 170, 110, 0.2),
+        rgba(200, 170, 110, 0.1)
+      ) !important;
+      border-color: rgba(200, 170, 110, 0.5);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(200, 170, 110, 0.08);
+    }
+  }
+}
+
+// Room location badge
+.room-location-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  
+  &.indoors {
+    background: rgba(100, 150, 200, 0.3) !important;
+    color: rgba(150, 200, 255, 0.9);
+    border: 1px solid rgba(100, 150, 200, 0.4);
+  }
+  
+  &.outdoors {
+    background: rgba(100, 180, 100, 0.3) !important;
+    color: rgba(150, 230, 150, 0.9);
+    border: 1px solid rgba(100, 180, 100, 0.4);
+  }
+}
