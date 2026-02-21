@@ -24,7 +24,7 @@ import {
     Droplets, Sun, Feather, Gem, Heart, Crown, Sparkles, Waves,
     Brain, Ghost, Skull, Shield, Star, Zap, Wind, CircleDot,
     ScanEye, TestTubes, Moon, Hand, MessageCircle,
-    Pencil, RotateCcw, Check, X,
+    Pencil, RotateCcw, Check, X, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
 // ── Spell Icon Component ──
@@ -157,6 +157,8 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [editingMsgIndex, setEditingMsgIndex] = useState<number | null>(null);
     const [editText, setEditText] = useState('');
     const [regenerating, setRegenerating] = useState(false);
+    const [npcAlternatives, setNpcAlternatives] = useState<SceneMessage[]>([]);
+    const [currentAltIndex, setCurrentAltIndex] = useState(0);
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -283,6 +285,10 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         const playerMsg: SceneMessage = { sender: pcName, text: messageText };
         setChatMessages(prev => [...prev, playerMsg]);
 
+        // Clear alternatives from previous position
+        setNpcAlternatives([]);
+        setCurrentAltIndex(0);
+
         setChatSending(true);
         try {
             const reply = await stage().sendEventMessage(messageText);
@@ -308,9 +314,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const handleStartEdit = (msgIndex: number) => {
         const msg = chatMessages[msgIndex];
         if (!msg) return;
-        // Show the raw text for editing (with action prefix stripped)
+        // Strip action prefix for player messages
         let text = msg.text;
-        text = text.replace(/^\*uses [^*]+\*\s*/, '').replace(/^\*attempts [^*]+, but fails\*\s*/, '');
+        if (msg.sender === pcName) {
+            text = text.replace(/^\*uses [^*]+\*\s*/, '').replace(/^\*attempts [^*]+, but fails\*\s*/, '');
+        }
         setEditingMsgIndex(msgIndex);
         setEditText(text);
     };
@@ -327,21 +335,35 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
         const oldMsg = chatMessages[editingMsgIndex];
         if (!oldMsg) return;
+        const isPlayerMsg = oldMsg.sender === pcName;
 
-        // Preserve the action prefix if the original message had one
+        if (!isPlayerMsg) {
+            // NPC message edit: just update the text locally, no re-send
+            const updated = [...chatMessages];
+            updated[editingMsgIndex] = { ...oldMsg, text: newText };
+            setChatMessages(updated);
+            stage().setEventMessages(updated);
+            setEditingMsgIndex(null);
+            setEditText('');
+            // Clear alternatives since we manually edited
+            setNpcAlternatives([]);
+            setCurrentAltIndex(0);
+            return;
+        }
+
+        // Player message edit: preserve action prefix, truncate after, re-send for new NPC reply
         const actionMatch = oldMsg.text.match(/^(\*(?:uses|attempts) [^*]+(?:, but fails)?\*)\s*/);
         const fullText = actionMatch ? `${actionMatch[1]} ${newText}` : newText;
 
-        // Truncate chatMessages: keep up to and including the edited message, remove everything after
         const updatedMessages = chatMessages.slice(0, editingMsgIndex);
         updatedMessages.push({ sender: oldMsg.sender, text: fullText });
         setChatMessages(updatedMessages);
-
-        // Sync _eventMessages to match
         stage().setEventMessages(updatedMessages);
 
         setEditingMsgIndex(null);
         setEditText('');
+        setNpcAlternatives([]);
+        setCurrentAltIndex(0);
 
         // Re-send to get a new NPC reply
         setRegenerating(true);
@@ -361,27 +383,58 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const handleRegenerate = async () => {
         if (chatSending || regenerating || chatMessages.length === 0) return;
 
-        // Find the last NPC message and remove it
         const lastMsg = chatMessages[chatMessages.length - 1];
-        if (lastMsg.sender === pcName) return; // Can't regen a player message
+        if (lastMsg.sender === pcName) return;
 
+        // Save the current response as an alternative before regenerating
+        setNpcAlternatives(prev => {
+            if (prev.length === 0) {
+                // First regen: save the original as alt[0]
+                return [lastMsg];
+            }
+            return prev;
+        });
+
+        // Remove last NPC message and re-send
         const trimmed = chatMessages.slice(0, -1);
         setChatMessages(trimmed);
         stage().setEventMessages(trimmed);
 
-        // Re-send to get a new NPC reply
         setRegenerating(true);
         setChatSending(true);
         try {
             const reply = await stage().regenerateEventResponse();
             if (reply) {
                 setChatMessages(prev => [...prev, reply]);
+                // Add new reply to alternatives
+                setNpcAlternatives(prev => {
+                    const newAlts = [...prev, reply];
+                    setCurrentAltIndex(newAlts.length - 1);
+                    return newAlts;
+                });
             }
             onEventUpdate(stage().getActiveEvent());
         } finally {
             setRegenerating(false);
             setChatSending(false);
         }
+    };
+
+    const handleSwipeAlt = (direction: -1 | 1) => {
+        if (npcAlternatives.length <= 1) return;
+        const newIdx = Math.max(0, Math.min(npcAlternatives.length - 1, currentAltIndex + direction));
+        if (newIdx === currentAltIndex) return;
+        setCurrentAltIndex(newIdx);
+
+        // Swap the displayed NPC message
+        const alt = npcAlternatives[newIdx];
+        setChatMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = alt;
+            return updated;
+        });
+        // Sync with stage
+        stage().setEventMessages([...chatMessages.slice(0, -1), alt]);
     };
 
     const handleEndChat = () => {
@@ -600,8 +653,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         const isLatestNpc = !isPlayer && idx === chatItems.length - 1;
                         const isEditing = editingMsgIndex === item.index;
                         const isLastNpcMsg = !isPlayer && item.index === chatMessages.length - 1;
-                        const canEdit = isPlayer && !chatSending && !regenerating && editingMsgIndex === null;
+                        const canEdit = !chatSending && !regenerating && editingMsgIndex === null;
                         const canRegen = isLastNpcMsg && !chatSending && !regenerating && editingMsgIndex === null;
+                        const hasAlts = isLastNpcMsg && npcAlternatives.length > 1;
 
                         return (
                             <div
@@ -628,7 +682,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                 }}
                                             />
                                             <div className="skit-msg-edit-buttons">
-                                                <button className="skit-edit-btn skit-edit-save" onClick={handleSaveEdit} title="Save & regenerate">
+                                                <button className="skit-edit-btn skit-edit-save" onClick={handleSaveEdit} title={isPlayer ? 'Save & regenerate' : 'Save edit'}>
                                                     <Check size={11} /> Save
                                                 </button>
                                                 <button className="skit-edit-btn skit-edit-cancel" onClick={handleCancelEdit} title="Cancel">
@@ -643,18 +697,39 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                 : <FormattedText text={isPlayer ? displayText : msg.text} />}
                                         </div>
                                     )}
-                                    {/* Edit / Regenerate controls */}
-                                    {!isEditing && (canEdit || canRegen) && (
+                                    {/* Edit / Regenerate / Swipe controls */}
+                                    {!isEditing && canEdit && (
                                         <div className="skit-msg-actions">
-                                            {canEdit && (
-                                                <button className="skit-msg-action-btn" onClick={() => handleStartEdit(item.index)} title="Edit message">
-                                                    <Pencil size={10} />
-                                                </button>
-                                            )}
+                                            <button className="skit-msg-action-btn" onClick={() => handleStartEdit(item.index)} title="Edit message">
+                                                <Pencil size={10} />
+                                            </button>
                                             {canRegen && (
                                                 <button className="skit-msg-action-btn" onClick={handleRegenerate} title="Regenerate response">
                                                     <RotateCcw size={10} />
                                                 </button>
+                                            )}
+                                            {hasAlts && (
+                                                <div className="skit-msg-swipe">
+                                                    <button
+                                                        className="skit-msg-action-btn"
+                                                        onClick={() => handleSwipeAlt(-1)}
+                                                        disabled={currentAltIndex <= 0}
+                                                        title="Previous response"
+                                                    >
+                                                        <ChevronLeft size={10} />
+                                                    </button>
+                                                    <span className="skit-msg-swipe-counter">
+                                                        {currentAltIndex + 1}/{npcAlternatives.length}
+                                                    </span>
+                                                    <button
+                                                        className="skit-msg-action-btn"
+                                                        onClick={() => handleSwipeAlt(1)}
+                                                        disabled={currentAltIndex >= npcAlternatives.length - 1}
+                                                        title="Next response"
+                                                    >
+                                                        <ChevronRight size={10} />
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     )}

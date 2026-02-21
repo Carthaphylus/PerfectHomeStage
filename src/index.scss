@@ -2393,9 +2393,11 @@ html, body, #root {
       .skit-msg-actions {
         display: flex;
         gap: 4px;
+        align-items: center;
         opacity: 0;
         transition: opacity 0.15s ease;
         margin-top: 2px;
+        overflow: visible !important;
       }
 
       &:hover .skit-msg-actions {
@@ -2413,11 +2415,31 @@ html, body, #root {
         align-items: center;
         transition: all 0.15s ease;
 
-        &:hover {
+        &:disabled {
+          opacity: 0.3;
+          cursor: default;
+        }
+
+        &:hover:not(:disabled) {
           background: rgba(200, 170, 110, 0.15);
           color: var(--gold-dim);
           border-color: rgba(200, 170, 110, 0.25);
         }
+      }
+
+      .skit-msg-swipe {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: 4px;
+      }
+
+      .skit-msg-swipe-counter {
+        font-family: 'Press Start 2P', monospace;
+        font-size: 6px;
+        color: rgba(200, 170, 110, 0.5);
+        min-width: 20px;
+        text-align: center;
       }
 
       &.skit-msg-editing {

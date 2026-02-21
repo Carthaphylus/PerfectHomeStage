@@ -2627,6 +2627,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     private _activeEvent: ActiveEvent | null = null;
     private _eventMessages: SceneMessage[] = [];
+    private _nudgeIdentities: string[] = [];
     private _eventRegistry: Record<string, EventDefinition> = {
         [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
     };
@@ -2921,6 +2922,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this._activeEvent.chatMessageCount = 0;
         this._activeEvent.lastActionResult = undefined;
         this._eventMessages = [];
+        this._nudgeIdentities = [];
         console.log('[Event] Chat phase started');
     }
 
@@ -2929,6 +2931,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!this._activeEvent) return;
         this._activeEvent.chatPhaseActive = false;
         this._eventMessages = [];
+        this._nudgeIdentities = [];
         console.log(`[Event] Chat phase ended after ${this._activeEvent.chatMessageCount} messages`);
     }
 
@@ -2944,7 +2947,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     /**
      * Re-nudge the LLM using the last player message to get a new NPC response.
-     * Used for regenerating responses after editing or on explicit regen.
+     * Uses parent_id for proper chat-tree branching instead of linear appending.
      */
     async regenerateEventResponse(): Promise<SceneMessage | null> {
         const event = this._activeEvent;
@@ -2954,10 +2957,24 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const lastPlayerMsg = [...this._eventMessages].reverse().find(m => m.sender === pcName);
         if (!lastPlayerMsg) return null;
 
+        // Branch from the parent of the last nudge (creates sibling in chat tree)
+        const parentId = this._nudgeIdentities.length >= 2
+            ? this._nudgeIdentities[this._nudgeIdentities.length - 2]
+            : null;
+        // Pop the old identity — we're replacing it
+        if (this._nudgeIdentities.length > 0) {
+            this._nudgeIdentities.pop();
+        }
+
         try {
-            await this.messenger.nudge({
+            const response = await this.messenger.nudge({
+                parent_id: parentId,
                 stage_directions: this.generateEventChatDirections(lastPlayerMsg.text),
             });
+
+            if (response?.identity) {
+                this._nudgeIdentities.push(response.identity);
+            }
 
             // afterResponse() will have pushed the NPC reply
             const latest = this._eventMessages[this._eventMessages.length - 1];
@@ -2983,9 +3000,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this._eventMessages.push({ sender: pcName, text: text.trim() });
 
         try {
-            await this.messenger.nudge({
+            const response = await this.messenger.nudge({
                 stage_directions: this.generateEventChatDirections(text.trim()),
             });
+
+            if (response?.identity) {
+                this._nudgeIdentities.push(response.identity);
+            }
 
             // afterResponse() will have pushed the NPC reply
             const latest = this._eventMessages[this._eventMessages.length - 1];
