@@ -3,6 +3,7 @@ import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
 import { GameIcon } from './GameIcon';
+import { Pencil, Check, X } from 'lucide-react';
 
 interface CaptivesScreenProps {
     stage: () => Stage;
@@ -15,6 +16,8 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
     const allHeroes = Object.values(stage().currentState.heroes);
     const captives = allHeroes.filter(h => h.status === 'captured' || h.status === 'converting');
     const [selectedCaptive, setSelectedCaptive] = useState<Hero | null>(null);
+    const [editingHistory, setEditingHistory] = useState(false);
+    const [historyDraft, setHistoryDraft] = useState('');
 
     const debugFree = (heroName: string) => {
         const hero = stage().currentState.heroes[heroName];
@@ -127,6 +130,56 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                                 </div>
                             </>
                         )}
+                        <div className="char-history-section" style={{ marginTop: '8px' }}>
+                            <h4>
+                                History
+                                {!editingHistory && (
+                                    <button
+                                        className="history-edit-btn"
+                                        onClick={() => {
+                                            setHistoryDraft(stage().getCharacterHistory(h.name));
+                                            setEditingHistory(true);
+                                        }}
+                                        title="Edit history"
+                                    >
+                                        <Pencil size={10} />
+                                    </button>
+                                )}
+                            </h4>
+                            {editingHistory ? (
+                                <div className="history-edit-container">
+                                    <textarea
+                                        className="history-textarea"
+                                        value={historyDraft}
+                                        onChange={e => setHistoryDraft(e.target.value)}
+                                        rows={5}
+                                        placeholder="No history recorded yet..."
+                                    />
+                                    <div className="history-edit-actions">
+                                        <button
+                                            className="history-save-btn"
+                                            onClick={() => {
+                                                stage().setCharacterHistory(h.name, historyDraft);
+                                                setEditingHistory(false);
+                                                forceUpdate(n => n + 1);
+                                            }}
+                                        >
+                                            <Check size={10} /> Save
+                                        </button>
+                                        <button
+                                            className="history-cancel-btn"
+                                            onClick={() => setEditingHistory(false)}
+                                        >
+                                            <X size={10} /> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="history-text">
+                                    {stage().getCharacterHistory(h.name) || 'No history recorded yet.'}
+                                </p>
+                            )}
+                        </div>
                         <div className="debug-section">
                             <h4><GameIcon icon="settings" size={12} /> Debug</h4>
                             <div className="debug-btn-row">

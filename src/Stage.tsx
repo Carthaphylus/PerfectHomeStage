@@ -543,6 +543,7 @@ export interface PlayerCharacter {
     description: string;
     traits: string[];
     details: Record<string, string>;
+    personalHistory?: string;
 }
 
 // Chub.ai configuration
@@ -2989,6 +2990,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     getCharacterHistory(characterName: string): string {
         const hero = this.currentState.heroes[characterName];
         const servant = this.currentState.servants[characterName];
+        const pc = this.currentState.playerCharacter;
+        if (pc.name === characterName) return pc.personalHistory || '';
         return hero?.personalHistory || servant?.personalHistory || '';
     }
 
@@ -2996,6 +2999,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Set a character's personal history (for editable UI).
      */
     setCharacterHistory(characterName: string, history: string): void {
+        const pc = this.currentState.playerCharacter;
+        if (pc.name === characterName) { pc.personalHistory = history; return; }
         const hero = this.currentState.heroes[characterName];
         const servant = this.currentState.servants[characterName];
         const target = hero || servant;
