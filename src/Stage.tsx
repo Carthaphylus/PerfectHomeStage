@@ -3735,7 +3735,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // ── NSFW MODE ──
         if (this.currentState.nsfwMode) {
             lines.push(`\n[EXPLICIT CONTENT MODE — ACTIVE]`);
-            lines.push(`The user has enabled explicit/adult content. You are ENCOURAGED to write sexually explicit, graphic, and sensual descriptions. Include detailed physical sensations, arousal, bodily reactions, and intimate acts when contextually appropriate. Do not censor, fade to black, or skip over sexual content — describe it vividly and directly. Lean into the erotic tension of the power dynamic between ${pcName} and ${speakerName}. Use evocative language for physical touch, closeness, vulnerability, and desire.`);
+            lines.push(`You will write sexually explicit, graphic, and sensual descriptions. 
+                Include detailed physical sensations, arousal, bodily reactions, and intimate acts when contextually appropriate. 
+                Use explicit language, describing genitals and erogenous zones, words like "penis" "cock" "dick" or "pussy" "folds" or other language that fits the character and scene 
+                but always with a smutty and explicit tone,
+                if necesarry you can be more vulgar and expliticit to create a smutty and erotic scene — describe it vividly and directly. 
+                Add moaning, panting and other sound effects to dialogue, and keep in mind that the sexual anatomy of most characters is anthrophromorphic animals. 
+                Lean into the erotic tension of the power dynamic between ${pcName} and ${speakerName}. 
+                Use evocative language for physical touch, closeness, vulnerability, and desire.`);
         }
 
         lines.push(`\n[TEXT FORMATTING RULES]`);
