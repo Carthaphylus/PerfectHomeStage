@@ -577,7 +577,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                                 disabled={locked || executingAction || chatSending}
                                                                 title={locked ? lockReason : action.tooltip}
                                                             >
-                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={22} /></span>
+                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={18} /></span>
                                                                 <span className="spell-name">{action.label}</span>
                                                                 {action.skillCheck && (
                                                                     <span className="spell-dc">
