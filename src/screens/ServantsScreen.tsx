@@ -4,6 +4,7 @@ import { Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, number
 import { CharacterProfile } from './CharacterProfile';
 import { TraitChip } from './TraitChip';
 import { GameIcon } from './GameIcon';
+import { Pencil, Check, X } from 'lucide-react';
 
 interface ServantsScreenProps {
     stage: () => Stage;
@@ -15,7 +16,10 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
-    const [roleTarget, setRoleTarget] = useState<Servant | null>(null); // servant being assigned
+    const [roleTarget, setRoleTarget] = useState<Servant | null>(null);
+    const [editingHistory, setEditingHistory] = useState(false);
+    const [historyDraft, setHistoryDraft] = useState('');
+    const [, forceUpdate] = useState(0);
 
     const handleStartChat = (servant: Servant) => {
         const location = stage().currentState.location;
@@ -170,6 +174,56 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                 </div>
                             </div>
                             <div className="conditioned-badge"><GameIcon icon="orbit" size={12} className="icon-purple" /> Fully Conditioned</div>
+                            <div className="char-history-section" style={{ marginTop: '8px' }}>
+                                <h4>
+                                    History
+                                    {!editingHistory && (
+                                        <button
+                                            className="history-edit-btn"
+                                            onClick={() => {
+                                                setHistoryDraft(stage().getCharacterHistory(s.name));
+                                                setEditingHistory(true);
+                                            }}
+                                            title="Edit history"
+                                        >
+                                            <Pencil size={10} />
+                                        </button>
+                                    )}
+                                </h4>
+                                {editingHistory ? (
+                                    <div className="history-edit-container">
+                                        <textarea
+                                            className="history-textarea"
+                                            value={historyDraft}
+                                            onChange={e => setHistoryDraft(e.target.value)}
+                                            rows={5}
+                                            placeholder="No history recorded yet..."
+                                        />
+                                        <div className="history-edit-actions">
+                                            <button
+                                                className="history-save-btn"
+                                                onClick={() => {
+                                                    stage().setCharacterHistory(s.name, historyDraft);
+                                                    setEditingHistory(false);
+                                                    forceUpdate(n => n + 1);
+                                                }}
+                                            >
+                                                <Check size={10} /> Save
+                                            </button>
+                                            <button
+                                                className="history-cancel-btn"
+                                                onClick={() => setEditingHistory(false)}
+                                            >
+                                                <X size={10} /> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="history-text">
+                                        {stage().getCharacterHistory(s.name) || 'No history recorded yet.'}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     }
                 />

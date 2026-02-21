@@ -246,6 +246,7 @@ export interface Hero {
     details: Record<string, string>;
     stats: Record<StatName, number>; // 0-100 values
     location?: string;
+    personalHistory?: string; // editable summary of what happened to this character
 }
 
 // Role definition — permanent (reassignable) fixture for a servant
@@ -530,6 +531,7 @@ export interface Servant {
     obedience: number; // 0-100
     assignedTask?: string;
     assignedRole?: string; // role id from ROLE_REGISTRY
+    personalHistory?: string; // editable summary of what happened to this character
 }
 
 // Player character info
@@ -2150,15 +2152,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const content = userMessage.content;
         const scene = this._activeScene;
 
-        // If an event chat phase is active, handle it
+        // If an event chat phase is active, we use textGen directly — no stageDirections needed
         if (this._activeEvent?.chatPhaseActive) {
-            const pcName = this.currentState.playerCharacter.name;
-            const lastMsg = this._eventMessages[this._eventMessages.length - 1];
-            if (!lastMsg || lastMsg.sender !== pcName || lastMsg.text !== content) {
-                this._eventMessages.push({ sender: pcName, text: content });
-            }
             return {
-                stageDirections: this.generateEventChatDirections(content),
+                stageDirections: null,
                 messageState: this.currentState,
                 modifiedMessage: null,
                 systemMessage: null,
@@ -2208,14 +2205,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const content = botMessage.content;
         const scene = this._activeScene;
 
-        // If an event chat phase is active, capture the NPC reply
+        // If an event chat phase is active, we manage messages manually via textGen — skip
         if (this._activeEvent?.chatPhaseActive) {
-            const def = this._eventRegistry[this._activeEvent.definitionId];
-            const step = def?.steps[this._activeEvent.currentStepId];
-            const speaker = step?.chatPhase?.speaker
-                ?.replace(/\{target\}/g, this._activeEvent.target || '')
-                ?.replace(/\{pc\}/g, this.currentState.playerCharacter.name) || 'NPC';
-            this._eventMessages.push({ sender: speaker, text: content });
+            // Don't push to _eventMessages here — sendEventMessage/regenerateEventResponse handle it
             return {
                 stageDirections: null,
                 messageState: this.currentState,
@@ -2627,7 +2619,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     private _activeEvent: ActiveEvent | null = null;
     private _eventMessages: SceneMessage[] = [];
-    private _nudgeIdentities: string[] = [];
+    private _textGenActive: boolean = false; // flag to prevent afterResponse from double-adding
     private _eventRegistry: Record<string, EventDefinition> = {
         [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
     };
@@ -2922,7 +2914,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this._activeEvent.chatMessageCount = 0;
         this._activeEvent.lastActionResult = undefined;
         this._eventMessages = [];
-        this._nudgeIdentities = [];
         console.log('[Event] Chat phase started');
     }
 
@@ -2931,8 +2922,85 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!this._activeEvent) return;
         this._activeEvent.chatPhaseActive = false;
         this._eventMessages = [];
-        this._nudgeIdentities = [];
         console.log(`[Event] Chat phase ended after ${this._activeEvent.chatMessageCount} messages`);
+    }
+
+    /**
+     * Generate a short summary of the scene using textGen.
+     * Called after a chat phase ends to update the character's personalHistory.
+     */
+    async generateSceneSummary(characterName: string, messages: SceneMessage[]): Promise<string | null> {
+        if (messages.length === 0) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const convoLines = messages
+            .filter(m => m.sender !== '\u00a7system')
+            .map(m => `${m.sender}: ${m.text}`)
+            .join('\n');
+
+        const event = this._activeEvent;
+        const eventName = event ? this._eventRegistry[event.definitionId]?.name || 'a scene' : 'a scene';
+
+        const prompt = [
+            `[SYSTEM] You are a concise note-taker. Summarize the following scene between ${pcName} and ${characterName} during "${eventName}".`,
+            `Write 2-4 sentences capturing: what happened, how ${characterName} felt/reacted, any important developments.`,
+            `Use third person and past tense. Do NOT add commentary or speculation.`,
+            `\n[CONVERSATION]:`,
+            convoLines,
+            `\n[SUMMARY]:`,
+        ].join('\n');
+
+        try {
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 200,
+                stop: [],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+            return response?.result?.trim() || null;
+        } catch (e) {
+            console.error('[Event] Scene summary generation failed:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Append a scene summary to a character's personalHistory.
+     */
+    updateCharacterHistory(characterName: string, summaryText: string): void {
+        const hero = this.currentState.heroes[characterName];
+        const servant = this.currentState.servants[characterName];
+        const target = hero || servant;
+        if (!target) return;
+
+        const dayLabel = `Day ${this.currentState.stats.day}`;
+        const entry = `[${dayLabel}] ${summaryText}`;
+        const existing = target.personalHistory || '';
+        target.personalHistory = existing ? `${existing}\n${entry}` : entry;
+        console.log(`[History] Updated ${characterName}'s personal history.`);
+    }
+
+    /**
+     * Get a character's personal history text.
+     */
+    getCharacterHistory(characterName: string): string {
+        const hero = this.currentState.heroes[characterName];
+        const servant = this.currentState.servants[characterName];
+        return hero?.personalHistory || servant?.personalHistory || '';
+    }
+
+    /**
+     * Set a character's personal history (for editable UI).
+     */
+    setCharacterHistory(characterName: string, history: string): void {
+        const hero = this.currentState.heroes[characterName];
+        const servant = this.currentState.servants[characterName];
+        const target = hero || servant;
+        if (!target) return;
+        target.personalHistory = history;
     }
 
     /** Get event chat messages (read-only copy) */
@@ -2946,8 +3014,24 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     /**
-     * Re-nudge the LLM using the last player message to get a new NPC response.
-     * Uses parent_id for proper chat-tree branching instead of linear appending.
+     * Resolve the NPC speaker name for the current event chat phase.
+     */
+    private getEventChatSpeaker(): string {
+        const event = this._activeEvent;
+        if (!event) return 'NPC';
+        const def = this._eventRegistry[event.definitionId];
+        const step = def?.steps[event.currentStepId];
+        const chatPhase = step?.chatPhase;
+        if (!chatPhase) return 'NPC';
+        const pcName = this.currentState.playerCharacter.name;
+        return (chatPhase.speaker || 'NPC')
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+    }
+
+    /**
+     * Re-generate the NPC response using textGen (no chat history).
+     * The old response should already be removed from _eventMessages by the caller.
      */
     async regenerateEventResponse(): Promise<SceneMessage | null> {
         const event = this._activeEvent;
@@ -2957,32 +3041,30 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const lastPlayerMsg = [...this._eventMessages].reverse().find(m => m.sender === pcName);
         if (!lastPlayerMsg) return null;
 
-        // Branch from the parent of the last nudge (creates sibling in chat tree)
-        const parentId = this._nudgeIdentities.length >= 2
-            ? this._nudgeIdentities[this._nudgeIdentities.length - 2]
-            : null;
-        // Pop the old identity — we're replacing it
-        if (this._nudgeIdentities.length > 0) {
-            this._nudgeIdentities.pop();
-        }
+        const speakerName = this.getEventChatSpeaker();
 
         try {
-            const response = await this.messenger.nudge({
-                parent_id: parentId,
-                stage_directions: this.generateEventChatDirections(lastPlayerMsg.text),
+            this._textGenActive = true;
+            const response = await this.generator.textGen({
+                prompt: this.generateEventChatPrompt(lastPlayerMsg.text),
+                include_history: false,
+                max_tokens: 600,
+                stop: [`${pcName}:`, `\n${pcName} `],
+                template: '',
+                context_length: null,
+                min_tokens: null,
             });
+            this._textGenActive = false;
 
-            if (response?.identity) {
-                this._nudgeIdentities.push(response.identity);
-            }
-
-            // afterResponse() will have pushed the NPC reply
-            const latest = this._eventMessages[this._eventMessages.length - 1];
-            if (latest && latest.sender !== pcName) {
-                return { ...latest };
+            if (response?.result) {
+                const replyText = response.result.trim();
+                const reply: SceneMessage = { sender: speakerName, text: replyText };
+                this._eventMessages.push(reply);
+                return { ...reply };
             }
             return null;
         } catch (e) {
+            this._textGenActive = false;
             console.error('[Event Chat] Regenerate failed:', e);
             return null;
         }
@@ -2990,6 +3072,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     /**
      * Send a player message during the event chat phase.
+     * Uses textGen(include_history: false) for full context isolation.
      * Returns the NPC reply, or null on failure.
      */
     async sendEventMessage(text: string): Promise<SceneMessage | null> {
@@ -2997,25 +3080,32 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!event?.chatPhaseActive || !text.trim()) return null;
 
         const pcName = this.currentState.playerCharacter.name;
+        const speakerName = this.getEventChatSpeaker();
         this._eventMessages.push({ sender: pcName, text: text.trim() });
 
         try {
-            const response = await this.messenger.nudge({
-                stage_directions: this.generateEventChatDirections(text.trim()),
+            this._textGenActive = true;
+            const response = await this.generator.textGen({
+                prompt: this.generateEventChatPrompt(text.trim()),
+                include_history: false,
+                max_tokens: 600,
+                stop: [`${pcName}:`, `\n${pcName} `],
+                template: '',
+                context_length: null,
+                min_tokens: null,
             });
+            this._textGenActive = false;
 
-            if (response?.identity) {
-                this._nudgeIdentities.push(response.identity);
-            }
-
-            // afterResponse() will have pushed the NPC reply
-            const latest = this._eventMessages[this._eventMessages.length - 1];
-            if (latest && latest.sender !== pcName) {
+            if (response?.result) {
+                const replyText = response.result.trim();
+                const reply: SceneMessage = { sender: speakerName, text: replyText };
+                this._eventMessages.push(reply);
                 event.chatMessageCount += 1;
-                return { ...latest };
+                return { ...reply };
             }
             return null;
         } catch (e) {
+            this._textGenActive = false;
             console.error('[Event Chat] Send failed:', e);
             return null;
         }
@@ -3285,9 +3375,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return result;
     }
 
-    /** Generate LLM stage directions for event chat */
-    /** Generate LLM stage directions for event chat */
-    private generateEventChatDirections(_userText: string): string {
+    /**
+     * Generate a FULL self-contained LLM prompt for event chat.
+     * Used with textGen(include_history: false) for complete context isolation.
+     * The LLM will ONLY see what we provide here — no chat tree history bleed.
+     */
+    private generateEventChatPrompt(_userText: string): string {
         const event = this._activeEvent;
         if (!event) return '';
 
@@ -3299,33 +3392,75 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         const chatPhase = step.chatPhase;
         const pcName = this.currentState.playerCharacter.name;
-        const speakerName = (chatPhase.speaker || 'NPC')
-            .replace(/\{target\}/g, event.target || '')
-            .replace(/\{pc\}/g, pcName);
+        const speakerName = this.getEventChatSpeaker();
 
         const lines: string[] = [];
-        lines.push(`[CONDITIONING SESSION \u2014 ${def.name}]`);
-        lines.push(`You are now roleplaying as ${speakerName}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
 
-        // Character personality data
+        // ── ROLE LOCK ──
+        lines.push(`[SYSTEM INSTRUCTIONS]`);
+        lines.push(`You are roleplaying as ${speakerName}. You are ONLY ${speakerName}.`);
+        lines.push(`NEVER speak as ${pcName}, narrate ${pcName}'s actions, thoughts, or dialogue.`);
+        lines.push(`NEVER speak as any character other than ${speakerName}.`);
+        lines.push(`NEVER reference events or conversations not described below.`);
+        lines.push(`Stay in character at all times. Do not break the fourth wall.`);
+
+        // ── CHARACTER IDENTITY ──
         const charData = CHARACTER_DATA[speakerName];
         const hero = this.currentState.heroes[speakerName];
+        const servant = this.currentState.servants[speakerName];
 
+        lines.push(`\n[CHARACTER: ${speakerName}]`);
         if (charData) {
-            lines.push(`\n${speakerName}'s personality: ${charData.description}`);
+            lines.push(`Personality: ${charData.description}`);
             lines.push(`Traits: ${charData.traits.join(', ')}`);
+            if (charData.details) {
+                const detailParts = Object.entries(charData.details).map(([k, v]) => `${k}: ${v}`);
+                lines.push(`Details: ${detailParts.join(', ')}`);
+            }
         }
 
-        // Current conditioning state
+        // ── PERSONAL HISTORY (persistent memory across scenes) ──
+        const history = hero?.personalHistory || servant?.personalHistory;
+        if (history && history.trim()) {
+            lines.push(`\n[${speakerName.toUpperCase()}'S HISTORY]`);
+            lines.push(history.trim());
+        }
+
+        // ── CONDITIONING / SERVANT STATE ──
         if (hero) {
             const bw = hero.brainwashing;
             const tier = getConditioningTier(bw);
             lines.push(`\n[CONDITIONING STATE]`);
-            lines.push(`${speakerName} is a ${hero.heroClass}. Current conditioning: ${bw}/100 (${tier}).`);
-            lines.push(`Behavior: ${getTierBehaviorDescription(tier)}`);
+            lines.push(`${speakerName} is a ${hero.heroClass}. Brainwashing: ${bw}/100 (${tier}).`);
+            lines.push(`Current behavior: ${getTierBehaviorDescription(tier)}`);
+        } else if (servant) {
+            lines.push(`\n[SERVANT STATE]`);
+            lines.push(`${speakerName} is a converted servant (former ${servant.formerClass}).`);
+            lines.push(`Obedience: ${servant.obedience}/100. Love: ${servant.love}/100.`);
+            if (servant.obedience >= 80) {
+                lines.push(`${speakerName} is highly obedient and follows orders readily, finding comfort in serving.`);
+            } else if (servant.obedience >= 50) {
+                lines.push(`${speakerName} generally complies but may show occasional independence or mild pushback.`);
+            } else {
+                lines.push(`${speakerName} is still somewhat resistant and may challenge orders or show defiance.`);
+            }
+            if (servant.love >= 80) {
+                lines.push(`${speakerName} is deeply devoted and affectionate toward ${pcName}.`);
+            } else if (servant.love >= 50) {
+                lines.push(`${speakerName} has a growing fondness for ${pcName} but is not fully devoted.`);
+            } else {
+                lines.push(`${speakerName} has little personal attachment to ${pcName} yet.`);
+            }
         }
 
-        // Strategy context
+        // ── SCENE CONTEXT ──
+        const interpolatedText = step.text
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+        lines.push(`\n[CURRENT SCENE]`);
+        lines.push(interpolatedText);
+
+        // ── STRATEGY ──
         const strategy = event.conditioningStrategy ? CONDITIONING_STRATEGIES[event.conditioningStrategy] : null;
         if (strategy) {
             const stratContext = strategy.llmContext
@@ -3334,7 +3469,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             lines.push(`\n[APPROACH]: ${stratContext}`);
         }
 
-        // Recent action results — tell the LLM what just happened
+        // ── RECENT CONDITIONING ACTIONS ──
         const recentActions = event.actionResults.slice(-3);
         if (recentActions.length > 0) {
             lines.push(`\n[RECENT CONDITIONING ACTIONS]:`);
@@ -3368,27 +3503,32 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             }
         }
 
-        // Recent conversation context
+        // ── CONVERSATION (this session only) ──
         if (this._eventMessages.length > 0) {
-            const recent = this._eventMessages.slice(-10).filter(m => m.sender !== '\u00a7system');
-            if (recent.length > 0) {
-                lines.push('\nRecent conversation:');
-                for (const msg of recent) {
+            const msgs = this._eventMessages.filter(m => m.sender !== '\u00a7system');
+            if (msgs.length > 0) {
+                lines.push(`\n[CONVERSATION SO FAR]`);
+                for (const msg of msgs) {
                     lines.push(`${msg.sender}: ${msg.text}`);
                 }
             }
         }
 
-        lines.push(`\nRespond in character as ${speakerName}. Use first person. React based on personality and current conditioning state.`);
+        // ── RESPONSE INSTRUCTIONS ──
+        lines.push(`\n[RESPONSE INSTRUCTIONS]`);
+        lines.push(`Respond in character as ${speakerName}. Use first person.`);
+        lines.push(`React based on your personality and current conditioning/servant state.`);
         lines.push(`Keep responses conversational \u2014 1 to 3 paragraphs.`);
 
-        // Formatting rules
+        // ── TEXT FORMATTING RULES ──
         lines.push(`\n[TEXT FORMATTING RULES]`);
         lines.push(`- Wrap physical actions in single asterisks: *sighs heavily*`);
         lines.push(`- Wrap spoken dialogue in double quotes: "I can't resist..."`);
         lines.push(`- Narration is plain text without markers.`);
         lines.push(`- Do NOT use ** (double asterisks). Only single * for actions.`);
-        lines.push(`Do NOT output stat changes, system information, or break character.`);
+        lines.push(`- Do NOT output stat changes, system information, or break character.`);
+
+        lines.push(`\n${speakerName}:`);
 
         return lines.join('\n');
     }

@@ -160,6 +160,12 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [npcAlternatives, setNpcAlternatives] = useState<SceneMessage[]>([]);
     const [currentAltIndex, setCurrentAltIndex] = useState(0);
 
+    // ── Post-scene summary state ──
+    const [sceneSummary, setSceneSummary] = useState<string | null>(null);
+    const [summaryEditing, setSummaryEditing] = useState(false);
+    const [summaryText, setSummaryText] = useState('');
+    const [generatingSummary, setGeneratingSummary] = useState(false);
+
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
         return (
@@ -437,16 +443,61 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         stage().setEventMessages([...chatMessages.slice(0, -1), alt]);
     };
 
-    const handleEndChat = () => {
+    const handleEndChat = async () => {
+        // Save messages before ending (endEventChat clears them)
+        const messagesSnapshot = [...chatMessages];
+        const speakerName = chatPhase?.speaker
+            ? interpolate(chatPhase.speaker, event.target, pcName)
+            : null;
+
+        // Generate scene summary if there are messages and we know the speaker
+        if (messagesSnapshot.length > 0 && speakerName) {
+            setGeneratingSummary(true);
+            try {
+                const summary = await stage().generateSceneSummary(speakerName, messagesSnapshot);
+                if (summary) {
+                    setSceneSummary(summary);
+                    setSummaryText(summary);
+                }
+            } catch (e) {
+                console.error('[EventScreen] Summary generation failed:', e);
+            }
+            setGeneratingSummary(false);
+        }
+
         stage().endEventChat();
         const updated = stage().getActiveEvent();
         if (updated) {
-            if (currentStep.nextStep) {
-                const advanced = stage().advanceEvent();
-                onEventUpdate(advanced);
-            } else {
-                onEventUpdate(updated);
-            }
+            onEventUpdate(updated);
+        }
+    };
+
+    /** Accept the scene summary and save to character history */
+    const handleAcceptSummary = () => {
+        const speakerName = chatPhase?.speaker
+            ? interpolate(chatPhase.speaker, event.target, pcName)
+            : null;
+        if (speakerName && summaryText.trim()) {
+            stage().updateCharacterHistory(speakerName, summaryText.trim());
+        }
+        setSceneSummary(null);
+        setSummaryEditing(false);
+
+        // Now advance if there's a next step
+        if (currentStep.nextStep) {
+            const advanced = stage().advanceEvent();
+            onEventUpdate(advanced);
+        }
+    };
+
+    /** Skip saving the summary */
+    const handleSkipSummary = () => {
+        setSceneSummary(null);
+        setSummaryEditing(false);
+
+        if (currentStep.nextStep) {
+            const advanced = stage().advanceEvent();
+            onEventUpdate(advanced);
         }
     };
 
@@ -885,6 +936,63 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         </button>
                     </div>
                 )}
+            </div>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // POST-SCENE SUMMARY — shown after chat ends
+    // ═══════════════════════════════════════════
+    if ((sceneSummary !== null || generatingSummary) && chatCompleted) {
+        const speakerName = chatPhase?.speaker
+            ? interpolate(chatPhase.speaker, event.target, pcName)
+            : 'Character';
+        return (
+            <div className="event-screen">
+                <div className="event-header">
+                    <span className="event-header-icon"><GameIcon icon={def.icon} size={16} /></span>
+                    <span className="event-header-title">Scene Summary</span>
+                    <span className="event-header-target">— {speakerName}</span>
+                </div>
+                <div className="event-body fade-in">
+                    <div className="scene-summary-section">
+                        <p className="scene-summary-label">
+                            This summary will be added to {speakerName}'s memory:
+                        </p>
+                        {generatingSummary ? (
+                            <div className="scene-summary-loading">
+                                <TypingIndicator name={speakerName} avatar={''} />
+                                <span>Generating summary...</span>
+                            </div>
+                        ) : summaryEditing ? (
+                            <textarea
+                                className="scene-summary-textarea"
+                                value={summaryText}
+                                onChange={e => setSummaryText(e.target.value)}
+                                rows={5}
+                            />
+                        ) : (
+                            <div className="scene-summary-preview" onClick={() => setSummaryEditing(true)}>
+                                <FormattedText text={summaryText} />
+                                <span className="scene-summary-edit-hint">
+                                    <Pencil size={10} /> Click to edit
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="event-actions">
+                    {!generatingSummary && (
+                        <>
+                            <button className="event-btn event-btn-continue" onClick={handleAcceptSummary}>
+                                <Check size={12} /> Save & Continue
+                            </button>
+                            <button className="event-btn event-btn-choice" onClick={handleSkipSummary}>
+                                <X size={12} /> Skip
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
         );
     }

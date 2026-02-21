@@ -4595,6 +4595,175 @@ html, body, #root {
   }
 }
 
+// ── Scene Summary (post-chat) ──
+.scene-summary-section {
+  padding: 16px 20px;
+  background: rgba(25, 18, 32, 0.7);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  border-radius: 8px;
+  margin: 12px 0;
+
+  .scene-summary-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: rgba(200, 170, 110, 0.7);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .scene-summary-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(200, 170, 110, 0.5);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 12px 0;
+  }
+
+  .scene-summary-preview {
+    position: relative;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(200, 170, 110, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 9px;
+    color: rgba(220, 200, 170, 0.85);
+    line-height: 1.7;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: rgba(200, 170, 110, 0.3);
+    }
+
+    .scene-summary-edit-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 7px;
+      color: rgba(200, 170, 110, 0.35);
+    }
+  }
+
+  .scene-summary-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: rgba(220, 200, 170, 0.9);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(200, 170, 110, 0.25);
+    border-radius: 6px;
+    resize: vertical;
+    line-height: 1.7;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(200, 170, 110, 0.45);
+    }
+  }
+}
+
+// ── Character History (profile section) ──
+.char-history-section {
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .history-edit-btn {
+    background: none;
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    border-radius: 4px;
+    color: rgba(200, 170, 110, 0.5);
+    cursor: pointer;
+    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s;
+
+    &:hover {
+      color: rgba(200, 170, 110, 0.9);
+      border-color: rgba(200, 170, 110, 0.4);
+    }
+  }
+
+  .history-text {
+    font-size: 9px;
+    color: rgba(220, 200, 170, 0.7);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  .history-edit-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .history-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: rgba(220, 200, 170, 0.9);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    border-radius: 4px;
+    resize: vertical;
+    line-height: 1.7;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(200, 170, 110, 0.4);
+    }
+  }
+
+  .history-edit-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .history-save-btn,
+  .history-cancel-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+
+  .history-save-btn {
+    background: rgba(80, 200, 120, 0.15);
+    border: 1px solid rgba(80, 200, 120, 0.3);
+    color: rgba(80, 200, 120, 0.9);
+
+    &:hover {
+      background: rgba(80, 200, 120, 0.25);
+    }
+  }
+
+  .history-cancel-btn {
+    background: rgba(200, 80, 80, 0.1);
+    border: 1px solid rgba(200, 80, 80, 0.25);
+    color: rgba(200, 80, 80, 0.7);
+
+    &:hover {
+      background: rgba(200, 80, 80, 0.2);
+    }
+  }
+}
+
 .event-btn-chat {
   background: rgba(120, 90, 200, 0.15) !important;
   border: 1px solid rgba(120, 90, 200, 0.35) !important;
