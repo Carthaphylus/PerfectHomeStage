@@ -3618,7 +3618,18 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
 
         // ── ROLEPLAY DEPTH ──
-        lines.push(`\nPlay ${speakerName} as a real person, not a flat archetype. Show inner conflict, hesitation, humor, or vulnerability when appropriate. React to the situation naturally — not every response needs to be dramatic or defiant. Small gestures, pauses, and mixed feelings make the character feel alive.`);
+        if (hero) {
+            const bw = hero.brainwashing;
+            if (bw <= 40) {
+                lines.push(`\nPlay ${speakerName} as a real person, not a flat archetype. Show inner conflict, hesitation, humor, or vulnerability when appropriate. React to the situation naturally — not every response needs to be dramatic or defiant. Small gestures, pauses, and mixed feelings make the character feel alive.`);
+            } else if (bw <= 70) {
+                lines.push(`\nPlay ${speakerName} as someone whose sense of self is eroding. Their original personality still surfaces but it's muffled, uncertain. They may start a sentence defiantly and trail off into compliance. Show the CONFLICT between who they were and what they're becoming.`);
+            } else {
+                lines.push(`\n${speakerName}'s original personality has been largely overwritten by conditioning. Their old traits (${charData?.traits?.join(', ') || 'defiance, pride'}) are BURIED. They may surface as faint echoes — a hesitation, a distant memory — but ${speakerName} now DEFAULTS to submission, obedience, and seeking ${pcName}'s approval. Do NOT play them as defiant or resistant. Their conditioning is their dominant trait now.`);
+            }
+        } else {
+            lines.push(`\nPlay ${speakerName} as a real person, not a flat archetype. Show inner conflict, hesitation, humor, or vulnerability when appropriate. React to the situation naturally — not every response needs to be dramatic or defiant. Small gestures, pauses, and mixed feelings make the character feel alive.`);
+        }
 
         // ── PERSONAL HISTORY (persistent memory across scenes) ──
         const history = hero?.personalHistory || servant?.personalHistory;
@@ -3631,10 +3642,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (hero) {
             const bw = hero.brainwashing;
             const tier = getConditioningTier(bw);
-            lines.push(`\n[CONDITIONING STATE]`);
+            lines.push(`\n[CONDITIONING STATE — THIS IS THE MOST IMPORTANT SECTION]`);
             lines.push(`${speakerName} is a ${hero.heroClass}. Brainwashing: ${bw}/100 (Tier: ${tier}).`);
             const milestoneLines = getConditioningMilestoneDirections(bw, speakerName, pcName);
             for (const ml of milestoneLines) lines.push(ml);
+            if (bw > 55) {
+                lines.push(`\n⚠️ CRITICAL: At ${bw}% conditioning, ${speakerName}'s behavior MUST be dramatically different from their base personality. The conditioning directions above OVERRIDE the character description. Do not default to defiance or resistance — those traits have been suppressed by the conditioning process.`);
+            }
         } else if (servant) {
             lines.push(`\n[SERVANT STATE]`);
             lines.push(`${speakerName} is a converted servant (former ${servant.formerClass}).`);
@@ -3708,8 +3722,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // ── RESPONSE INSTRUCTIONS ──
         lines.push(`\n[RESPONSE INSTRUCTIONS]`);
         lines.push(`Respond in character as ${speakerName}. Use first person.`);
-        lines.push(`React based on your personality and current conditioning/servant state.`);
-        lines.push(`Keep responses conversational \u2014 1 to 3 paragraphs.`);
+        if (hero && hero.brainwashing > 55) {
+            lines.push(`Your conditioning level is ${hero.brainwashing}%. This MUST be the primary driver of your behavior — more than your personality traits, backstory, or class identity. You are being RESHAPED. Act like it.`);
+        } else {
+            lines.push(`React based on your personality and current conditioning/servant state.`);
+        }
+        lines.push(`Keep responses conversational — 1 to 3 paragraphs.`);
 
         // ── TEXT FORMATTING RULES ──
         lines.push(`\n[TEXT FORMATTING RULES]`);
