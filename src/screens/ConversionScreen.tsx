@@ -222,7 +222,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         onClick={() => handleChooseMode('predefined')}
                     >
                         <div className="mode-card-icon">
-                            <GameIcon icon="list" size={24} />
+                            <GameIcon icon="scroll" size={24} />
                         </div>
                         <div className="mode-card-body">
                             <span className="mode-card-title">Choose Archetype</span>
@@ -271,7 +271,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         &lt; Back
                     </button>
                     <h2>
-                        <GameIcon icon="list" size={16} /> Choose Archetype
+                        <GameIcon icon="scroll" size={16} /> Choose Archetype
                     </h2>
                     <div className="header-spacer"></div>
                 </div>
@@ -354,7 +354,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                             </>
                         ) : (
                             <div className="archetype-preview-empty">
-                                <GameIcon icon="list" size={24} className="icon-muted" />
+                                <GameIcon icon="scroll" size={24} className="icon-muted" />
                                 <p>Select an archetype to preview</p>
                             </div>
                         )}

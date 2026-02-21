@@ -7679,7 +7679,7 @@ html, body, #root {
 .icon-teal    { color: #26a69a; }
 
 // ═══════════════════════════════════════
-// CONVERSION SCREEN
+// CONVERSION SCREEN — Arcane Metamorphosis UI
 // ═══════════════════════════════════════
 
 .conversion-screen {
@@ -7688,8 +7688,44 @@ html, body, #root {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #0d0d0d;
-  overflow: hidden;
+  overflow: hidden !important;
+
+  // Rich dark base with subtle purple-gold gradient
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(120, 80, 200, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(200, 170, 110, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg,
+      rgba(22, 14, 30, 0.99) 0%,
+      rgba(18, 12, 24, 0.99) 40%,
+      rgba(14, 10, 20, 0.99) 100%
+    ) !important;
+
+  // Animated ambient particles via pseudo-element
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(2px 2px at 20% 30%, rgba(200, 170, 110, 0.15), transparent),
+      radial-gradient(2px 2px at 70% 20%, rgba(167, 139, 250, 0.12), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, rgba(200, 170, 110, 0.1), transparent),
+      radial-gradient(1.5px 1.5px at 85% 60%, rgba(167, 139, 250, 0.08), transparent),
+      radial-gradient(1px 1px at 55% 45%, rgba(251, 191, 36, 0.1), transparent);
+    animation: conversionAmbient 8s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // Everything above the bg layer
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@keyframes conversionAmbient {
+  0% { opacity: 0.4; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.05); }
 }
 
 .conversion-header {
@@ -7697,9 +7733,23 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: rgba(20, 18, 14, 0.95);
+  background:
+    linear-gradient(135deg, rgba(40, 25, 50, 0.95) 0%, rgba(30, 20, 38, 0.95) 50%, rgba(40, 25, 50, 0.95) 100%) !important;
   border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4), inset 0 -1px 0 rgba(200, 170, 110, 0.06);
   z-index: 10;
+  position: relative;
+
+  // Thin gold accent line at bottom
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3), transparent);
+  }
 
   h2 {
     font-size: 11px;
@@ -7709,6 +7759,7 @@ html, body, #root {
     align-items: center;
     gap: 6px;
     margin: 0;
+    text-shadow: 0 0 12px rgba(200, 170, 110, 0.3);
   }
 }
 
@@ -7716,67 +7767,75 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 20px 16px;
+  padding: 28px 20px 20px;
   text-align: center;
 
   h3 {
     font-size: 14px;
     font-family: 'Press Start 2P', monospace;
     color: #c8aa6e;
-    margin: 12px 0 8px;
+    margin: 14px 0 8px;
+    text-shadow: 0 0 16px rgba(200, 170, 110, 0.25);
   }
 }
 
 .conversion-intro-text {
   font-size: 11px;
-  color: rgba(200, 170, 110, 0.8);
-  line-height: 1.6;
-  max-width: 380px;
+  color: rgba(200, 170, 110, 0.75);
+  line-height: 1.7;
+  max-width: 400px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .conversion-intro-subtext {
   font-size: 10px;
-  color: rgba(200, 170, 110, 0.5);
-  margin-top: 4px;
+  color: rgba(200, 170, 110, 0.45);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
 }
 
 .conversion-portrait {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(200, 170, 110, 0.4);
+  overflow: visible;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid rgba(200, 170, 110, 0.5);
+    box-shadow: 0 0 20px rgba(120, 80, 200, 0.2), 0 0 40px rgba(200, 170, 110, 0.1);
   }
 }
 
 .conversion-portrait-glow {
   position: absolute;
-  inset: -4px;
+  inset: -6px;
   border-radius: 50%;
   border: 2px solid rgba(200, 170, 110, 0.3);
   animation: conversionPulse 2s ease-in-out infinite;
   pointer-events: none;
+  box-shadow: 0 0 15px rgba(120, 80, 200, 0.15);
 }
 
 .converting-glow {
   border-color: rgba(251, 191, 36, 0.5);
   animation: conversionPulse 1s ease-in-out infinite;
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.25);
 }
 
 .complete-glow {
   border-color: rgba(74, 222, 128, 0.5);
   animation: conversionPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
 }
 
 @keyframes conversionPulse {
   0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+  50% { opacity: 1; transform: scale(1.06); }
 }
 
 // ── Mode selection cards ──
@@ -7784,9 +7843,9 @@ html, body, #root {
 .conversion-mode-cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 20px 20px;
-  max-width: 420px;
+  gap: 12px;
+  padding: 0 20px 24px;
+  max-width: 440px;
   margin: 0 auto;
   width: 100%;
 }
@@ -7794,41 +7853,75 @@ html, body, #root {
 .conversion-mode-card {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  gap: 14px;
+  padding: 16px 18px;
   border-radius: 6px;
-  background: rgba(200, 170, 110, 0.05);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
   text-align: left;
+  position: relative;
+  overflow: hidden;
+
+  // Parchment-like base
+  background:
+    linear-gradient(160deg, rgba(200, 170, 110, 0.06) 0%, rgba(200, 170, 110, 0.02) 100%) !important;
+  border: 1px solid rgba(200, 170, 110, 0.18);
+
+  // Inner glow overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
 
   &:hover {
-    background: rgba(200, 170, 110, 0.12);
-    border-color: rgba(200, 170, 110, 0.4);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+    &::before { opacity: 1; }
   }
 
   &.mode-predefined {
-    border-color: rgba(167, 139, 250, 0.3);
-    &:hover { border-color: rgba(167, 139, 250, 0.6); background: rgba(167, 139, 250, 0.08); }
+    border-color: rgba(167, 139, 250, 0.25);
+    &::before {
+      background: radial-gradient(ellipse at 30% 50%, rgba(167, 139, 250, 0.08) 0%, transparent 70%);
+    }
+    &:hover {
+      border-color: rgba(167, 139, 250, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(167, 139, 250, 0.1);
+    }
+    .mode-card-icon { color: #a78bfa; }
+    .mode-card-title { color: #c4b5fd; }
   }
+
   &.mode-freeform {
-    border-color: rgba(56, 189, 248, 0.3);
-    &:hover { border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.08); }
+    border-color: rgba(56, 189, 248, 0.25);
+    &::before {
+      background: radial-gradient(ellipse at 30% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+    }
+    &:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(56, 189, 248, 0.1);
+    }
+    .mode-card-icon { color: #38bdf8; }
+    .mode-card-title { color: #7dd3fc; }
   }
 }
 
 .mode-card-icon {
-  color: #c8aa6e;
   flex-shrink: 0;
   margin-top: 2px;
+  filter: drop-shadow(0 0 6px currentColor);
 }
 
 .mode-card-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .mode-card-title {
@@ -7839,8 +7932,8 @@ html, body, #root {
 
 .mode-card-desc {
   font-size: 10px;
-  color: rgba(200, 180, 140, 0.6);
-  line-height: 1.5;
+  color: rgba(200, 180, 140, 0.55);
+  line-height: 1.6;
 }
 
 // ── Archetype picker layout ──
@@ -7848,60 +7941,97 @@ html, body, #root {
 .archetype-layout {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow: hidden !important;
   gap: 0;
+  background: rgba(0, 0, 0, 0.15) !important;
 }
 
 .archetype-list {
   flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-  border-right: 1px solid rgba(200, 170, 110, 0.1);
+  overflow-y: auto !important;
+  padding: 10px;
+  border-right: 1px solid rgba(200, 170, 110, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+
+  &::-webkit-scrollbar { width: 5px !important; }
+  &::-webkit-scrollbar-track { background: transparent !important; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(200, 170, 110, 0.2) !important;
+    border-radius: 3px;
+    &:hover { background: rgba(200, 170, 110, 0.35) !important; }
+  }
 }
 
 .archetype-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  &:last-child { margin-bottom: 0; }
 }
 
 .archetype-group-header {
-  font-size: 8px;
+  font-size: 7px;
   font-family: 'Press Start 2P', monospace;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   padding: 4px 8px;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   opacity: 0.8;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, currentColor, transparent);
+    opacity: 0.2;
+  }
 }
 
 .archetype-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   padding: 8px 10px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
   width: 100%;
-  background: none;
+  background: none !important;
+  position: relative;
 
   &:hover {
-    background: rgba(200, 170, 110, 0.06);
+    background: rgba(200, 170, 110, 0.06) !important;
     border-color: rgba(200, 170, 110, 0.15);
   }
 
   &.previewing {
-    background: rgba(200, 170, 110, 0.1);
+    background: rgba(200, 170, 110, 0.1) !important;
     border-color: rgba(200, 170, 110, 0.3);
+    box-shadow: inset 0 0 12px rgba(200, 170, 110, 0.05);
+
+    // Marker dot
+    &::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      border-radius: 2px;
+      background: rgba(200, 170, 110, 0.5);
+    }
   }
 }
 
 .archetype-row-icon {
   flex-shrink: 0;
   margin-top: 2px;
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
 .archetype-row-info {
@@ -7918,33 +8048,50 @@ html, body, #root {
 
 .archetype-row-desc {
   font-size: 9px;
-  color: rgba(200, 180, 140, 0.5);
+  color: rgba(200, 180, 140, 0.45);
   line-height: 1.4;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: hidden !important;
   text-overflow: ellipsis;
 }
 
 // ── Archetype preview panel ──
 
 .archetype-preview {
-  width: 260px;
-  overflow-y: auto;
-  padding: 16px;
+  width: 270px;
+  overflow-y: auto !important;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  background:
+    linear-gradient(180deg,
+      rgba(30, 20, 40, 0.6) 0%,
+      rgba(20, 14, 28, 0.4) 100%
+    ) !important;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+
+  &::-webkit-scrollbar { width: 4px !important; }
+  &::-webkit-scrollbar-track { background: transparent !important; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(200, 170, 110, 0.15) !important;
+    border-radius: 3px;
+  }
 }
 
 .archetype-preview-icon {
   margin-top: 10px;
+  filter: drop-shadow(0 0 8px currentColor);
 }
 
 .archetype-preview-name {
   font-size: 12px;
   font-family: 'Press Start 2P', monospace;
   margin: 0;
+  text-shadow: 0 0 12px currentColor;
 }
 
 .archetype-preview-category {
@@ -7958,50 +8105,64 @@ html, body, #root {
 
 .archetype-preview-desc {
   font-size: 10px;
-  color: rgba(200, 180, 140, 0.7);
+  color: rgba(200, 180, 140, 0.65);
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .archetype-preview-section {
   width: 100%;
 
   h4 {
-    font-size: 8px;
+    font-size: 7px;
     font-family: 'Press Start 2P', monospace;
-    color: rgba(200, 170, 110, 0.6);
-    margin: 8px 0 4px;
-    letter-spacing: 0.5px;
+    color: rgba(200, 170, 110, 0.5);
+    margin: 10px 0 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 1px;
+      margin-top: 3px;
+      background: linear-gradient(90deg, rgba(200, 170, 110, 0.15), transparent);
+    }
   }
 }
 
 .archetype-preview-personality {
   font-size: 9px;
-  color: rgba(200, 180, 140, 0.65);
-  line-height: 1.6;
-  background: rgba(200, 170, 110, 0.04);
-  padding: 8px;
+  color: rgba(200, 180, 140, 0.6);
+  line-height: 1.7;
+  background:
+    linear-gradient(135deg, rgba(200, 170, 110, 0.05) 0%, rgba(200, 170, 110, 0.02) 100%) !important;
+  padding: 10px;
   border-radius: 4px;
-  border-left: 2px solid rgba(200, 170, 110, 0.2);
+  border-left: 2px solid rgba(200, 170, 110, 0.25);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
 .archetype-preview-traits {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
 }
 
 .archetype-trait-chip {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 8px;
+  font-size: 7px;
   font-family: 'Press Start 2P', monospace;
   padding: 3px 8px;
   border-radius: 3px;
-  background: rgba(74, 222, 128, 0.12);
-  color: rgba(74, 222, 128, 0.9);
-  border: 1px solid rgba(74, 222, 128, 0.25);
+  background: rgba(74, 222, 128, 0.1) !important;
+  color: rgba(74, 222, 128, 0.85);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  text-shadow: 0 0 6px rgba(74, 222, 128, 0.15);
 }
 
 .archetype-preview-empty {
@@ -8010,32 +8171,40 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 10px;
+  gap: 12px;
 
   p {
     font-size: 9px;
-    color: rgba(200, 180, 140, 0.4);
+    color: rgba(200, 180, 140, 0.35);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
 }
 
 .archetype-select-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
+  margin-top: 14px;
+  padding: 10px 18px;
   border: 1px solid rgba(200, 170, 110, 0.4);
-  border-radius: 4px;
-  background: rgba(200, 170, 110, 0.15);
+  border-radius: 5px;
+  background: rgba(200, 170, 110, 0.12) !important;
   color: #fff;
-  font-size: 9px;
+  font-size: 8px;
   font-family: 'Press Start 2P', monospace;
   cursor: pointer;
   transition: all 0.25s;
   display: flex;
   align-items: center;
   gap: 6px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 
   &:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     filter: brightness(1.2);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 10px rgba(200, 170, 110, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -8050,7 +8219,7 @@ html, body, #root {
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
 }
 
-// ── Conversion loading ──
+// ═══ CONVERSION LOADING — Ritual in progress ═══
 
 .conversion-loading {
   display: flex;
@@ -8058,21 +8227,42 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 16px;
+  gap: 20px;
   padding: 40px;
   text-align: center;
+  position: relative;
+
+  // Ritual circle background
+  &::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(200, 170, 110, 0.08);
+    animation: ritualCircle 12s linear infinite;
+    box-shadow: 0 0 30px rgba(120, 80, 200, 0.05);
+    pointer-events: none;
+  }
 
   h3 {
     font-size: 12px;
     font-family: 'Press Start 2P', monospace;
     color: #c8aa6e;
+    text-shadow: 0 0 16px rgba(200, 170, 110, 0.4);
   }
+}
+
+@keyframes ritualCircle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .conversion-loading-text {
   font-size: 10px;
-  color: rgba(200, 170, 110, 0.6);
-  line-height: 1.6;
+  color: rgba(200, 170, 110, 0.55);
+  line-height: 1.7;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .conversion-spinner {
@@ -8086,15 +8276,16 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   flex: 1;
-  padding: 24px 20px;
-  gap: 10px;
-  overflow-y: auto;
+  padding: 28px 20px;
+  gap: 12px;
+  overflow-y: auto !important;
 
   h3 {
     font-size: 14px;
     font-family: 'Press Start 2P', monospace;
     color: #c8aa6e;
-    margin: 8px 0 4px;
+    margin: 10px 0 4px;
+    text-shadow: 0 0 16px rgba(200, 170, 110, 0.3);
   }
 }
 
@@ -8102,33 +8293,46 @@ html, body, #root {
   font-size: 8px;
   font-family: 'Press Start 2P', monospace;
   color: rgba(251, 191, 36, 0.9);
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  padding: 3px 10px;
+  background: rgba(251, 191, 36, 0.08) !important;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  padding: 4px 12px;
   border-radius: 3px;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
 }
 
 .conversion-result-section {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 
   h4 {
-    font-size: 8px;
+    font-size: 7px;
     font-family: 'Press Start 2P', monospace;
-    color: rgba(200, 170, 110, 0.6);
-    margin: 12px 0 6px;
-    letter-spacing: 0.5px;
+    color: rgba(200, 170, 110, 0.5);
+    margin: 14px 0 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 1px;
+      margin-top: 3px;
+      background: linear-gradient(90deg, rgba(200, 170, 110, 0.15), transparent);
+    }
   }
 }
 
 .conversion-result-description {
   font-size: 10px;
-  color: rgba(200, 180, 140, 0.75);
-  line-height: 1.6;
-  background: rgba(200, 170, 110, 0.04);
-  padding: 10px;
+  color: rgba(200, 180, 140, 0.7);
+  line-height: 1.7;
+  background:
+    linear-gradient(135deg, rgba(200, 170, 110, 0.05) 0%, rgba(200, 170, 110, 0.02) 100%) !important;
+  padding: 12px;
   border-radius: 4px;
-  border-left: 2px solid rgba(74, 222, 128, 0.4);
+  border-left: 2px solid rgba(74, 222, 128, 0.35);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
 .conversion-result-traits {
@@ -8139,11 +8343,12 @@ html, body, #root {
 
 .conversion-result-subtext {
   font-size: 9px;
-  color: rgba(200, 170, 110, 0.5);
-  margin-top: 8px;
+  color: rgba(200, 170, 110, 0.45);
+  margin-top: 10px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-// ── Conversion-ready button state ──
+// \u2500\u2500 Conversion-ready button state \u2500\u2500
 .captive-convert-btn.conversion-ready {
   opacity: 1 !important;
   cursor: pointer !important;
