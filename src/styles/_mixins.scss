@@ -1,0 +1,80 @@
+// ──────────────────────────────────────────
+// SCSS Mixins — Shared patterns extracted from index.scss
+// ──────────────────────────────────────────
+
+/// Hide scrollbar completely (Firefox + Webkit)
+@mixin hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/// Thin styled scrollbar with gold-tinted thumb
+/// @param {Length} $width - Scrollbar width (default 4px)
+/// @param {Color} $thumb - Thumb color
+/// @param {Color} $track - Track color
+/// @param {Length} $radius - Border radius
+@mixin styled-scrollbar(
+  $width: 4px,
+  $thumb: rgba(200, 170, 110, 0.15),
+  $track: transparent,
+  $radius: 3px
+) {
+  scrollbar-width: thin;
+  scrollbar-color: $thumb $track;
+
+  &::-webkit-scrollbar {
+    width: $width;
+  }
+  &::-webkit-scrollbar-track {
+    background: $track;
+    border-radius: $radius;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $thumb;
+    border-radius: $radius;
+  }
+}
+
+/// Parchment-style dark background gradient
+/// @param {Number} $opacity - Base layer opacity (0-1)
+/// @param {Number} $texture-alpha - Texture overlay alpha
+@mixin parchment-bg($opacity: 0.98, $texture-alpha: 0.03) {
+  background:
+    linear-gradient(135deg, rgba(240, 230, 210, $texture-alpha) 25%, transparent 25%),
+    linear-gradient(180deg, rgba(45, 35, 50, $opacity) 0%, rgba(38, 28, 42, $opacity) 100%);
+}
+
+/// Skit text formatting classes (action, dialogue, narration)
+/// @param {Color} $dialogue-color - Color for dialogue text
+@mixin skit-text-formatting($dialogue-color: var(--char-color, var(--highlight))) {
+  .skit-fmt-action {
+    color: rgba(200, 180, 140, 0.55);
+    font-style: italic;
+  }
+  .skit-fmt-dialogue {
+    color: $dialogue-color;
+    font-weight: bold;
+  }
+  .skit-fmt-narration {
+    color: var(--text-primary);
+  }
+}
+
+/// Typing indicator dots
+/// @param {Length} $size - Dot diameter
+@mixin typing-dots($size: 6px) {
+  display: inline-block;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: var(--char-color, rgba(200, 170, 110, 0.6));
+  opacity: 0.4;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+
+  &:nth-child(1) { animation-delay: 0s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.4s; }
+}

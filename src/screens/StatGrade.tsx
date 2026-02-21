@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { numberToGrade, getGradeColor, StatGrade as StatGradeType, StatName, STAT_DEFINITIONS } from '../Stage';
+import { numberToGrade, getGradeColor, StatGrade as StatGradeType, StatName, STAT_DEFINITIONS } from '../data';
 
 export interface StatGradeProps {
     /** The name of the stat (e.g., 'prowess', 'expertise') */

@@ -1,3 +1,4 @@
+@use './styles/mixins' as *;
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -901,11 +902,7 @@ html, body, #root {
       overflow-y: scroll !important;
       padding-right: 4px;
       flex-shrink: 1;
-      scrollbar-width: none;
-      
-      &::-webkit-scrollbar {
-        display: none;
-      }
+      @include hide-scrollbar;
       
       .room-list-item {
         display: flex;
@@ -1177,11 +1174,7 @@ html, body, #root {
       min-height: 0;
       overflow-y: scroll !important;
       padding-right: 4px;
-      scrollbar-width: none;
-
-      &::-webkit-scrollbar {
-        display: none;
-      }
+      @include hide-scrollbar;
     }
     
     &.visible {
@@ -2739,19 +2732,7 @@ html, body, #root {
     // ========================================
     // TEXT FORMATTING STYLES
     // ========================================
-    .skit-fmt-action {
-      color: rgba(200, 180, 140, 0.55);
-      font-style: italic;
-    }
-
-    .skit-fmt-dialogue {
-      color: var(--char-color, var(--highlight));
-      font-weight: bold;
-    }
-
-    .skit-fmt-narration {
-      color: var(--text-primary);
-    }
+    @include skit-text-formatting(var(--char-color, var(--highlight)));
 
     // Player messages: dialogue uses player gold, actions same muted
     .skit-msg-player {
@@ -2776,17 +2757,7 @@ html, body, #root {
     }
 
     .typing-dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--char-color, rgba(200, 170, 110, 0.6));
-      opacity: 0.4;
-      animation: typingBounce 1.4s infinite ease-in-out both;
-
-      &:nth-child(1) { animation-delay: 0s; }
-      &:nth-child(2) { animation-delay: 0.2s; }
-      &:nth-child(3) { animation-delay: 0.4s; }
+      @include typing-dots(6px);
     }
 
     @keyframes typingBounce {
@@ -3004,17 +2975,7 @@ html, body, #root {
       padding-top: 6px;
 
       .typing-dot {
-        display: inline-block;
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--char-color, rgba(200, 170, 110, 0.6));
-        opacity: 0.4;
-        animation: typingBounce 1.4s infinite ease-in-out both;
-
-        &:nth-child(1) { animation-delay: 0s; }
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.4s; }
+        @include typing-dots(5px);
       }
     }
 
@@ -3026,17 +2987,7 @@ html, body, #root {
       padding: 8px 0;
 
       .typing-dot {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--char-color, rgba(200, 170, 110, 0.6));
-        opacity: 0.4;
-        animation: typingBounce 1.4s infinite ease-in-out both;
-
-        &:nth-child(1) { animation-delay: 0s; }
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.4s; }
+        @include typing-dots(6px);
       }
     }
 
@@ -3157,19 +3108,7 @@ html, body, #root {
     }
 
     // Text formatting in VN
-    .skit-fmt-action {
-      color: rgba(200, 180, 140, 0.55);
-      font-style: italic;
-    }
-
-    .skit-fmt-dialogue {
-      color: var(--speaker-color, var(--char-color, var(--highlight)));
-      font-weight: bold;
-    }
-
-    .skit-fmt-narration {
-      color: var(--text-primary);
-    }
+    @include skit-text-formatting(var(--speaker-color, var(--char-color, var(--highlight))));
 
     // Override dialogue color when player is speaking
     .vn-textbox-inner.vn-speaker-pc {
@@ -7234,426 +7173,6 @@ html, body, #root {
   }
 }
 
-// Perfect Home Stage Styling
-.perfect-home-stage {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: #e0e0e0;
-  padding: 12px;
-  box-sizing: border-box;
-  overflow-y: auto !important;
-
-  .stage-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid rgba(200, 170, 110, 0.15);
-
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: bold;
-      color: #c8aa6e;
-    }
-
-    .location-badge {
-      background: rgba(200, 170, 110, 0.12);
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #dcbe82;
-    }
-  }
-
-  .stage-content {
-    flex: 1;
-    overflow-y: auto !important;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .stage-footer {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(200, 170, 110, 0.12);
-    text-align: center;
-    color: #999;
-    font-size: 12px;
-  }
-
-  // Panel Styles
-  .stat-panel, .hero-panel, .servant-panel, .manor-panel, .inventory-panel, .dungeon-panel {
-    background: rgba(25, 18, 30, 0.6) !important;
-    border: 1px solid rgba(200, 170, 110, 0.15);
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 12px;
-
-    h2 {
-      margin: 0 0 12px 0;
-      font-size: 18px;
-      color: #c8aa6e;
-      border-bottom: 1px solid rgba(200, 170, 110, 0.12);
-      padding-bottom: 8px;
-    }
-
-    .empty-message {
-      color: #777;
-      font-style: italic;
-      margin: 8px 0;
-    }
-  }
-
-  // Stat Panel
-  .stat-panel {
-    .stat-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 12px;
-
-      .stat-label {
-        min-width: 120px;
-        font-weight: 500;
-        color: #c8aa6e;
-      }
-
-      .stat-value {
-        font-weight: bold;
-        color: #ffd700;
-      }
-
-      .stat-bar {
-        flex: 1;
-        height: 20px;
-        background: rgba(0, 0, 0, 0.3) !important;
-        border-radius: 10px;
-        position: relative;
-        overflow: hidden !important;
-
-        .stat-fill {
-          height: 100%;
-          transition: width 0.3s ease;
-          border-radius: 10px;
-
-          &.health {
-            background: linear-gradient(90deg, #e74c3c, #c0392b) !important;
-          }
-
-          &.mana {
-            background: linear-gradient(90deg, #3498db, #2980b9) !important;
-          }
-
-          &.corruption {
-            background: linear-gradient(90deg, #c8aa6e, #8a7030) !important;
-          }
-
-          &.influence {
-            background: linear-gradient(90deg, #f39c12, #e67e22) !important;
-          }
-        }
-
-        .stat-text {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 12px;
-          font-weight: bold;
-          color: #fff;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        }
-      }
-    }
-  }
-
-  // Hero Panel
-  .hero-panel {
-    .hero-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .hero-card {
-      background: rgba(200, 170, 110, 0.06) !important;
-      border-left: 3px solid #8a7030;
-      padding: 10px;
-      border-radius: 6px;
-
-      &.status-free {
-        border-left-color: #95a5a6;
-      }
-
-      &.status-encountered {
-        border-left-color: #3498db;
-      }
-
-      &.status-captured {
-        border-left-color: #e74c3c;
-      }
-
-      &.status-converting {
-        border-left-color: #c8aa6e;
-      }
-
-      &.status-servant {
-        border-left-color: #2ecc71;
-      }
-
-      .hero-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-
-        .hero-name {
-          font-weight: bold;
-          font-size: 15px;
-          color: #e0e0e0;
-        }
-
-        .hero-status {
-          font-size: 12px;
-          color: #c8aa6e;
-          text-transform: capitalize;
-        }
-      }
-
-      .conversion-progress {
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .progress-bar {
-          flex: 1;
-          height: 16px;
-          background: rgba(0, 0, 0, 0.3) !important;
-          border-radius: 8px;
-          overflow: hidden !important;
-
-          .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #c8aa6e, #8a7030) !important;
-            transition: width 0.3s ease;
-          }
-        }
-
-        .progress-text {
-          font-size: 12px;
-          color: #c8aa6e;
-          min-width: 35px;
-        }
-      }
-
-      .hero-location {
-        margin-top: 6px;
-        font-size: 12px;
-        color: #888;
-      }
-    }
-  }
-
-  // Servant Panel
-  .servant-panel {
-    .servant-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .servant-card {
-      background: rgba(200, 170, 110, 0.05) !important;
-      border-left: 3px solid #2ecc71;
-      padding: 10px;
-      border-radius: 6px;
-
-      .servant-name {
-        font-weight: bold;
-        font-size: 15px;
-        color: #e0e0e0;
-        margin-bottom: 4px;
-      }
-
-      .servant-class {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 6px;
-      }
-
-      .loyalty-bar {
-        height: 16px;
-        background: rgba(0, 0, 0, 0.3) !important;
-        border-radius: 8px;
-        position: relative;
-        overflow: hidden !important;
-        margin-bottom: 6px;
-
-        .loyalty-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #2ecc71, #27ae60) !important;
-          transition: width 0.3s ease;
-        }
-
-        .loyalty-text {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 11px;
-          font-weight: bold;
-          color: #fff;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        }
-      }
-
-      .servant-task {
-        font-size: 12px;
-        color: #95a5a6;
-      }
-    }
-  }
-
-  // Manor Panel
-  .manor-panel {
-    .manor-upgrades {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .upgrade-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px;
-      background: rgba(200, 170, 110, 0.05) !important;
-      border-radius: 4px;
-
-      .upgrade-name {
-        color: #e0e0e0;
-      }
-
-      .upgrade-level {
-        color: #f39c12;
-        font-weight: bold;
-      }
-    }
-  }
-
-  // Inventory Panel
-  .inventory-panel {
-    .inventory-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 8px;
-    }
-
-    .inventory-item {
-      background: rgba(200, 170, 110, 0.06) !important;
-      padding: 8px;
-      border-radius: 6px;
-      text-align: center;
-      border: 1px solid rgba(200, 170, 110, 0.12);
-
-      .item-name {
-        display: block;
-        font-size: 13px;
-        color: #e0e0e0;
-        margin-bottom: 4px;
-      }
-
-      .item-quantity {
-        display: block;
-        font-size: 12px;
-        color: #f39c12;
-        font-weight: bold;
-      }
-    }
-  }
-
-  // Dungeon Panel
-  .dungeon-panel {
-    .dungeon-info {
-      .floor-info {
-        font-size: 16px;
-        font-weight: bold;
-        color: #e74c3c;
-        margin-bottom: 8px;
-      }
-
-      .boss-info {
-        font-size: 14px;
-        color: #95a5a6;
-      }
-    }
-  }
-
-  // Light Theme
-  &.theme-light {
-    color: #333;
-
-    .stage-header h1 {
-      color: #6b4ba8;
-    }
-
-    .location-badge {
-      background: rgba(200, 170, 110, 0.08);
-      color: #6b4ba8;
-    }
-
-    .stat-panel, .hero-panel, .servant-panel, .manor-panel, .inventory-panel, .dungeon-panel {
-      background: rgba(255, 255, 255, 0.8) !important;
-      
-      h2 {
-        color: #6b4ba8;
-      }
-    }
-  }
-
-  // Purple Theme (hypnotic)
-  &.theme-purple {
-    .stage-header {
-      border-bottom-color: rgba(200, 170, 110, 0.3);
-    }
-
-    .stat-panel, .hero-panel, .servant-panel, .manor-panel, .inventory-panel, .dungeon-panel {
-      background: rgba(45, 35, 50, 0.7) !important;
-      border-color: rgba(200, 170, 110, 0.3);
-    }
-  }
-
-  // Compact Mode
-  &.compact {
-    padding: 8px;
-
-    .stage-header h1 {
-      font-size: 20px;
-    }
-
-    .stat-panel, .hero-panel, .servant-panel, .manor-panel, .inventory-panel, .dungeon-panel {
-      padding: 8px;
-      margin-bottom: 8px;
-
-      h2 {
-        font-size: 16px;
-        margin-bottom: 8px;
-      }
-    }
-
-    .stat-row {
-      margin-bottom: 6px !important;
-    }
-  }
-}
-
 // ============================================================================
 // Game Icon Utility Classes
 // ============================================================================
@@ -7760,6 +7279,24 @@ html, body, #root {
     gap: 6px;
     margin: 0;
     text-shadow: 0 0 12px rgba(200, 170, 110, 0.3);
+  }
+
+  .back-button {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: rgba(200, 170, 110, 0.75);
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(200, 170, 110, 0.06) !important;
+
+    &:hover {
+      color: #c8aa6e;
+      border-color: rgba(200, 170, 110, 0.4);
+      background: rgba(200, 170, 110, 0.12) !important;
+    }
   }
 }
 

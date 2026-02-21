@@ -3,7 +3,7 @@ import { ScreenType } from './BaseScreen';
 import { Stage, Hero } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
 import { GameIcon } from './GameIcon';
-import { Pencil, Check, X, Sparkles, RotateCcw } from 'lucide-react';
+import { CharacterEditor } from './CharacterEditor';
 
 interface HeroesScreenProps {
     stage: () => Stage;
@@ -16,11 +16,6 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
     // Only show free and encountered heroes — captured/converting go to Captives screen
     const heroes = allHeroes.filter(h => h.status === 'free' || h.status === 'encountered');
     const [selectedHero, setSelectedHero] = useState<Hero | null>(null);
-    const [editingHistory, setEditingHistory] = useState(false);
-    const [historyDraft, setHistoryDraft] = useState('');
-    const [editingBackstory, setEditingBackstory] = useState(false);
-    const [backstoryDraft, setBackstoryDraft] = useState('');
-    const [generatingBackstory, setGeneratingBackstory] = useState(false);
 
     const debugCapture = (heroName: string) => {
         const hero = stage().currentState.heroes[heroName];
@@ -67,124 +62,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                                 </div>
                             </div>
                         )}
-                        <div className="char-bio-section char-backstory-section">
-                            <h4>
-                                Backstory
-                                {!editingBackstory && (
-                                    <>
-                                        <button
-                                            className="history-edit-btn"
-                                            onClick={() => {
-                                                setBackstoryDraft(stage().getCharacterBackstory(h.name));
-                                                setEditingBackstory(true);
-                                            }}
-                                            title="Edit backstory"
-                                        >
-                                            <Pencil size={10} />
-                                        </button>
-                                        <button
-                                            className="history-edit-btn backstory-gen-btn"
-                                            disabled={generatingBackstory}
-                                            onClick={async () => {
-                                                setGeneratingBackstory(true);
-                                                const result = await stage().generateCharacterBackstory(h.name);
-                                                if (result) {
-                                                    stage().setCharacterBackstory(h.name, result);
-                                                    forceUpdate(n => n + 1);
-                                                }
-                                                setGeneratingBackstory(false);
-                                            }}
-                                            title={stage().getCharacterBackstory(h.name) ? 'Regenerate backstory' : 'Generate backstory'}
-                                        >
-                                            {generatingBackstory ? <RotateCcw size={10} className="spin" /> : <Sparkles size={10} />}
-                                        </button>
-                                    </>
-                                )}
-                            </h4>
-                            {editingBackstory ? (
-                                <div className="history-edit-container">
-                                    <textarea
-                                        className="history-textarea"
-                                        value={backstoryDraft}
-                                        onChange={e => setBackstoryDraft(e.target.value)}
-                                        rows={5}
-                                        placeholder="No backstory yet — click the sparkle icon to generate one."
-                                    />
-                                    <div className="history-edit-actions">
-                                        <button
-                                            className="history-save-btn"
-                                            onClick={() => {
-                                                stage().setCharacterBackstory(h.name, backstoryDraft);
-                                                setEditingBackstory(false);
-                                                forceUpdate(n => n + 1);
-                                            }}
-                                        >
-                                            <Check size={10} /> Save
-                                        </button>
-                                        <button
-                                            className="history-cancel-btn"
-                                            onClick={() => setEditingBackstory(false)}
-                                        >
-                                            <X size={10} /> Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="history-text">
-                                    {stage().getCharacterBackstory(h.name) || 'No backstory yet — click ✦ to generate one.'}
-                                </p>
-                            )}
-                        </div>
-                        <div className="char-bio-section char-history-section">
-                            <h4>
-                                History
-                                {!editingHistory && (
-                                    <button
-                                        className="history-edit-btn"
-                                        onClick={() => {
-                                            setHistoryDraft(stage().getCharacterHistory(h.name));
-                                            setEditingHistory(true);
-                                        }}
-                                        title="Edit history"
-                                    >
-                                        <Pencil size={10} />
-                                    </button>
-                                )}
-                            </h4>
-                            {editingHistory ? (
-                                <div className="history-edit-container">
-                                    <textarea
-                                        className="history-textarea"
-                                        value={historyDraft}
-                                        onChange={e => setHistoryDraft(e.target.value)}
-                                        rows={5}
-                                        placeholder="No history recorded yet..."
-                                    />
-                                    <div className="history-edit-actions">
-                                        <button
-                                            className="history-save-btn"
-                                            onClick={() => {
-                                                stage().setCharacterHistory(h.name, historyDraft);
-                                                setEditingHistory(false);
-                                                forceUpdate(n => n + 1);
-                                            }}
-                                        >
-                                            <Check size={10} /> Save
-                                        </button>
-                                        <button
-                                            className="history-cancel-btn"
-                                            onClick={() => setEditingHistory(false)}
-                                        >
-                                            <X size={10} /> Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="history-text">
-                                    {stage().getCharacterHistory(h.name) || 'No history recorded yet.'}
-                                </p>
-                            )}
-                        </div>
+                        <CharacterEditor stage={stage} characterName={h.name} className="char-bio-section" onChange={() => forceUpdate(n => n + 1)} />
                         <div className="char-bio-section debug-section">
                             <h4><GameIcon icon="settings" size={12} /> Debug</h4>
                             <button className="debug-btn debug-capture" onClick={() => debugCapture(h.name)}><GameIcon icon="link" size={12} /> Capture</button>

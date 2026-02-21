@@ -162,17 +162,26 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 'Bedroom': {
                     name: 'Bedroom',
                     level: 2,
+                    maxLevel: 5,
                     description: 'Your personal quarters',
+                    cost: 50,
+                    effect: '+2 Comfort',
                 },
                 'Kitchen': {
                     name: 'Kitchen',
                     level: 1,
+                    maxLevel: 3,
                     description: 'For preparing meals',
+                    cost: 30,
+                    effect: '+1 Morale',
                 },
                 'Dungeon': {
                     name: 'Dungeon',
                     level: 3,
+                    maxLevel: 5,
                     description: 'Where you keep your captives',
+                    cost: 100,
+                    effect: '+3 Interrogation',
                 },
             },
             dungeonProgress: {

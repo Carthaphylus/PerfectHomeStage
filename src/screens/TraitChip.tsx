@@ -1,6 +1,6 @@
 import React, { FC, useState, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { getTraitDefinition, TraitScope } from '../Stage';
+import { getTraitDefinition, TraitScope } from '../data';
 import { GameIcon } from './GameIcon';
 
 interface TraitChipProps {

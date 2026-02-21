@@ -18,8 +18,8 @@ import {
     Diamond, ArrowLeftRight, Users, Zap, CircleDot,
     // Scene
     Footprints, ShieldAlert, HeartCrack, LockKeyhole, Orbit, Flame,
-    // Conversion
-    List, ScrollText,
+    // Conversion & Archetypes
+    List, ScrollText, Shield, ScanEye, Ghost,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -111,9 +111,12 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     'shield-alert': ShieldAlert,
     'lock-keyhole': LockKeyhole,
 
-    // ── Conversion ──
+    // ── Conversion & Archetypes ──
     list: List,
     scroll: ScrollText,
+    shield: Shield,
+    'scan-eye': ScanEye,
+    ghost: Ghost,
 };
 
 export interface GameIconProps {
