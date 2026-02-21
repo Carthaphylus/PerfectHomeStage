@@ -432,8 +432,8 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             </span>
                             <span className="conditioning-bw-value">{Math.round(targetBrainwashing)}%</span>
                             {event.conditioningStrategy && CONDITIONING_STRATEGIES[event.conditioningStrategy] && (
-                                <span className="conditioning-strategy-badge">
-                                    {CONDITIONING_STRATEGIES[event.conditioningStrategy].icon}{' '}
+                                <span className="conditioning-strategy-badge" style={{ color: CONDITIONING_STRATEGIES[event.conditioningStrategy].color }}>
+                                    <GameIcon icon={CONDITIONING_STRATEGIES[event.conditioningStrategy].icon} size={10} />{' '}
                                     {CONDITIONING_STRATEGIES[event.conditioningStrategy].label}
                                 </span>
                             )}

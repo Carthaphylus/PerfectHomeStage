@@ -4969,6 +4969,7 @@ html, body, #root {
   border-radius: 6px;
   font-family: 'Press Start 2P', monospace;
   font-size: 6px;
+  flex-shrink: 0;
   animation: actionResultSlide 0.3s ease;
 
   &.success {
