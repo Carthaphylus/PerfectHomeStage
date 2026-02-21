@@ -3031,8 +3031,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const event = this._activeEvent;
         const eventName = event ? this._eventRegistry[event.definitionId]?.name || 'a scene' : 'a scene';
 
+        // Look up gender for correct pronoun usage
+        const charData = CHARACTER_DATA[characterName];
+        const pcData = CHARACTER_DATA[pcName];
+        const charGender = charData?.details?.['Gender'] || 'unknown';
+        const pcGender = pcData?.details?.['Gender'] || 'unknown';
+
         const prompt = [
             `[SYSTEM] You are a concise note-taker. Summarize the following scene between ${pcName} and ${characterName} during "${eventName}".`,
+            `${pcName} is ${pcGender}. ${characterName} is ${charGender}.`,
+            `Use the CORRECT pronouns based on each character's gender. Do NOT mix up pronouns.`,
             `Write 2-4 sentences capturing: what happened, how ${characterName} felt/reacted, any important developments.`,
             `Use third person and past tense. Do NOT add commentary or speculation.`,
             `\n[CONVERSATION]:`,
