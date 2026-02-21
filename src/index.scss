@@ -2410,15 +2410,19 @@ html, body, #root {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 3px 8px;
+        padding: 4px 10px;
         margin-bottom: 4px;
         border-radius: 4px;
-        background: rgba(200, 170, 110, 0.08);
+        background:
+          linear-gradient(135deg, rgba(60, 40, 30, 0.5) 0%, rgba(45, 30, 40, 0.6) 100%);
         border: 1px solid rgba(200, 170, 110, 0.2);
         animation: attachSlide 0.2s ease;
 
         .attached-action-icon {
-          font-size: 12px;
+          display: flex;
+          align-items: center;
+          color: rgba(200, 170, 110, 0.85);
+          filter: drop-shadow(0 0 3px rgba(200, 170, 110, 0.3));
         }
 
         .attached-action-name {
@@ -2453,29 +2457,29 @@ html, body, #root {
         }
 
         // Category colors for attached tag
-        &.category-hypnosis {
+        &.category-enchantment {
           border-color: rgba(160, 100, 240, 0.3);
-          background: rgba(160, 100, 240, 0.08);
+          background: linear-gradient(135deg, rgba(160, 100, 240, 0.1) 0%, rgba(45, 30, 50, 0.6) 100%);
           .attached-action-name { color: rgba(180, 140, 255, 0.9); }
         }
-        &.category-social {
+        &.category-hex {
           border-color: rgba(100, 180, 240, 0.3);
-          background: rgba(100, 180, 240, 0.08);
+          background: linear-gradient(135deg, rgba(100, 180, 240, 0.1) 0%, rgba(30, 40, 50, 0.6) 100%);
           .attached-action-name { color: rgba(130, 200, 255, 0.9); }
         }
-        &.category-physical {
+        &.category-binding {
           border-color: rgba(240, 100, 100, 0.3);
-          background: rgba(240, 100, 100, 0.08);
+          background: linear-gradient(135deg, rgba(240, 100, 100, 0.1) 0%, rgba(50, 30, 30, 0.6) 100%);
           .attached-action-name { color: rgba(255, 140, 140, 0.9); }
         }
         &.category-alchemy {
           border-color: rgba(100, 200, 140, 0.3);
-          background: rgba(100, 200, 140, 0.08);
+          background: linear-gradient(135deg, rgba(100, 200, 140, 0.1) 0%, rgba(30, 50, 40, 0.6) 100%);
           .attached-action-name { color: rgba(130, 220, 160, 0.9); }
         }
-        &.category-reward {
+        &.category-beguile {
           border-color: rgba(240, 180, 100, 0.3);
-          background: rgba(240, 180, 100, 0.08);
+          background: linear-gradient(135deg, rgba(240, 180, 100, 0.1) 0%, rgba(50, 40, 30, 0.6) 100%);
           .attached-action-name { color: rgba(255, 200, 130, 0.9); }
         }
       }
@@ -4449,31 +4453,35 @@ html, body, #root {
   }
 }
 
-// Conditioning Actions Panel (collapsible, below conversation)
-.conditioning-actions-panel {
+// ═══════════════════════════════════════════
+// Grimoire Panel — Spell Tome Action Selector
+// ═══════════════════════════════════════════
+.grimoire-panel {
   position: relative;
   z-index: 5;
-  background: rgba(25, 18, 32, 0.92);
-  border-top: 1px solid rgba(200, 170, 110, 0.12);
+  flex-shrink: 0;
+  border-top: 1px solid rgba(200, 170, 110, 0.08);
   transition: max-height 0.3s ease;
 
   &.collapsed {
-    .conditioning-actions-grid {
+    .grimoire-pages {
       display: none;
     }
   }
 
-  .conditioning-panel-toggle {
+  .grimoire-toggle {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 6px 16px;
-    background: rgba(200, 170, 110, 0.06);
+    background:
+      linear-gradient(135deg, rgba(60, 40, 30, 0.6) 0%, rgba(45, 30, 40, 0.7) 50%, rgba(60, 40, 30, 0.6) 100%);
     border: none;
-    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
-    color: rgba(200, 170, 110, 0.7);
+    border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+    border-top: 1px solid rgba(200, 170, 110, 0.1);
+    color: rgba(200, 170, 110, 0.85);
     font-family: 'Press Start 2P', monospace;
     font-size: 7px;
     cursor: pointer;
@@ -4481,95 +4489,178 @@ html, body, #root {
     letter-spacing: 0.5px;
 
     &:hover {
-      background: rgba(200, 170, 110, 0.12);
-      color: rgba(200, 170, 110, 0.9);
+      background:
+        linear-gradient(135deg, rgba(80, 55, 35, 0.7) 0%, rgba(60, 40, 50, 0.8) 50%, rgba(80, 55, 35, 0.7) 100%);
+      color: rgba(220, 190, 120, 1);
     }
 
-    .conditioning-panel-count {
-      font-size: 6px;
+    .grimoire-toggle-icon {
+      font-size: 12px;
+    }
+
+    .grimoire-toggle-label {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .grimoire-toggle-count {
+      font-size: 5.5px;
       color: rgba(180, 160, 240, 0.6);
+      margin-left: 4px;
+    }
+
+    .grimoire-toggle-arrow {
+      font-size: 8px;
+      opacity: 0.5;
     }
   }
 
-  .conditioning-actions-categorized {
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 6px 8px;
+  .grimoire-pages {
+    position: relative;
+    max-height: 35vh;
+    overflow-y: scroll !important;
+    overflow-x: hidden;
+    padding: 10px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 170, 110, 0.3) rgba(200, 170, 110, 0.04);
+
+    // Parchment background
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(225deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg,
+        rgba(45, 32, 28, 0.95) 0%,
+        rgba(38, 26, 32, 0.96) 40%,
+        rgba(35, 24, 28, 0.97) 100%);
+
+    // Subtle inner glow
+    box-shadow:
+      inset 0 4px 12px rgba(0, 0, 0, 0.3),
+      inset 0 -4px 12px rgba(0, 0, 0, 0.2);
 
     &::-webkit-scrollbar {
-      width: 4px;
+      width: 6px !important;
     }
     &::-webkit-scrollbar-track {
-      background: transparent;
+      background: rgba(60, 40, 30, 0.3) !important;
+      border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
-      background: rgba(200, 170, 110, 0.15);
-      border-radius: 2px;
+      background: rgba(200, 170, 110, 0.3) !important;
+      border-radius: 3px;
+      &:hover { background: rgba(200, 170, 110, 0.45) !important; }
     }
+
   }
 
-  .conditioning-category-group {
-    margin-bottom: 6px;
+  // Decorative corners on the panel wrapper (outside scroll)
+  &.open {
+    position: relative;
 
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    .conditioning-category-header {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      margin-bottom: 4px;
-      border-bottom: 1px solid rgba(200, 170, 110, 0.08);
-
-      .conditioning-category-icon {
-        font-size: 10px;
-      }
-
-      .conditioning-category-label {
-        font-family: 'Press Start 2P', monospace;
-        font-size: 6px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-      }
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      opacity: 0.25;
+      z-index: 10;
+      pointer-events: none;
     }
 
-    // Category-specific header colors
-    &.category-hypnosis .conditioning-category-header {
-      border-color: rgba(160, 100, 240, 0.2);
-      .conditioning-category-label { color: rgba(180, 140, 255, 0.8); }
-    }
-    &.category-social .conditioning-category-header {
-      border-color: rgba(100, 180, 240, 0.2);
-      .conditioning-category-label { color: rgba(130, 200, 255, 0.8); }
-    }
-    &.category-physical .conditioning-category-header {
-      border-color: rgba(240, 100, 100, 0.2);
-      .conditioning-category-label { color: rgba(255, 140, 140, 0.8); }
-    }
-    &.category-alchemy .conditioning-category-header {
-      border-color: rgba(100, 200, 140, 0.2);
-      .conditioning-category-label { color: rgba(130, 220, 160, 0.8); }
-    }
-    &.category-reward .conditioning-category-header {
-      border-color: rgba(240, 180, 100, 0.2);
-      .conditioning-category-label { color: rgba(255, 200, 130, 0.8); }
+    &::before {
+      top: 32px; // below the toggle button
+      left: 6px;
+      border-top: 2px solid rgba(200, 170, 110, 0.6);
+      border-left: 2px solid rgba(200, 170, 110, 0.6);
     }
 
-    .conditioning-category-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 4px;
-      padding: 0 4px 4px;
+    &::after {
+      bottom: 4px;
+      right: 6px;
+      border-bottom: 2px solid rgba(200, 170, 110, 0.6);
+      border-right: 2px solid rgba(200, 170, 110, 0.6);
     }
   }
 }
 
-.conditioning-action-slot {
+// ── Grimoire Chapter (category group) ──
+.grimoire-chapter {
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .grimoire-chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0 4px;
+    margin-bottom: 5px;
+
+    .grimoire-chapter-divider {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.15), transparent);
+    }
+
+    .grimoire-chapter-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(200, 170, 110, 0.6);
+      filter: drop-shadow(0 0 3px rgba(200, 170, 110, 0.2));
+    }
+
+    .grimoire-chapter-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  }
+
+  // Chapter-specific accent colors
+  &.chapter-enchantment .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(180, 140, 255, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(160, 100, 240, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(160, 100, 240, 0.3)); }
+  }
+  &.chapter-hex .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(130, 200, 255, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(100, 180, 240, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(100, 180, 240, 0.3)); }
+  }
+  &.chapter-binding .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(255, 140, 140, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(240, 100, 100, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(240, 100, 100, 0.3)); }
+  }
+  &.chapter-alchemy .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(130, 220, 160, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(100, 200, 140, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(100, 200, 140, 0.3)); }
+  }
+  &.chapter-beguile .grimoire-chapter-header {
+    .grimoire-chapter-title { color: rgba(255, 200, 130, 0.75); }
+    .grimoire-chapter-divider { background: linear-gradient(90deg, transparent, rgba(240, 180, 100, 0.2), transparent); }
+    .grimoire-chapter-icon { filter: drop-shadow(0 0 4px rgba(240, 180, 100, 0.3)); }
+  }
+
+  .grimoire-spells {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: 5px;
+    padding: 0 2px 2px;
+  }
+}
+
+// ── Spell Slot (action wrapper) ──
+.grimoire-spell-slot {
   position: relative;
 
-  .cond-action-debug {
+  .spell-debug {
     position: absolute;
     top: 2px;
     right: 2px;
@@ -4587,67 +4678,88 @@ html, body, #root {
   }
 }
 
-.conditioning-action-btn {
+// ── Spell Card (individual action) ──
+.grimoire-spell {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 8px 6px;
-  border-radius: 5px;
+  padding: 7px 5px 6px;
+  border-radius: 4px;
   font-family: 'Press Start 2P', monospace;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid rgba(200, 170, 110, 0.15);
-  background: rgba(200, 170, 110, 0.04);
   width: 100%;
   position: relative;
+  overflow: hidden;
 
-  .cond-action-icon {
-    font-size: 16px;
+  // Base parchment card look
+  background:
+    linear-gradient(160deg, rgba(200, 170, 110, 0.06) 0%, rgba(200, 170, 110, 0.02) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+
+  .spell-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    color: rgba(200, 170, 110, 0.85);
   }
 
-  .cond-action-label {
-    font-size: 5.5px;
-    color: rgba(200, 170, 110, 0.8);
+  .spell-name {
+    font-size: 5px;
+    color: rgba(200, 170, 110, 0.75);
     text-align: center;
     line-height: 1.3;
     letter-spacing: 0.3px;
   }
 
-  .cond-action-badge {
-    font-size: 5px;
+  .spell-dc {
+    font-size: 4.5px;
     padding: 1px 4px;
     border-radius: 3px;
     letter-spacing: 0.3px;
-
-    &.check-badge {
-      background: rgba(120, 90, 200, 0.2);
-      color: rgba(180, 160, 240, 0.8);
-      border: 1px solid rgba(120, 90, 200, 0.3);
-    }
-
-    &.item-badge {
-      background: rgba(200, 120, 60, 0.15);
-      color: rgba(255, 180, 100, 0.8);
-    }
+    background: rgba(120, 90, 200, 0.15);
+    color: rgba(180, 160, 240, 0.7);
+    border: 1px solid rgba(120, 90, 200, 0.2);
   }
 
-  .cond-action-lock {
+  .spell-cost {
+    font-size: 4.5px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    background: rgba(200, 120, 60, 0.1);
+    color: rgba(255, 180, 100, 0.7);
+  }
+
+  .spell-lock {
     position: absolute;
-    top: 3px;
-    left: 3px;
+    top: 2px;
+    left: 2px;
     font-size: 8px;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
-  // Available state
+  // Attached glow underlay
+  .spell-attached-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    pointer-events: none;
+    animation: spellGlow 2s ease-in-out infinite;
+    box-shadow: inset 0 0 12px rgba(200, 170, 110, 0.15);
+  }
+
+  // Available hover
   &.available {
     &:hover:not(:disabled) {
-      background: rgba(200, 170, 110, 0.12);
-      border-color: rgba(200, 170, 110, 0.35);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(200, 170, 110, 0.1);
+      background: rgba(200, 170, 110, 0.1);
+      border-color: rgba(200, 170, 110, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), 0 0 6px rgba(200, 170, 110, 0.08);
+
+      .spell-name { color: rgba(200, 170, 110, 0.95); }
     }
 
     &:active:not(:disabled) {
@@ -4655,84 +4767,80 @@ html, body, #root {
     }
   }
 
-  // Attached state — highlighted when action is queued
+  // Attached state
   &.attached {
-    background: rgba(200, 170, 110, 0.15);
     border-color: rgba(200, 170, 110, 0.5);
-    box-shadow: 0 0 8px rgba(200, 170, 110, 0.2), inset 0 0 12px rgba(200, 170, 110, 0.06);
+    background:
+      linear-gradient(160deg, rgba(200, 170, 110, 0.14) 0%, rgba(200, 170, 110, 0.06) 100%);
+    box-shadow: 0 0 10px rgba(200, 170, 110, 0.12), inset 0 0 8px rgba(200, 170, 110, 0.05);
 
-    .cond-action-label {
-      color: rgba(200, 170, 110, 1);
-    }
+    .spell-name { color: rgba(220, 190, 130, 1); }
 
-    &.category-hypnosis {
-      background: rgba(160, 100, 240, 0.15);
+    &.chapter-enchantment {
       border-color: rgba(160, 100, 240, 0.5);
-      box-shadow: 0 0 8px rgba(160, 100, 240, 0.2);
+      background: linear-gradient(160deg, rgba(160, 100, 240, 0.14) 0%, rgba(160, 100, 240, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(160, 100, 240, 0.15);
+      .spell-name { color: rgba(200, 170, 255, 1); }
     }
-    &.category-social {
-      background: rgba(100, 180, 240, 0.15);
+    &.chapter-hex {
       border-color: rgba(100, 180, 240, 0.5);
-      box-shadow: 0 0 8px rgba(100, 180, 240, 0.2);
+      background: linear-gradient(160deg, rgba(100, 180, 240, 0.14) 0%, rgba(100, 180, 240, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(100, 180, 240, 0.15);
     }
-    &.category-physical {
-      background: rgba(240, 100, 100, 0.15);
+    &.chapter-binding {
       border-color: rgba(240, 100, 100, 0.5);
-      box-shadow: 0 0 8px rgba(240, 100, 100, 0.2);
+      background: linear-gradient(160deg, rgba(240, 100, 100, 0.14) 0%, rgba(240, 100, 100, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(240, 100, 100, 0.15);
     }
-    &.category-alchemy {
-      background: rgba(100, 200, 140, 0.15);
+    &.chapter-alchemy {
       border-color: rgba(100, 200, 140, 0.5);
-      box-shadow: 0 0 8px rgba(100, 200, 140, 0.2);
+      background: linear-gradient(160deg, rgba(100, 200, 140, 0.14) 0%, rgba(100, 200, 140, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(100, 200, 140, 0.15);
     }
-    &.category-reward {
-      background: rgba(240, 180, 100, 0.15);
+    &.chapter-beguile {
       border-color: rgba(240, 180, 100, 0.5);
-      box-shadow: 0 0 8px rgba(240, 180, 100, 0.2);
+      background: linear-gradient(160deg, rgba(240, 180, 100, 0.14) 0%, rgba(240, 180, 100, 0.04) 100%);
+      box-shadow: 0 0 10px rgba(240, 180, 100, 0.15);
     }
-  }
-
-  .cond-action-attached-indicator {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    font-size: 8px;
-    color: rgba(200, 170, 110, 0.9);
-    animation: pulse 1.5s ease-in-out infinite;
   }
 
   // Locked state
   &.locked {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: not-allowed;
-    filter: grayscale(0.6);
+    filter: grayscale(0.5);
 
-    .cond-action-label {
-      color: rgba(200, 170, 110, 0.4);
+    .spell-name {
+      color: rgba(200, 170, 110, 0.35);
     }
   }
 
-  // Category border colors
-  &.category-hypnosis {
-    border-color: rgba(160, 100, 240, 0.25);
-    &.available:hover { border-color: rgba(160, 100, 240, 0.5); }
+  // Category accent borders
+  &.chapter-enchantment {
+    border-color: rgba(160, 100, 240, 0.18);
+    &.available:hover { border-color: rgba(160, 100, 240, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(160, 100, 240, 0.1); }
   }
-  &.category-physical {
-    border-color: rgba(240, 100, 100, 0.25);
-    &.available:hover { border-color: rgba(240, 100, 100, 0.5); }
+  &.chapter-binding {
+    border-color: rgba(240, 100, 100, 0.18);
+    &.available:hover { border-color: rgba(240, 100, 100, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(240, 100, 100, 0.1); }
   }
-  &.category-alchemy {
-    border-color: rgba(100, 200, 140, 0.25);
-    &.available:hover { border-color: rgba(100, 200, 140, 0.5); }
+  &.chapter-alchemy {
+    border-color: rgba(100, 200, 140, 0.18);
+    &.available:hover { border-color: rgba(100, 200, 140, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(100, 200, 140, 0.1); }
   }
-  &.category-social {
-    border-color: rgba(100, 180, 240, 0.25);
-    &.available:hover { border-color: rgba(100, 180, 240, 0.5); }
+  &.chapter-hex {
+    border-color: rgba(100, 180, 240, 0.18);
+    &.available:hover { border-color: rgba(100, 180, 240, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(100, 180, 240, 0.1); }
   }
-  &.category-reward {
-    border-color: rgba(240, 180, 100, 0.25);
-    &.available:hover { border-color: rgba(240, 180, 100, 0.5); }
+  &.chapter-beguile {
+    border-color: rgba(240, 180, 100, 0.18);
+    &.available:hover { border-color: rgba(240, 180, 100, 0.45); box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 6px rgba(240, 180, 100, 0.1); }
   }
+}
+
+@keyframes spellGlow {
+  0%, 100% { box-shadow: inset 0 0 8px rgba(200, 170, 110, 0.1); }
+  50% { box-shadow: inset 0 0 16px rgba(200, 170, 110, 0.2); }
 }
 
 // Inline action result banners in chat
@@ -4764,7 +4872,9 @@ html, body, #root {
   }
 
   .action-result-icon {
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    color: rgba(200, 170, 110, 0.85);
   }
 
   .action-result-name {

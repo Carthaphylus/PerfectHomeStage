@@ -18,6 +18,51 @@ import {
     ConditioningTier,
 } from '../Stage';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
+import {
+    Music, Orbit, Cloud, Eye, Wand2, Link2, Flame, FlaskConical,
+    Droplets, Sun, Feather, Gem, Heart, Crown, Sparkles, Waves,
+    Brain, Ghost, Skull, Shield, Star, Zap, Wind, CircleDot,
+    ScanEye, TestTubes, Moon, Hand, MessageCircle,
+} from 'lucide-react';
+
+// ── Spell Icon Component ──
+const SPELL_ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; className?: string }>> = {
+    music: Music,
+    orbit: Orbit,
+    cloud: Cloud,
+    eye: Eye,
+    wand: Wand2,
+    link: Link2,
+    flame: Flame,
+    flask: FlaskConical,
+    droplets: Droplets,
+    sun: Sun,
+    feather: Feather,
+    gem: Gem,
+    heart: Heart,
+    crown: Crown,
+    sparkles: Sparkles,
+    waves: Waves,
+    brain: Brain,
+    ghost: Ghost,
+    skull: Skull,
+    shield: Shield,
+    star: Star,
+    zap: Zap,
+    wind: Wind,
+    'circle-dot': CircleDot,
+    'scan-eye': ScanEye,
+    'test-tubes': TestTubes,
+    moon: Moon,
+    hand: Hand,
+    'message-circle': MessageCircle,
+};
+
+const SpellIcon: FC<{ icon: string; size?: number; className?: string }> = ({ icon, size = 16, className }) => {
+    const IconComponent = SPELL_ICON_MAP[icon];
+    if (!IconComponent) return <span className={className}>{icon}</span>;
+    return <IconComponent size={size} className={className} />;
+};
 import DungeonBg from '../assets/Images/Rooms/dungeon.jpg';
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
 import WoodsBg from '../assets/Images/Skits/Woods.webp';
@@ -426,7 +471,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             return (
                                 <div key={`ar-${item.index}`} className={`conditioning-action-result ${ar.success ? 'success' : 'fail'}`}>
                                     <div className="action-result-header">
-                                        <span className="action-result-icon">{action?.icon || '⚡'}</span>
+                                        <span className="action-result-icon"><SpellIcon icon={action?.icon || 'zap'} size={12} /></span>
                                         <span className="action-result-name">{action?.label || ar.actionId}</span>
                                         <span className={`action-result-verdict ${ar.success ? 'success' : 'fail'}`}>
                                             {ar.success ? '✓ Success' : '✗ Failed'}
@@ -483,25 +528,27 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                     <div ref={chatEndRef} />
                 </div>
 
-                {/* Conditioning action panel (collapsible) */}
+                {/* Grimoire action panel (collapsible) */}
                 {isConditioning && !atMaxMessages && (
-                    <div className={`conditioning-actions-panel ${actionsOpen ? 'open' : 'collapsed'}`}>
+                    <div className={`grimoire-panel ${actionsOpen ? 'open' : 'collapsed'}`}>
                         <button
-                            className="conditioning-panel-toggle"
+                            className="grimoire-toggle"
                             onClick={() => setActionsOpen(!actionsOpen)}
                         >
-                            {actionsOpen ? '▼ Actions' : '▲ Actions'}
-                            <span className="conditioning-panel-count">
-                                {availableActions.filter(a => !a.locked).length} available
+                            <span className="grimoire-toggle-icon">{actionsOpen ? <Sparkles size={12} /> : <Sparkles size={12} />}</span>
+                            <span className="grimoire-toggle-label">{actionsOpen ? 'Grimoire' : 'Grimoire'}</span>
+                            <span className="grimoire-toggle-count">
+                                {availableActions.filter(a => !a.locked).length} spells
                             </span>
+                            <span className="grimoire-toggle-arrow">{actionsOpen ? '▾' : '▴'}</span>
                         </button>
                         {actionsOpen && (() => {
                             const categoryOrder: { key: string; label: string; icon: string }[] = [
-                                { key: 'hypnosis', label: 'Hypnosis', icon: '🔮' },
-                                { key: 'social', label: 'Social', icon: '💬' },
-                                { key: 'physical', label: 'Physical', icon: '💪' },
-                                { key: 'alchemy', label: 'Alchemy', icon: '🧪' },
-                                { key: 'reward', label: 'Reward', icon: '🎁' },
+                                { key: 'enchantment', label: 'Enchantment', icon: 'sparkles' },
+                                { key: 'hex', label: 'Hexes', icon: 'skull' },
+                                { key: 'binding', label: 'Binding', icon: 'link' },
+                                { key: 'alchemy', label: 'Alchemy', icon: 'flask' },
+                                { key: 'beguile', label: 'Beguile', icon: 'heart' },
                             ];
                             const grouped = categoryOrder.map(cat => ({
                                 ...cat,
@@ -509,49 +556,49 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             })).filter(cat => cat.actions.length > 0);
 
                             return (
-                                <div className="conditioning-actions-categorized">
+                                <div className="grimoire-pages">
                                     {grouped.map(cat => (
-                                        <div key={cat.key} className={`conditioning-category-group category-${cat.key}`}>
-                                            <div className="conditioning-category-header">
-                                                <span className="conditioning-category-icon">{cat.icon}</span>
-                                                <span className="conditioning-category-label">{cat.label}</span>
+                                        <div key={cat.key} className={`grimoire-chapter chapter-${cat.key}`}>
+                                            <div className="grimoire-chapter-header">
+                                                <span className="grimoire-chapter-divider" />
+                                                <span className="grimoire-chapter-icon"><SpellIcon icon={cat.icon} size={10} /></span>
+                                                <span className="grimoire-chapter-title">{cat.label}</span>
+                                                <span className="grimoire-chapter-divider" />
                                             </div>
-                                            <div className="conditioning-category-actions">
+                                            <div className="grimoire-spells">
                                                 {cat.actions.map(({ action, locked, lockReason }) => {
                                                     const onCooldown = lockReason?.startsWith('Cooldown');
                                                     const isAttached = attachedAction?.action.id === action.id && !attachedAction?.forceResult;
                                                     return (
-                                                        <div key={action.id} className="conditioning-action-slot">
+                                                        <div key={action.id} className="grimoire-spell-slot">
                                                             <button
-                                                                className={`conditioning-action-btn ${locked ? 'locked' : 'available'} category-${action.category} ${isAttached ? 'attached' : ''}`}
+                                                                className={`grimoire-spell ${locked ? 'locked' : 'available'} chapter-${action.category} ${isAttached ? 'attached' : ''}`}
                                                                 onClick={() => !locked && handleAttachAction(action.id)}
                                                                 disabled={locked || executingAction || chatSending}
                                                                 title={locked ? lockReason : action.tooltip}
                                                             >
-                                                                <span className="cond-action-icon">{action.icon}</span>
-                                                                <span className="cond-action-label">{action.label}</span>
+                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={16} /></span>
+                                                                <span className="spell-name">{action.label}</span>
                                                                 {action.skillCheck && (
-                                                                    <span className="cond-action-badge check-badge">
+                                                                    <span className="spell-dc">
                                                                         {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
                                                                     </span>
                                                                 )}
                                                                 {action.consumeItem && (
-                                                                    <span className="cond-action-badge item-badge">
-                                                                        🧪
-                                                                    </span>
+                                                                    <span className="spell-cost"><FlaskConical size={8} /></span>
                                                                 )}
                                                                 {locked && (
-                                                                    <span className="cond-action-lock">
+                                                                    <span className="spell-lock">
                                                                         {onCooldown ? '⏳' : '🔒'}
                                                                     </span>
                                                                 )}
                                                                 {isAttached && (
-                                                                    <span className="cond-action-attached-indicator">✦</span>
+                                                                    <span className="spell-attached-glow" />
                                                                 )}
                                                             </button>
                                                             {/* Debug force buttons */}
                                                             {action.skillCheck && !locked && (
-                                                                <div className="cond-action-debug">
+                                                                <div className="spell-debug">
                                                                     <button
                                                                         className="event-debug-btn debug-success"
                                                                         onClick={() => handleAttachAction(action.id, 'success')}
@@ -586,7 +633,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             {/* Attached action indicator */}
                             {attachedAction && (
                                 <div className={`attached-action-tag category-${attachedAction.action.category}`}>
-                                    <span className="attached-action-icon">{attachedAction.action.icon}</span>
+                                    <span className="attached-action-icon"><SpellIcon icon={attachedAction.action.icon} size={12} /></span>
                                     <span className="attached-action-name">{attachedAction.action.label}</span>
                                     {attachedAction.forceResult && (
                                         <span className={`attached-action-force ${attachedAction.forceResult}`}>
