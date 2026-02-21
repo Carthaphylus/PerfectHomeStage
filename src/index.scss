@@ -2457,22 +2457,24 @@ html, body, #root {
 
       .skit-msg-edit-input {
         font-family: 'Press Start 2P', monospace;
-        font-size: 10px;
-        line-height: 1.6;
+        font-size: 11px;
+        line-height: 1.7;
         color: var(--text-primary);
-        background: rgba(20, 15, 25, 0.8);
-        border: 1px solid rgba(200, 170, 110, 0.25);
+        background: transparent;
+        border: 1px dashed rgba(200, 170, 110, 0.3);
         border-radius: 6px;
-        padding: 8px 10px;
-        resize: vertical;
-        min-height: 50px;
+        padding: 10px 14px;
+        resize: none;
+        overflow: hidden;
         width: 100%;
         box-sizing: border-box;
+        white-space: pre-wrap;
+        word-break: break-word;
 
         &:focus {
           outline: none;
-          border-color: rgba(200, 170, 110, 0.45);
-          box-shadow: 0 0 6px rgba(200, 170, 110, 0.15);
+          border-color: rgba(200, 170, 110, 0.5);
+          box-shadow: 0 0 8px rgba(200, 170, 110, 0.1);
         }
       }
 

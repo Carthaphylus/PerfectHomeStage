@@ -146,6 +146,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [chatStarted, setChatStarted] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
+    const editInputRef = useRef<HTMLTextAreaElement>(null);
 
     // ── Conditioning UI State ──
     const [actionsOpen, setActionsOpen] = useState(false);
@@ -722,11 +723,23 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                     {isEditing ? (
                                         <div className="skit-msg-edit-area">
                                             <textarea
+                                                ref={editInputRef}
                                                 className="skit-msg-edit-input"
                                                 value={editText}
-                                                onChange={e => setEditText(e.target.value)}
-                                                rows={3}
+                                                onChange={e => {
+                                                    setEditText(e.target.value);
+                                                    // Auto-resize
+                                                    const ta = e.target;
+                                                    ta.style.height = 'auto';
+                                                    ta.style.height = ta.scrollHeight + 'px';
+                                                }}
                                                 autoFocus
+                                                onFocus={e => {
+                                                    // Auto-resize on initial focus
+                                                    const ta = e.target;
+                                                    ta.style.height = 'auto';
+                                                    ta.style.height = ta.scrollHeight + 'px';
+                                                }}
                                                 onKeyDown={e => {
                                                     if (e.key === 'Enter' && !e.shiftKey) {
                                                         e.preventDefault();
