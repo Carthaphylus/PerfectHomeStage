@@ -349,7 +349,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         if (!isPlayerMsg) {
             // NPC message edit: just update the text locally, no re-send
             const updated = [...chatMessages];
-            updated[editingMsgIndex] = { ...oldMsg, text: newText };
+            updated[editingMsgIndex] = { ...oldMsg, text: newText, _edited: true };
             setChatMessages(updated);
             stage().setEventMessages(updated);
             setEditingMsgIndex(null);
@@ -720,6 +720,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                 <div className="skit-msg-body">
                                     <span className="skit-msg-name">{msg.sender}</span>
                                     <div
+                                        key={isEditing ? `edit-${item.index}` : `display-${item.index}`}
                                         className={`skit-msg-text ${isEditing ? 'skit-msg-text-editing' : ''}`}
                                         contentEditable={isEditing}
                                         suppressContentEditableWarning
@@ -756,7 +757,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                         }}
                                     >
                                         {!isEditing && (
-                                            isLatestNpc
+                                            (isLatestNpc && !msg._edited)
                                                 ? <TypewriterText text={msg.text} speed={40} />
                                                 : <FormattedText text={isPlayer ? displayText : msg.text} />
                                         )}

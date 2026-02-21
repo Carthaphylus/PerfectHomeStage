@@ -1899,6 +1899,7 @@ export interface SceneMessage {
     sender: string;
     text: string;
     _debugContext?: string; // The full prompt used to generate this message (debug only)
+    _edited?: boolean; // Whether this message was manually edited by the user
 }
 
 // Scene descriptor — passed to React as a prop snapshot, NOT stored in messageState
