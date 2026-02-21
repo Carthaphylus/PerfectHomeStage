@@ -2131,6 +2131,18 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     }
                 }
             }
+            // Re-apply conditioning brainwashing from active event
+            // (setState can overwrite in-memory changes made by executeConditioningAction)
+            if (this._activeEvent?.target && this._activeEvent.actionResults.length > 0) {
+                const hero = this.currentState.heroes[this._activeEvent.target];
+                if (hero) {
+                    const lastResult = this._activeEvent.actionResults[this._activeEvent.actionResults.length - 1];
+                    hero.brainwashing = lastResult.newBrainwashing;
+                    if (hero.brainwashing > 0 && hero.status === 'captured') {
+                        hero.status = 'converting';
+                    }
+                }
+            }
         }
     }
 
@@ -3015,17 +3027,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }
             }
 
-            // Cooldown
-            if (!locked && action.cooldownMessages > 0) {
-                const lastUsed = event.actionCooldowns[action.id];
-                if (lastUsed !== undefined) {
-                    const messagesSince = event.chatMessageCount - lastUsed;
-                    if (messagesSince < action.cooldownMessages) {
-                        locked = true;
-                        lockReason = `Cooldown: ${action.cooldownMessages - messagesSince} msg`;
-                    }
-                }
-            }
+
 
             results.push({ action, locked, lockReason });
         }
@@ -3118,9 +3120,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             };
             message += ` — ⚡ Threshold: ${tierLabels[thresholdCrossed]}!`;
         }
-
-        // Record cooldown
-        event.actionCooldowns[actionId] = event.chatMessageCount;
 
         // Inject LLM directive into event messages as a system message
         const directive = success
@@ -3222,8 +3221,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             if (existing) { existing.quantity += 1; }
             else { this.currentState.inventory['Memory Fragment'] = { name: 'Memory Fragment', quantity: 1, type: 'key' }; }
         }
-
-        event.actionCooldowns[actionId] = event.chatMessageCount;
 
         const result: ActionResult = { actionId, success, delta, message, newBrainwashing: hero.brainwashing, thresholdCrossed,
             skillCheck: action.skillCheck ? { skill: action.skillCheck.skill, roll: forceSuccess ? 100 : 1, difficulty: action.skillCheck.difficulty, success: forceSuccess } : undefined,
