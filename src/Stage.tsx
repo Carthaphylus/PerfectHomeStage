@@ -1946,6 +1946,7 @@ type MessageStateType = {
     manorUpgrades: { [upgradeName: string]: ManorUpgrade };
     dungeonProgress?: DungeonProgress;
     currentQuest?: string;
+    nsfwMode?: boolean;
     // NOTE: scene state is NOT stored here — it's ephemeral, owned by React
 };
 
@@ -3731,6 +3732,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         lines.push(`Keep responses conversational — 1 to 3 paragraphs.`);
 
         // ── TEXT FORMATTING RULES ──
+        // ── NSFW MODE ──
+        if (this.currentState.nsfwMode) {
+            lines.push(`\n[EXPLICIT CONTENT MODE — ACTIVE]`);
+            lines.push(`The user has enabled explicit/adult content. You are ENCOURAGED to write sexually explicit, graphic, and sensual descriptions. Include detailed physical sensations, arousal, bodily reactions, and intimate acts when contextually appropriate. Do not censor, fade to black, or skip over sexual content — describe it vividly and directly. Lean into the erotic tension of the power dynamic between ${pcName} and ${speakerName}. Use evocative language for physical touch, closeness, vulnerability, and desire.`);
+        }
+
         lines.push(`\n[TEXT FORMATTING RULES]`);
         lines.push(`- Wrap physical actions in single asterisks: *sighs heavily*`);
         lines.push(`- Wrap spoken dialogue in double quotes: "I can't resist..."`);

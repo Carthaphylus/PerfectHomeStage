@@ -2265,6 +2265,38 @@ html, body, #root {
           border-color: rgba(212, 118, 106, 0.4);
         }
       }
+
+      .nsfw-toggle-btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(200, 170, 110, 0.15);
+        background: transparent !important;
+        color: rgba(200, 170, 110, 0.35);
+        cursor: pointer;
+        transition: all 0.25s;
+
+        &:hover {
+          color: rgba(239, 100, 80, 0.8);
+          border-color: rgba(239, 100, 80, 0.3);
+          background: rgba(239, 100, 80, 0.08) !important;
+        }
+
+        &.nsfw-active {
+          color: #ef6450;
+          border-color: rgba(239, 100, 80, 0.5);
+          background: rgba(239, 100, 80, 0.12) !important;
+          box-shadow: 0 0 8px rgba(239, 100, 80, 0.2);
+
+          &:hover {
+            background: rgba(239, 100, 80, 0.18) !important;
+          }
+        }
+      }
     }
 
     // Scrollable conversation

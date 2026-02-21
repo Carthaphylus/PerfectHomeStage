@@ -607,6 +607,16 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         <span className="skit-header-name">{chatSpeaker}</span>
                     </div>
                     <div className="skit-header-right">
+                        <button
+                            className={`nsfw-toggle-btn ${stage().currentState.nsfwMode ? 'nsfw-active' : ''}`}
+                            onClick={() => {
+                                stage().currentState.nsfwMode = !stage().currentState.nsfwMode;
+                                onEventUpdate(stage().getActiveEvent());
+                            }}
+                            title={stage().currentState.nsfwMode ? 'NSFW mode ON — click to disable' : 'NSFW mode OFF — click to enable'}
+                        >
+                            <Flame size={12} />
+                        </button>
                         {canEnd && (
                             <button className="skit-end-btn" onClick={handleEndChat}>
                                 {chatPhase.skippable && event.chatMessageCount < (chatPhase.minMessages || 0)
