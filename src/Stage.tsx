@@ -918,6 +918,363 @@ export interface EventChatPhase {
     maxMessages?: number;        // Auto-end chat after this many exchanges
 }
 
+// ==========================================
+// Conditioning System
+// ==========================================
+
+/** Category of conditioning action */
+export type ConditioningCategory = 'hypnosis' | 'physical' | 'alchemy' | 'social' | 'reward';
+
+/** An action the player can take during a conditioning chat session */
+export interface ConditioningAction {
+    id: string;
+    label: string;
+    icon: string;
+    tooltip: string;
+    category: ConditioningCategory;
+    requiresItem?: string;        // Must have this item to see/use
+    consumeItem?: string;         // Consume 1 of this item on use
+    skillCheck?: {                // Optional skill check
+        skill: keyof SkillStats;
+        difficulty: number;
+    };
+    brainwashingDelta: number;    // Progress on success
+    failDelta: number;            // Progress on failure (usually 0)
+    minBrainwashing: number;      // Unlock threshold (0 = always available)
+    maxBrainwashing?: number;     // Disappears above this value
+    cooldownMessages: number;     // Messages before reuse (0 = no cooldown)
+    llmDirective: string;         // Injected into LLM context on success (supports {target}/{pc})
+    failDirective?: string;       // Injected into LLM context on failure
+}
+
+/** Result of executing a conditioning action */
+export interface ActionResult {
+    actionId: string;
+    success: boolean;
+    delta: number;
+    message: string;              // Player-visible result text
+    skillCheck?: {
+        skill: string;
+        roll: number;
+        difficulty: number;
+        success: boolean;
+    };
+    newBrainwashing: number;      // Updated value after delta
+    thresholdCrossed?: string;    // e.g. 'wavering' if a new tier was reached
+}
+
+/** Strategy the player picks at the start of a conditioning session */
+export interface ConditioningStrategy {
+    id: string;
+    label: string;
+    icon: string;
+    tooltip: string;
+    description: string;          // Flavor text shown during selection
+    llmContext: string;           // Long-form instructions for LLM about tone/approach
+    bonusActions?: string[];      // Extra action IDs only available with this strategy
+    skillBonus?: {
+        skill: keyof SkillStats;
+        bonus: number;
+    };
+}
+
+/** Conditioning behavior threshold tier */
+export type ConditioningTier = 'defiant' | 'wavering' | 'susceptible' | 'broken';
+
+/** Get conditioning tier from brainwashing value */
+export function getConditioningTier(brainwashing: number): ConditioningTier {
+    if (brainwashing >= 75) return 'broken';
+    if (brainwashing >= 50) return 'susceptible';
+    if (brainwashing >= 25) return 'wavering';
+    return 'defiant';
+}
+
+/** Get a description of behaviour for the LLM based on tier */
+export function getTierBehaviorDescription(tier: ConditioningTier): string {
+    switch (tier) {
+        case 'defiant':
+            return 'The captive is fully resistant. They are hostile, defiant, and actively fight against any attempts at control. They mock, threaten, and refuse to cooperate. Their willpower is intact.';
+        case 'wavering':
+            return 'The captive\'s resistance is cracking. They still fight, but hesitate at times. They may slip into moments of compliance before catching themselves. They are confused by their own reactions and frustrated by lapses in their defiance. They might find themselves obeying before they realize it.';
+        case 'susceptible':
+            return 'The captive has lost most of their resistance. They comply more often than they resist. They may still voice objections but their body obeys. They seek approval despite themselves, and feel anxiety when displeasing their captor. Moments of genuine submission emerge naturally.';
+        case 'broken':
+            return 'The captive\'s will is effectively broken. They are docile, obedient, and eager to please. They may still have flickers of their old personality, but these manifest as endearing quirks rather than genuine defiance. They actively seek praise and become distressed if they think they\'ve disappointed their master.';
+    }
+}
+
+// ---- Conditioning Strategies Registry ----
+export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
+    gentle: {
+        id: 'gentle',
+        label: '🌀 Gentle Persuasion',
+        icon: '🌀',
+        tooltip: 'Soft words, soothing spirals, and patient coaxing.',
+        description: '*You settle into the chair across from {target}, letting the pendant dangle from your fingers. The golden spiral catches the light as you begin to speak in low, honeyed tones...*\n\n*This approach favours patience and Charm. Hypnotic techniques are more effective.*',
+        llmContext: 'The witch {pc} is using a gentle, seductive approach to conditioning {target}. The atmosphere is soft, dreamlike, and intimate. {pc} speaks in soothing whispers, uses the hypnotic pendant, and relies on suggestion rather than force. The captive may find themselves relaxing despite their best efforts.',
+        skillBonus: { skill: 'charm', bonus: 10 },
+    },
+    forceful: {
+        id: 'forceful',
+        label: '⚡ Forceful Domination',
+        icon: '⚡',
+        tooltip: 'Overwhelming arcane power and psychic assault.',
+        description: '*You raise the Arcane Visor, its golden spiral blazing to life. The air thickens with arcane pressure as you prepare to assault {target}\'s mental barriers directly...*\n\n*This approach favours raw Power. Forceful techniques hit harder but are resisted more.*',
+        llmContext: 'The witch {pc} is using a forceful, dominating approach to conditioning {target}. The atmosphere is intense and oppressive. {pc} projects raw arcane power, uses the Visor aggressively, and overwhelms resistance through sheer psychic might. The captive feels their mental defenses being battered.',
+        skillBonus: { skill: 'power', bonus: 10 },
+    },
+    alchemical: {
+        id: 'alchemical',
+        label: '🧪 Alchemical Approach',
+        icon: '🧪',
+        tooltip: 'Elixirs, incense, and chemical manipulation.',
+        description: '*You lay out your alchemical supplies — elixirs, incense, and carefully prepared concoctions. {target} watches nervously as the golden smoke begins to fill the chamber...*\n\n*This approach relies on consumable items. Alchemy-based actions are enhanced.*',
+        llmContext: 'The witch {pc} is using an alchemical approach to conditioning {target}. The room is filled with swirling incense and the sharp scent of potions. {pc} administers elixirs, burns enchanted herbs, and uses chemical agents to weaken mental resistance. The captive feels dizzy, warm, and increasingly pliable.',
+        bonusActions: ['double_dose'],
+        skillBonus: { skill: 'wisdom', bonus: 10 },
+    },
+    conversational: {
+        id: 'conversational',
+        label: '💬 Conversational',
+        icon: '💬',
+        tooltip: 'Understanding, manipulation, and psychological tactics.',
+        description: '*You pull up a chair and sit close to {target}, meeting their eyes with a warm, disarming smile. Sometimes the most effective chains are the ones they put on themselves...*\n\n*This approach favours Wisdom and social manipulation. Unlock unique psychological actions.*',
+        llmContext: 'The witch {pc} is using a conversational, psychological approach to conditioning {target}. No overt magic — just careful manipulation, emotional exploitation, and subtle reframing. {pc} asks probing questions, mirrors emotions, and slowly undermines the captive\'s certainty. The captive may not even realize they\'re being conditioned.',
+        bonusActions: ['gaslight', 'false_comfort'],
+        skillBonus: { skill: 'wisdom', bonus: 10 },
+    },
+};
+
+// ---- Conditioning Actions Registry ----
+export const CONDITIONING_ACTIONS: Record<string, ConditioningAction> = {
+    // === TIER 0 (Always available) ===
+    speak_softly: {
+        id: 'speak_softly',
+        label: 'Speak Softly',
+        icon: '🗣️',
+        tooltip: 'Whisper soothing words to ease their tension. No check required.',
+        category: 'social',
+        brainwashingDelta: 1,
+        failDelta: 0,
+        minBrainwashing: 0,
+        cooldownMessages: 2,
+        llmDirective: '{pc} whispers soothing, gentle words to {target}, slowly easing the tension from their muscles. The captive feels a wave of unexpected comfort.',
+    },
+    use_pendant: {
+        id: 'use_pendant',
+        label: 'Pendant Spiral',
+        icon: '🔮',
+        tooltip: 'Swing the Hypnotic Pendant before their eyes. (Charm check DC 40)',
+        category: 'hypnosis',
+        requiresItem: 'Hypnotic Pendant',
+        skillCheck: { skill: 'charm', difficulty: 40 },
+        brainwashingDelta: 5,
+        failDelta: 1,
+        minBrainwashing: 0,
+        cooldownMessages: 3,
+        llmDirective: '{pc} swings the Hypnotic Pendant before {target}\'s eyes. The golden spiral catches the light and {target}\'s gaze locks onto it involuntarily. Their pupils dilate and their breathing slows as the pendant\'s magic takes hold.',
+        failDirective: '{pc} tries to use the Hypnotic Pendant but {target} forces their eyes away, resisting the spiral\'s pull. They grit their teeth defiantly.',
+    },
+    burn_incense: {
+        id: 'burn_incense',
+        label: 'Burn Incense',
+        icon: '🌀',
+        tooltip: 'Burn Spiral Incense to fill the room with suggestive smoke. No check.',
+        category: 'alchemy',
+        consumeItem: 'Spiral Incense',
+        brainwashingDelta: 3,
+        failDelta: 0,
+        minBrainwashing: 0,
+        cooldownMessages: 5,
+        llmDirective: '{pc} lights a stick of Spiral Incense. Golden smoke curls through the chamber, and {target} inhales involuntarily. A warm haze settles over their mind, making it harder to hold onto thoughts of resistance.',
+    },
+    administer_elixir: {
+        id: 'administer_elixir',
+        label: 'Obedience Elixir',
+        icon: '🧪',
+        tooltip: 'Force-feed an Obedience Elixir. Guaranteed strong progress.',
+        category: 'alchemy',
+        consumeItem: 'Obedience Elixir',
+        brainwashingDelta: 8,
+        failDelta: 0,
+        minBrainwashing: 0,
+        cooldownMessages: 0,
+        llmDirective: '{pc} presses a vial of Obedience Elixir to {target}\'s lips. The shimmering golden liquid slides down their throat and almost instantly their eyes glaze, their body relaxes, and their mental barriers soften dramatically.',
+    },
+
+    // === TIER 25 (Wavering) ===
+    activate_visor: {
+        id: 'activate_visor',
+        label: 'Activate Visor',
+        icon: '👓',
+        tooltip: 'Project the golden spiral directly into their vision. (Wisdom DC 50)',
+        category: 'hypnosis',
+        requiresItem: 'Arcane Visor',
+        skillCheck: { skill: 'wisdom', difficulty: 50 },
+        brainwashingDelta: 7,
+        failDelta: 1,
+        minBrainwashing: 25,
+        cooldownMessages: 4,
+        llmDirective: '{pc} activates the Arcane Visor, projecting a blazing golden spiral directly into {target}\'s eyes. The captive gasps as the spiral fills their entire field of vision, their mind flooding with golden light. Their resistance buckles under the visual assault.',
+        failDirective: '{pc} activates the Arcane Visor but {target} squeezes their eyes shut and turns away, enduring the psychic pressure. The spiral cannot take hold without eye contact.',
+    },
+    whisper_command: {
+        id: 'whisper_command',
+        label: 'Whisper Command',
+        icon: '👄',
+        tooltip: 'Plant a simple command in their weakened mind. (Charm DC 45)',
+        category: 'hypnosis',
+        skillCheck: { skill: 'charm', difficulty: 45 },
+        brainwashingDelta: 4,
+        failDelta: 0,
+        minBrainwashing: 25,
+        cooldownMessages: 3,
+        llmDirective: '{pc} leans close and whispers a simple command directly into {target}\'s ear. The captive\'s body obeys before their conscious mind can object — a small but significant crack in their control.',
+        failDirective: '{pc} whispers a command but {target} catches themselves and pulls back. "I\'m not your puppet," they snarl, though their voice wavers.',
+    },
+    caress: {
+        id: 'caress',
+        label: 'Caress',
+        icon: '🤚',
+        tooltip: 'A gentle touch to reinforce their submission. No check.',
+        category: 'physical',
+        brainwashingDelta: 2,
+        failDelta: 0,
+        minBrainwashing: 25,
+        cooldownMessages: 2,
+        llmDirective: '{pc} reaches out and gently caresses {target}\'s cheek. The captive flinches — but doesn\'t pull away. A flicker of confused longing crosses their face.',
+    },
+
+    // === TIER 50 (Susceptible) ===
+    deep_trance: {
+        id: 'deep_trance',
+        label: 'Deep Trance',
+        icon: '🌊',
+        tooltip: 'Guide them into a deep hypnotic trance. (Charm DC 55)',
+        category: 'hypnosis',
+        skillCheck: { skill: 'charm', difficulty: 55 },
+        brainwashingDelta: 10,
+        failDelta: 1,
+        minBrainwashing: 50,
+        cooldownMessages: 5,
+        llmDirective: '{pc} guides {target} into a deep hypnotic trance. Their eyes glaze completely, their breathing becomes slow and rhythmic, and their body goes limp. In this state, they are profoundly open to suggestion. Their defenses are all but gone.',
+        failDirective: '{pc} tries to deepen the trance but {target} fights through the haze, clinging to a shred of awareness. They tremble with the effort, but hold on.',
+    },
+    eye_contact: {
+        id: 'eye_contact',
+        label: 'Eye Hypnosis',
+        icon: '👁️',
+        tooltip: 'Lock eyes and project your will directly. (Power DC 50)',
+        category: 'hypnosis',
+        skillCheck: { skill: 'power', difficulty: 50 },
+        brainwashingDelta: 8,
+        failDelta: 1,
+        minBrainwashing: 50,
+        cooldownMessages: 4,
+        llmDirective: '{pc} locks eyes with {target}, and the captive finds they cannot look away. {pc}\'s violet eyes seem to glow as arcane power flows through the gaze. {target} feels their will draining, their thoughts scattering like leaves in the wind.',
+        failDirective: '{pc} tries to lock eyes with {target} but the captive breaks the gaze with a desperate effort, looking away. Their heart pounds with the near miss.',
+    },
+    reward_affection: {
+        id: 'reward_affection',
+        label: 'Reward',
+        icon: '💝',
+        tooltip: 'Praise and reward their compliance. No check needed.',
+        category: 'reward',
+        brainwashingDelta: 3,
+        failDelta: 0,
+        minBrainwashing: 50,
+        cooldownMessages: 3,
+        llmDirective: '{pc} praises {target} warmly, running fingers through their hair and telling them how well they\'re doing. The captive feels an unwanted surge of warmth and pleasure at the approval.',
+    },
+
+    // === TIER 75 (Broken) ===
+    total_submission: {
+        id: 'total_submission',
+        label: 'Submit Command',
+        icon: '👑',
+        tooltip: 'Command total submission. (Power DC 65)',
+        category: 'hypnosis',
+        skillCheck: { skill: 'power', difficulty: 65 },
+        brainwashingDelta: 12,
+        failDelta: 2,
+        minBrainwashing: 75,
+        cooldownMessages: 6,
+        llmDirective: '{pc} issues a commanding order for {target} to submit completely. The captive feels the last walls of their resistance crumble. They find themselves kneeling, head bowed, a strange sense of peace washing over them.',
+        failDirective: '{pc} commands submission but {target} finds one last spark of defiance, resisting the final push. They tremble, eyes locked on a distant memory of who they used to be.',
+    },
+    collar_fitting: {
+        id: 'collar_fitting',
+        label: 'Fit Collar',
+        icon: '⭕',
+        tooltip: 'Place a Servant Collar around their neck. A mark of ownership.',
+        category: 'reward',
+        requiresItem: 'Servant Collar',
+        consumeItem: 'Servant Collar',
+        brainwashingDelta: 15,
+        failDelta: 0,
+        minBrainwashing: 75,
+        cooldownMessages: 0,
+        llmDirective: '{pc} produces a Servant Collar inscribed with binding runes and fastens it around {target}\'s neck. The runes glow briefly as the enchantment takes hold. {target} feels the collar\'s warmth and a profound sense of belonging.',
+    },
+    memory_extraction: {
+        id: 'memory_extraction',
+        label: 'Extract Memory',
+        icon: '✨',
+        tooltip: 'Extract a shard of their memories. (Wisdom DC 60)',
+        category: 'hypnosis',
+        skillCheck: { skill: 'wisdom', difficulty: 60 },
+        brainwashingDelta: 10,
+        failDelta: 2,
+        minBrainwashing: 75,
+        cooldownMessages: 0,
+        llmDirective: '{pc} reaches into {target}\'s mind and carefully extracts a shard of memory — a glowing fragment that crystallizes in their palm. {target} gasps, a piece of who they were now held in another\'s hand.',
+        failDirective: '{pc} reaches for {target}\'s memories but the captive\'s mind instinctively recoils, protecting its core. The attempt causes a sharp pain in both parties.',
+    },
+
+    // === Strategy-specific bonus actions ===
+    double_dose: {
+        id: 'double_dose',
+        label: 'Double Dose',
+        icon: '🧪🧪',
+        tooltip: 'Administer a double dose of elixir. Powerful but risky. (Alchemical only)',
+        category: 'alchemy',
+        consumeItem: 'Obedience Elixir',
+        brainwashingDelta: 15,
+        failDelta: 0,
+        minBrainwashing: 25,
+        cooldownMessages: 0,
+        llmDirective: '{pc} administers a double dose of Obedience Elixir. {target}\'s eyes roll back as the potent mixture surges through them. Their entire body goes slack, mind utterly overwhelmed by the chemical onslaught.',
+    },
+    gaslight: {
+        id: 'gaslight',
+        label: 'Reframe Reality',
+        icon: '🪞',
+        tooltip: 'Make them question their own memories and motives. (Wisdom DC 50, Conversational only)',
+        category: 'social',
+        skillCheck: { skill: 'wisdom', difficulty: 50 },
+        brainwashingDelta: 6,
+        failDelta: 0,
+        minBrainwashing: 25,
+        cooldownMessages: 4,
+        llmDirective: '{pc} subtly reframes {target}\'s memories, making them question their own motives. "Did you really fight for justice, or were you just afraid of being alone?" The captive\'s certainty wavers.',
+        failDirective: '{pc} tries to twist {target}\'s perspective but the captive sees through the manipulation. "Nice try," they say coldly.',
+    },
+    false_comfort: {
+        id: 'false_comfort',
+        label: 'False Comfort',
+        icon: '🤗',
+        tooltip: 'Offer comfort and understanding — all calculated. (Charm DC 45, Conversational only)',
+        category: 'social',
+        skillCheck: { skill: 'charm', difficulty: 45 },
+        brainwashingDelta: 5,
+        failDelta: 0,
+        minBrainwashing: 0,
+        cooldownMessages: 3,
+        llmDirective: '{pc} offers {target} warmth and understanding, listening to their fears and validating their feelings. It\'s all calculated, but the comfort is real enough that {target} lets their guard down.',
+        failDirective: '{pc} tries to offer comfort but {target} sees through the manipulation. "Don\'t pretend you care," they snap.',
+    },
+};
+
 /** A player choice within a step */
 export interface EventChoice {
     id: string;
@@ -980,6 +1337,11 @@ export interface ActiveEvent {
     };
     chatPhaseActive: boolean;
     chatMessageCount: number;
+    // Conditioning session state
+    conditioningStrategy?: string;             // chosen strategy ID
+    actionCooldowns: Record<string, number>;   // action ID → message index when last used
+    actionResults: ActionResult[];             // log of actions taken this session
+    lastActionResult?: ActionResult;           // most recent action result (for UI)
 }
 
 // ---- Skill check roll helper ----
@@ -1000,7 +1362,8 @@ export function rollSkillCheck(
 
 /**
  * Brainwashing Session event — the core conditioning event for captives.
- * Uses the player's Charm vs the captive's Discipline.
+ * Simplified to: intro → strategy selection → conditioning chat session.
+ * All conditioning progress happens via in-chat actions during the chat phase.
  */
 export const EVENT_BRAINWASHING: EventDefinition = {
     id: 'brainwashing_session',
@@ -1014,149 +1377,49 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             id: 'intro',
             text: '*You enter the dungeon chamber where {target} is held. The enchanted shackles glow faintly as you approach, keeping the captive\'s resistance suppressed.*\n\n*You light a spiral incense and let the golden smoke fill the room, preparing the atmosphere for the session.*',
             speaker: 'Citrine',
-            nextStep: 'approach',
+            nextStep: 'strategy_select',
             effects: [],
         },
-        approach: {
-            id: 'approach',
-            text: '*{target} watches you warily, muscles tense against the restraints. You can see the defiance in their eyes — but also the faintest flicker of uncertainty.*\n\nHow do you approach the conditioning?',
+        strategy_select: {
+            id: 'strategy_select',
+            text: '*{target} watches you warily, muscles tense against the restraints. You can see the defiance in their eyes — but also the faintest flicker of uncertainty.*\n\nHow will you approach today\'s session?',
             choices: [
                 {
                     id: 'gentle',
                     label: '🌀 Gentle Persuasion',
-                    tooltip: 'Use soft words and the pendant\'s glow to ease them into a trance. (Charm check)',
-                    nextStep: 'gentle_success',
-                    skillCheck: {
-                        skill: 'charm',
-                        difficulty: 55,
-                        successStep: 'gentle_success',
-                        failureStep: 'gentle_fail',
-                    },
+                    tooltip: 'Soft words, soothing spirals, and patient coaxing. Charm bonus.',
+                    nextStep: 'session',
                 },
                 {
                     id: 'forceful',
                     label: '⚡ Forceful Domination',
-                    tooltip: 'Overwhelm their mind with raw arcane power. (Power check)',
-                    nextStep: 'forceful_success',
-                    skillCheck: {
-                        skill: 'power',
-                        difficulty: 60,
-                        successStep: 'forceful_success',
-                        failureStep: 'forceful_fail',
-                    },
+                    tooltip: 'Overwhelming arcane power and psychic assault. Power bonus.',
+                    nextStep: 'session',
                 },
                 {
-                    id: 'elixir',
-                    label: '🧪 Administer Elixir',
-                    tooltip: 'Use an Obedience Elixir to soften their resistance first. Guaranteed progress.',
-                    nextStep: 'elixir_result',
-                    requiresItem: 'Obedience Elixir',
-                    consumeItem: 'Obedience Elixir',
+                    id: 'alchemical',
+                    label: '🧪 Alchemical Approach',
+                    tooltip: 'Elixirs, incense, and chemical manipulation. Wisdom bonus.',
+                    nextStep: 'session',
                 },
                 {
-                    id: 'talk',
-                    label: '💬 Just Talk',
-                    tooltip: 'No conditioning — just speak with the captive. (No skill check)',
-                    nextStep: 'talk_result',
+                    id: 'conversational',
+                    label: '💬 Conversational',
+                    tooltip: 'Understanding, manipulation, and psychological tactics. Wisdom bonus.',
+                    nextStep: 'session',
                 },
             ],
         },
-        gentle_success: {
-            id: 'gentle_success',
-            text: '*Your voice drops to a honeyed whisper as the pendant\'s spiral catches the candlelight. {target}\'s eyes follow it involuntarily, pupils dilating...*\n\n*"That\'s it... just let go... there\'s no need to fight anymore..."*\n\n*Their eyelids flutter, resistance crumbling. The session is a success.*',
-            speaker: 'Citrine',
-            effects: [
-                { type: 'modify_brainwashing', value: 20 },
-            ],
+        session: {
+            id: 'session',
+            text: '*The session begins. {target} is before you — restrained, but their will is their own... for now.*',
             chatPhase: {
-                context: 'After a successful gentle hypnosis attempt by {pc}, {target} has fallen into a light trance. They are relaxed, suggestible, and dreamy. Their resistance is lowered but their personality still shows through. They respond with soft, pliant words and occasional flickers of their former defiance.',
-                speaker: '{target}',
-                location: 'Dungeon',
-                skippable: false,
-                minMessages: 3,
-            },
-            nextStep: 'session_end',
-        },
-        gentle_fail: {
-            id: 'gentle_fail',
-            text: '*You begin your soothing incantation, but {target} snaps their gaze away from the pendant, gritting their teeth.*\n\n*"Your tricks won\'t work on me, witch."*\n\n*The session yields little progress — their will holds strong for now.*',
-            effects: [
-                { type: 'modify_brainwashing', value: 5 },
-            ],
-            chatPhase: {
-                context: '{target} has resisted {pc}\'s gentle hypnosis attempt. They are defiant and slightly smug about their success, but drowsy from the effort of resisting. They taunt {pc} but are still physically restrained in the dungeon.',
+                context: 'Live conditioning session. Use the action panel to apply conditioning techniques during conversation.',
                 speaker: '{target}',
                 location: 'Dungeon',
                 skippable: true,
-                minMessages: 1,
+                minMessages: 0,
             },
-            nextStep: 'session_end',
-        },
-        forceful_success: {
-            id: 'forceful_success',
-            text: '*You channel raw arcane energy through the Visor, the golden spiral blazing to life. {target} cries out as wave after wave of compulsion crashes against their mental barriers...*\n\n*When it\'s over, they slump in the restraints, eyes glazed and breathing ragged. Significant progress.*',
-            speaker: 'Citrine',
-            effects: [
-                { type: 'modify_brainwashing', value: 25 },
-            ],
-            chatPhase: {
-                context: '{target} has been overwhelmed by {pc}\'s forceful mental assault. They are dazed, disoriented, and barely coherent. Their mental barriers have been shattered for now. They respond in fragmented, confused sentences, struggling to remember why they were resisting.',
-                speaker: '{target}',
-                location: 'Dungeon',
-                skippable: false,
-                minMessages: 3,
-            },
-            nextStep: 'session_end',
-        },
-        forceful_fail: {
-            id: 'forceful_fail',
-            text: '*You pour your will into the assault, but {target}\'s mental defenses are formidable. They let out a defiant roar, and the psychic backlash sends you staggering.*\n\n*"Is that all you have?!" they snarl. The session barely scratches their resolve.*',
-            effects: [
-                { type: 'modify_brainwashing', value: 3 },
-            ],
-            chatPhase: {
-                context: '{target} has successfully repelled {pc}\'s forceful psychic attack and is furious. They are emboldened by their victory and taunt {pc} aggressively, though they remain physically restrained in the dungeon.',
-                speaker: '{target}',
-                location: 'Dungeon',
-                skippable: true,
-                minMessages: 1,
-            },
-            nextStep: 'session_end',
-        },
-        elixir_result: {
-            id: 'elixir_result',
-            text: '*You uncork the shimmering elixir and hold it to {target}\'s lips. They resist at first, but the enchanted restraints hold them still. The golden liquid slides down their throat...*\n\n*Almost immediately, their eyes glaze over and their body relaxes. The elixir does its work, softening their mental barriers from within. Reliable progress, no check required.*',
-            speaker: 'Citrine',
-            effects: [
-                { type: 'modify_brainwashing', value: 15 },
-            ],
-            chatPhase: {
-                context: '{target} has been administered an Obedience Elixir by {pc}. The magical potion has softened their mental barriers \u2014 they feel warm, cooperative, and slightly hazy. They answer questions willingly and may reveal things about their past or allies. The effect is temporary but strong.',
-                speaker: '{target}',
-                location: 'Dungeon',
-                skippable: false,
-                minMessages: 2,
-            },
-            nextStep: 'session_end',
-        },
-        talk_result: {
-            id: 'talk_result',
-            text: '*You pull up a chair and simply... talk to {target}. About their past, their motivations, what they fought for. They\'re suspicious at first, but eventually a few guarded words slip out.*\n\n*No conditioning today — but understanding your subject is its own form of progress.*',
-            effects: [
-                { type: 'modify_brainwashing', value: 2 },
-            ],
-            chatPhase: {
-                context: '{pc} is having a normal conversation with {target}. No conditioning is happening \u2014 this is a genuine attempt to talk and understand the captive. {target} is suspicious but willing to engage cautiously. They may open up about their motivations or try to negotiate their freedom.',
-                speaker: '{target}',
-                location: 'Dungeon',
-                skippable: false,
-                minMessages: 3,
-            },
-            nextStep: 'session_end',
-        },
-        session_end: {
-            id: 'session_end',
-            text: '*You extinguish the incense and step back, reviewing the session. {target} sags in the restraints, exhaustion evident on their face.*\n\n*Another session complete. Their will erodes a little more each time...*',
             isEnding: true,
         },
     },
@@ -2014,6 +2277,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             lastSkillCheck: undefined,
             chatPhaseActive: false,
             chatMessageCount: 0,
+            conditioningStrategy: undefined,
+            actionCooldowns: {},
+            actionResults: [],
+            lastActionResult: undefined,
         };
 
         this._activeEvent = event;
@@ -2055,6 +2322,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     inv.quantity -= 1;
                     if (inv.quantity <= 0) delete this.currentState.inventory[choice.consumeItem];
                 }
+            }
+
+            // Capture conditioning strategy if this is a strategy selection step
+            if (CONDITIONING_STRATEGIES[choiceId]) {
+                event.conditioningStrategy = choiceId;
+                console.log(`[Event] Strategy selected: ${choiceId}`);
             }
 
             // Apply choice effects
@@ -2258,6 +2531,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!this._activeEvent) return;
         this._activeEvent.chatPhaseActive = true;
         this._activeEvent.chatMessageCount = 0;
+        this._activeEvent.lastActionResult = undefined;
         this._eventMessages = [];
         console.log('[Event] Chat phase started');
     }
@@ -2304,6 +2578,286 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
     }
 
+    // ============================
+    // Conditioning Action Engine
+    // ============================
+
+    /** Get the current brainwashing value for the active event's target */
+    getTargetBrainwashing(): number {
+        const event = this._activeEvent;
+        if (!event?.target) return 0;
+        const hero = this.currentState.heroes[event.target];
+        return hero?.brainwashing || 0;
+    }
+
+    /**
+     * Get all conditioning actions available right now.
+     * Filtered by: brainwashing threshold, item requirements, cooldowns, strategy bonuses.
+     */
+    getAvailableActions(): { action: ConditioningAction; locked: boolean; lockReason?: string }[] {
+        const event = this._activeEvent;
+        if (!event) return [];
+
+        const bw = this.getTargetBrainwashing();
+        const strategy = event.conditioningStrategy ? CONDITIONING_STRATEGIES[event.conditioningStrategy] : null;
+        const results: { action: ConditioningAction; locked: boolean; lockReason?: string }[] = [];
+
+        for (const action of Object.values(CONDITIONING_ACTIONS)) {
+            // Skip strategy-specific bonus actions that don't belong to chosen strategy
+            const isBonusAction = Object.values(CONDITIONING_STRATEGIES).some(
+                s => s.bonusActions?.includes(action.id)
+            );
+            if (isBonusAction && (!strategy?.bonusActions || !strategy.bonusActions.includes(action.id))) {
+                continue;
+            }
+
+            // Check max brainwashing cap
+            if (action.maxBrainwashing !== undefined && bw > action.maxBrainwashing) continue;
+
+            // Determine lock state
+            let locked = false;
+            let lockReason: string | undefined;
+
+            // Brainwashing threshold
+            if (bw < action.minBrainwashing) {
+                locked = true;
+                lockReason = `Requires ${action.minBrainwashing}% conditioning`;
+            }
+
+            // Item requirement (show but lock if missing)
+            if (!locked && action.requiresItem && !this.hasItem(action.requiresItem)) {
+                // If it's a consumed item, lock it. If it's required (not consumed), also lock.
+                if (action.consumeItem || !this.hasItem(action.requiresItem)) {
+                    // For consumeItem, check specifically
+                    if (action.consumeItem && !this.hasItem(action.consumeItem)) {
+                        locked = true;
+                        lockReason = `Requires ${action.consumeItem}`;
+                    } else if (action.requiresItem && !action.consumeItem && !this.hasItem(action.requiresItem)) {
+                        locked = true;
+                        lockReason = `Requires ${action.requiresItem}`;
+                    }
+                }
+            }
+
+            // Cooldown
+            if (!locked && action.cooldownMessages > 0) {
+                const lastUsed = event.actionCooldowns[action.id];
+                if (lastUsed !== undefined) {
+                    const messagesSince = event.chatMessageCount - lastUsed;
+                    if (messagesSince < action.cooldownMessages) {
+                        locked = true;
+                        lockReason = `Cooldown: ${action.cooldownMessages - messagesSince} msg`;
+                    }
+                }
+            }
+
+            results.push({ action, locked, lockReason });
+        }
+
+        return results;
+    }
+
+    /**
+     * Execute a conditioning action during the chat phase.
+     * Applies effects, consumes items, does skill checks, updates brainwashing.
+     * Returns a result object for the UI.
+     */
+    executeConditioningAction(actionId: string): ActionResult | null {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive || !event.target) return null;
+
+        const action = CONDITIONING_ACTIONS[actionId];
+        if (!action) return null;
+
+        const hero = this.currentState.heroes[event.target];
+        if (!hero) return null;
+
+        const strategy = event.conditioningStrategy ? CONDITIONING_STRATEGIES[event.conditioningStrategy] : null;
+        const pcName = this.currentState.playerCharacter.name;
+        const oldBw = hero.brainwashing;
+        const oldTier = getConditioningTier(oldBw);
+
+        // Consume item if needed
+        if (action.consumeItem) {
+            const inv = this.currentState.inventory[action.consumeItem];
+            if (!inv || inv.quantity <= 0) {
+                return { actionId, success: false, delta: 0, message: `You don't have ${action.consumeItem}!`, newBrainwashing: oldBw };
+            }
+            inv.quantity -= 1;
+            if (inv.quantity <= 0) delete this.currentState.inventory[action.consumeItem];
+        }
+
+        let success = true;
+        let delta = action.brainwashingDelta;
+        let message = '';
+        let skillCheckResult: ActionResult['skillCheck'] = undefined;
+
+        // Skill check
+        if (action.skillCheck) {
+            const playerSkillValue = this.currentState.stats.skills[action.skillCheck.skill] || 0;
+            const bonus = (strategy?.skillBonus?.skill === action.skillCheck.skill ? strategy.skillBonus.bonus : 0);
+            const result = rollSkillCheck(playerSkillValue, action.skillCheck.difficulty, bonus);
+
+            skillCheckResult = {
+                skill: action.skillCheck.skill,
+                roll: result.roll,
+                difficulty: action.skillCheck.difficulty,
+                success: result.success,
+            };
+
+            success = result.success;
+            if (!success) {
+                delta = action.failDelta;
+            }
+
+            console.log(`[Conditioning] ${action.label}: ${action.skillCheck.skill} check rolled ${result.roll}, total ${result.total} vs DC ${action.skillCheck.difficulty} (bonus: ${bonus}) → ${success ? 'SUCCESS' : 'FAIL'}`);
+        }
+
+        // Apply brainwashing delta
+        hero.brainwashing = Math.max(0, Math.min(100, hero.brainwashing + delta));
+        if (hero.brainwashing > 0 && hero.status === 'captured') {
+            hero.status = 'converting';
+        }
+
+        const newTier = getConditioningTier(hero.brainwashing);
+        const thresholdCrossed = newTier !== oldTier ? newTier : undefined;
+
+        // Build player-visible message
+        if (success) {
+            if (action.skillCheck) {
+                message = `${action.icon} ${action.label} — ${action.skillCheck.skill.toUpperCase()} Check: ${skillCheckResult!.roll} vs DC ${action.skillCheck.difficulty} — Success! Conditioning +${delta}%`;
+            } else {
+                message = `${action.icon} ${action.label} — Conditioning +${delta}%`;
+            }
+        } else {
+            message = `${action.icon} ${action.label} — ${action.skillCheck!.skill.toUpperCase()} Check: ${skillCheckResult!.roll} vs DC ${action.skillCheck!.difficulty} — Failed!${delta > 0 ? ` Conditioning +${delta}%` : ''}`;
+        }
+
+        if (thresholdCrossed) {
+            const tierLabels: Record<ConditioningTier, string> = {
+                defiant: '🟥 Defiant',
+                wavering: '🟧 Wavering',
+                susceptible: '🟨 Susceptible',
+                broken: '🟩 Broken',
+            };
+            message += ` — ⚡ Threshold: ${tierLabels[thresholdCrossed]}!`;
+        }
+
+        // Record cooldown
+        event.actionCooldowns[actionId] = event.chatMessageCount;
+
+        // Inject LLM directive into event messages as a system message
+        const directive = success
+            ? action.llmDirective
+            : (action.failDirective || `${pcName} attempted ${action.label} but failed.`);
+        const interpolatedDirective = directive
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+
+        this._eventMessages.push({
+            sender: '\u00a7system',
+            text: interpolatedDirective,
+        });
+
+        // Handle special item gains (Memory Fragment from memory_extraction)
+        if (actionId === 'memory_extraction' && success) {
+            const existing = this.currentState.inventory['Memory Fragment'];
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                this.currentState.inventory['Memory Fragment'] = {
+                    name: 'Memory Fragment',
+                    quantity: 1,
+                    type: 'key',
+                };
+            }
+            message += ' — Gained Memory Fragment!';
+        }
+
+        const result: ActionResult = {
+            actionId,
+            success,
+            delta,
+            message,
+            skillCheck: skillCheckResult,
+            newBrainwashing: hero.brainwashing,
+            thresholdCrossed,
+        };
+
+        event.actionResults.push(result);
+        event.lastActionResult = result;
+
+        console.log(`[Conditioning] ${action.label}: ${success ? 'SUCCESS' : 'FAIL'}, delta=${delta}, new bw=${hero.brainwashing}`);
+        return result;
+    }
+
+    /**
+     * Execute a conditioning action with a forced result (debug).
+     */
+    executeConditioningActionForced(actionId: string, forceSuccess: boolean): ActionResult | null {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive || !event.target) return null;
+
+        const action = CONDITIONING_ACTIONS[actionId];
+        if (!action) return null;
+
+        const hero = this.currentState.heroes[event.target];
+        if (!hero) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const oldBw = hero.brainwashing;
+        const oldTier = getConditioningTier(oldBw);
+
+        // Consume item if needed
+        if (action.consumeItem) {
+            const inv = this.currentState.inventory[action.consumeItem];
+            if (inv && inv.quantity > 0) {
+                inv.quantity -= 1;
+                if (inv.quantity <= 0) delete this.currentState.inventory[action.consumeItem];
+            }
+        }
+
+        const success = forceSuccess;
+        const delta = success ? action.brainwashingDelta : action.failDelta;
+
+        hero.brainwashing = Math.max(0, Math.min(100, hero.brainwashing + delta));
+        if (hero.brainwashing > 0 && hero.status === 'captured') {
+            hero.status = 'converting';
+        }
+
+        const newTier = getConditioningTier(hero.brainwashing);
+        const thresholdCrossed = newTier !== oldTier ? newTier : undefined;
+
+        const message = success
+            ? `${action.icon} ${action.label} — FORCED SUCCESS! Conditioning +${delta}%${thresholdCrossed ? ` — ⚡ ${thresholdCrossed}!` : ''}`
+            : `${action.icon} ${action.label} — FORCED FAIL!${delta > 0 ? ` Conditioning +${delta}%` : ''}`;
+
+        // Inject LLM directive
+        const directive = success
+            ? action.llmDirective
+            : (action.failDirective || `${pcName} attempted ${action.label} but failed.`);
+        this._eventMessages.push({
+            sender: '\u00a7system',
+            text: directive.replace(/\{target\}/g, event.target || '').replace(/\{pc\}/g, pcName),
+        });
+
+        if (actionId === 'memory_extraction' && success) {
+            const existing = this.currentState.inventory['Memory Fragment'];
+            if (existing) { existing.quantity += 1; }
+            else { this.currentState.inventory['Memory Fragment'] = { name: 'Memory Fragment', quantity: 1, type: 'key' }; }
+        }
+
+        event.actionCooldowns[actionId] = event.chatMessageCount;
+
+        const result: ActionResult = { actionId, success, delta, message, newBrainwashing: hero.brainwashing, thresholdCrossed,
+            skillCheck: action.skillCheck ? { skill: action.skillCheck.skill, roll: forceSuccess ? 100 : 1, difficulty: action.skillCheck.difficulty, success: forceSuccess } : undefined,
+        };
+        event.actionResults.push(result);
+        event.lastActionResult = result;
+        return result;
+    }
+
+    /** Generate LLM stage directions for event chat */
     /** Generate LLM stage directions for event chat */
     private generateEventChatDirections(_userText: string): string {
         const event = this._activeEvent;
@@ -2320,40 +2874,84 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const speakerName = (chatPhase.speaker || 'NPC')
             .replace(/\{target\}/g, event.target || '')
             .replace(/\{pc\}/g, pcName);
-        const contextText = chatPhase.context
-            .replace(/\{target\}/g, event.target || '')
-            .replace(/\{pc\}/g, pcName);
 
         const lines: string[] = [];
-        lines.push(`[EVENT CHAT \u2014 ${def.name}]`);
+        lines.push(`[CONDITIONING SESSION \u2014 ${def.name}]`);
         lines.push(`You are now roleplaying as ${speakerName}. Do NOT speak as ${pcName} or narrate ${pcName}'s actions.`);
-        lines.push(`\nSituation: ${contextText}`);
 
         // Character personality data
         const charData = CHARACTER_DATA[speakerName];
         const hero = this.currentState.heroes[speakerName];
-        const servant = this.currentState.servants[speakerName];
 
         if (charData) {
             lines.push(`\n${speakerName}'s personality: ${charData.description}`);
             lines.push(`Traits: ${charData.traits.join(', ')}`);
         }
+
+        // Current conditioning state
         if (hero) {
-            lines.push(`Status: ${hero.status}. ${speakerName} is a ${hero.heroClass}. Brainwashing: ${hero.brainwashing}/100.`);
-        } else if (servant) {
-            lines.push(`Love: ${servant.love}/100. Obedience: ${servant.obedience}/100. ${speakerName} is a servant.`);
+            const bw = hero.brainwashing;
+            const tier = getConditioningTier(bw);
+            lines.push(`\n[CONDITIONING STATE]`);
+            lines.push(`${speakerName} is a ${hero.heroClass}. Current conditioning: ${bw}/100 (${tier}).`);
+            lines.push(`Behavior: ${getTierBehaviorDescription(tier)}`);
+        }
+
+        // Strategy context
+        const strategy = event.conditioningStrategy ? CONDITIONING_STRATEGIES[event.conditioningStrategy] : null;
+        if (strategy) {
+            const stratContext = strategy.llmContext
+                .replace(/\{target\}/g, event.target || '')
+                .replace(/\{pc\}/g, pcName);
+            lines.push(`\n[APPROACH]: ${stratContext}`);
+        }
+
+        // Recent action results — tell the LLM what just happened
+        const recentActions = event.actionResults.slice(-3);
+        if (recentActions.length > 0) {
+            lines.push(`\n[RECENT CONDITIONING ACTIONS]:`);
+            for (const ar of recentActions) {
+                const act = CONDITIONING_ACTIONS[ar.actionId];
+                if (act) {
+                    const directive = ar.success ? act.llmDirective : (act.failDirective || '');
+                    if (directive) {
+                        lines.push(directive
+                            .replace(/\{target\}/g, event.target || '')
+                            .replace(/\{pc\}/g, pcName));
+                    }
+                }
+            }
+        }
+
+        // The most recent action result gets special emphasis
+        if (event.lastActionResult) {
+            const lastAct = CONDITIONING_ACTIONS[event.lastActionResult.actionId];
+            if (lastAct) {
+                const dir = event.lastActionResult.success ? lastAct.llmDirective : (lastAct.failDirective || '');
+                if (dir) {
+                    lines.push(`\n[JUST NOW]: ${dir
+                        .replace(/\{target\}/g, event.target || '')
+                        .replace(/\{pc\}/g, pcName)}`);
+                    lines.push(`React to this in your response. Your conditioning level is now ${hero?.brainwashing || 0}/100.`);
+                }
+                if (event.lastActionResult.thresholdCrossed) {
+                    lines.push(`[IMPORTANT: You just crossed a conditioning threshold to "${event.lastActionResult.thresholdCrossed}". Your behavior should noticeably shift to match this new state.]`);
+                }
+            }
         }
 
         // Recent conversation context
         if (this._eventMessages.length > 0) {
-            const recent = this._eventMessages.slice(-10);
-            lines.push('\nRecent conversation:');
-            for (const msg of recent) {
-                lines.push(`${msg.sender}: ${msg.text}`);
+            const recent = this._eventMessages.slice(-10).filter(m => m.sender !== '\u00a7system');
+            if (recent.length > 0) {
+                lines.push('\nRecent conversation:');
+                for (const msg of recent) {
+                    lines.push(`${msg.sender}: ${msg.text}`);
+                }
             }
         }
 
-        lines.push(`\nRespond in character as ${speakerName}. Use first person. React based on personality and current mental state.`);
+        lines.push(`\nRespond in character as ${speakerName}. Use first person. React based on personality and current conditioning state.`);
         lines.push(`Keep responses conversational \u2014 1 to 3 paragraphs.`);
 
         // Formatting rules

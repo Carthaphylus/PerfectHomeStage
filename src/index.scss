@@ -4289,6 +4289,376 @@ html, body, #root {
 }
 
 // ==========================================
+// Conditioning Session UI
+// ==========================================
+
+.conditioning-progress-header {
+  position: relative;
+  z-index: 5;
+  padding: 6px 16px 8px;
+  background: rgba(18, 12, 24, 0.85);
+  border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+
+  .conditioning-progress-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+  }
+
+  .conditioning-tier-badge {
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px currentColor;
+  }
+
+  .conditioning-bw-value {
+    color: rgba(200, 170, 110, 0.8);
+  }
+
+  .conditioning-strategy-badge {
+    margin-left: auto;
+    color: rgba(180, 160, 240, 0.8);
+    font-size: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .conditioning-progress-track {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: visible;
+  }
+
+  .conditioning-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease, background-color 0.4s ease;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .conditioning-threshold-mark {
+    position: absolute;
+    top: -2px;
+    width: 2px;
+    height: 10px;
+    background: rgba(200, 170, 110, 0.3);
+    border-radius: 1px;
+    transform: translateX(-1px);
+  }
+}
+
+// Conditioning Actions Panel (collapsible, below conversation)
+.conditioning-actions-panel {
+  position: relative;
+  z-index: 5;
+  background: rgba(25, 18, 32, 0.92);
+  border-top: 1px solid rgba(200, 170, 110, 0.12);
+  transition: max-height 0.3s ease;
+
+  &.collapsed {
+    .conditioning-actions-grid {
+      display: none;
+    }
+  }
+
+  .conditioning-panel-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(200, 170, 110, 0.06);
+    border: none;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+    color: rgba(200, 170, 110, 0.7);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background: rgba(200, 170, 110, 0.12);
+      color: rgba(200, 170, 110, 0.9);
+    }
+
+    .conditioning-panel-count {
+      font-size: 6px;
+      color: rgba(180, 160, 240, 0.6);
+    }
+  }
+
+  .conditioning-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    padding: 8px 12px;
+    max-height: 180px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.15);
+      border-radius: 2px;
+    }
+  }
+}
+
+.conditioning-action-slot {
+  position: relative;
+
+  .cond-action-debug {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    gap: 2px;
+    z-index: 2;
+
+    .event-debug-btn {
+      width: 14px;
+      height: 14px;
+      font-size: 7px;
+      padding: 0;
+      line-height: 14px;
+    }
+  }
+}
+
+.conditioning-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 6px;
+  border-radius: 5px;
+  font-family: 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  background: rgba(200, 170, 110, 0.04);
+  width: 100%;
+  position: relative;
+
+  .cond-action-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .cond-action-label {
+    font-size: 5.5px;
+    color: rgba(200, 170, 110, 0.8);
+    text-align: center;
+    line-height: 1.3;
+    letter-spacing: 0.3px;
+  }
+
+  .cond-action-badge {
+    font-size: 5px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+
+    &.check-badge {
+      background: rgba(120, 90, 200, 0.2);
+      color: rgba(180, 160, 240, 0.8);
+      border: 1px solid rgba(120, 90, 200, 0.3);
+    }
+
+    &.item-badge {
+      background: rgba(200, 120, 60, 0.15);
+      color: rgba(255, 180, 100, 0.8);
+    }
+  }
+
+  .cond-action-lock {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    font-size: 8px;
+    opacity: 0.6;
+  }
+
+  // Available state
+  &.available {
+    &:hover:not(:disabled) {
+      background: rgba(200, 170, 110, 0.12);
+      border-color: rgba(200, 170, 110, 0.35);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(200, 170, 110, 0.1);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+
+  // Locked state
+  &.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+
+    .cond-action-label {
+      color: rgba(200, 170, 110, 0.4);
+    }
+  }
+
+  // Category border colors
+  &.category-hypnosis {
+    border-color: rgba(160, 100, 240, 0.25);
+    &.available:hover { border-color: rgba(160, 100, 240, 0.5); }
+  }
+  &.category-physical {
+    border-color: rgba(240, 100, 100, 0.25);
+    &.available:hover { border-color: rgba(240, 100, 100, 0.5); }
+  }
+  &.category-alchemy {
+    border-color: rgba(100, 200, 140, 0.25);
+    &.available:hover { border-color: rgba(100, 200, 140, 0.5); }
+  }
+  &.category-social {
+    border-color: rgba(100, 180, 240, 0.25);
+    &.available:hover { border-color: rgba(100, 180, 240, 0.5); }
+  }
+  &.category-reward {
+    border-color: rgba(240, 180, 100, 0.25);
+    &.available:hover { border-color: rgba(240, 180, 100, 0.5); }
+  }
+}
+
+// Inline action result banners in chat
+.conditioning-action-result {
+  margin: 6px 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  animation: actionResultSlide 0.3s ease;
+
+  &.success {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-left: 3px solid rgba(34, 197, 94, 0.5);
+  }
+
+  &.fail {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-left: 3px solid rgba(239, 68, 68, 0.5);
+  }
+
+  .action-result-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .action-result-icon {
+    font-size: 12px;
+  }
+
+  .action-result-name {
+    color: rgba(200, 170, 110, 0.9);
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+
+  .action-result-verdict {
+    margin-left: auto;
+    font-size: 6px;
+    font-weight: bold;
+
+    &.success { color: #22c55e; }
+    &.fail { color: #ef4444; }
+  }
+
+  .action-result-check {
+    color: rgba(180, 160, 240, 0.7);
+    margin-bottom: 3px;
+  }
+
+  .action-result-delta {
+    color: rgba(200, 170, 110, 0.7);
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-result-bw {
+    color: rgba(200, 170, 110, 0.5);
+  }
+}
+
+// Threshold reached banner
+.conditioning-threshold-banner {
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 7px;
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  text-align: center;
+  letter-spacing: 0.5px;
+  animation: thresholdPulse 0.5s ease;
+}
+
+@keyframes actionResultSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes thresholdPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); box-shadow: 0 0 16px rgba(234, 179, 8, 0.3); }
+  100% { transform: scale(1); }
+}
+
+// Strategy choice styling in normal mode
+.event-choice-row.strategy-choice {
+  .strategy-btn {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 14px;
+
+    .strategy-icon {
+      font-size: 16px;
+    }
+
+    .choice-label {
+      font-size: 8px;
+    }
+
+    .strategy-desc {
+      font-size: 6px;
+      color: rgba(200, 170, 110, 0.5);
+      line-height: 1.5;
+      letter-spacing: 0.3px;
+    }
+  }
+}
+
+// ==========================================
 // Inventory Screen
 // ==========================================
 .inventory-screen {
