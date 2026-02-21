@@ -4047,6 +4047,21 @@ html, body, #root {
     padding: 16px 28px 12px;
     border-top: 1px solid rgba(200, 170, 110, 0.08);
     background: rgba(25, 18, 32, 0.5) !important;
+    overflow-y: auto;
+    max-height: 50vh;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.15);
+      border-radius: 3px;
+    }
   }
 
   .event-choices {
@@ -4633,28 +4648,92 @@ html, body, #root {
   100% { transform: scale(1); }
 }
 
-// Strategy choice styling in normal mode
-.event-choice-row.strategy-choice {
-  .strategy-btn {
+// Strategy card grid for conditioning strategy selection
+.event-choices.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.strategy-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--strat-color) 25%, transparent);
+  border-left: 3px solid var(--strat-color);
+  background: color-mix(in srgb, var(--strat-color) 5%, rgba(25, 18, 32, 0.9));
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+  font-family: 'Press Start 2P', monospace;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle gradient glow on left side
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--strat-color) 8%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--strat-color) 50%, transparent);
+    background: color-mix(in srgb, var(--strat-color) 10%, rgba(25, 18, 32, 0.95));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--strat-color) 15%, transparent);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .strategy-card-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--strat-color) 40%, transparent));
+  }
+
+  .strategy-card-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 10px 14px;
+    gap: 3px;
+  }
 
-    .strategy-icon {
-      font-size: 16px;
-    }
+  .strategy-card-name {
+    font-size: 7.5px;
+    color: var(--strat-color);
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    text-shadow: 0 0 8px color-mix(in srgb, var(--strat-color) 30%, transparent);
+  }
 
-    .choice-label {
-      font-size: 8px;
-    }
+  .strategy-card-desc {
+    font-size: 5.5px;
+    color: rgba(200, 170, 110, 0.5);
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+  }
 
-    .strategy-desc {
-      font-size: 6px;
-      color: rgba(200, 170, 110, 0.5);
-      line-height: 1.5;
-      letter-spacing: 0.3px;
-    }
+  .strategy-card-bonus {
+    flex-shrink: 0;
+    font-size: 5.5px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--strat-color) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--strat-color) 20%, transparent);
+    color: var(--strat-color);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
   }
 }
 

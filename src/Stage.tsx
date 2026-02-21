@@ -968,8 +968,9 @@ export interface ConditioningStrategy {
     id: string;
     label: string;
     icon: string;
+    color: string;                // Accent color for UI
     tooltip: string;
-    description: string;          // Flavor text shown during selection
+    description: string;          // Short UI hint shown during selection
     llmContext: string;           // Long-form instructions for LLM about tone/approach
     bonusActions?: string[];      // Extra action IDs only available with this strategy
     skillBonus?: {
@@ -1007,8 +1008,9 @@ export function getTierBehaviorDescription(tier: ConditioningTier): string {
 export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     gentle: {
         id: 'gentle',
-        label: '🌀 Gentle Persuasion',
+        label: 'Gentle Persuasion',
         icon: '🌀',
+        color: '#a78bfa',
         tooltip: 'Soft words, soothing spirals, and patient coaxing.',
         description: 'Best against proud or stubborn captives. Charm bonus.',
         llmContext: 'The witch {pc} has chosen a gentle, seductive approach to conditioning {target}. The dungeon chamber has been softened — candles flicker in golden holders, their warm light dancing across the stone walls. The Hypnotic Pendant hangs from {pc}\'s fingers, spinning lazily, its golden spiral catching every flicker. The air carries a faint sweetness from incense already smoldering in the corners.\n\n{pc} sits close to {target}, not threatening but intimate, speaking in a low honeyed murmur. Every word is carefully chosen — soothing, rhythmic, almost melodic. There is no urgency here, only patience. The witch lets silence do half the work, allowing {target}\'s own exhaustion and loneliness to pull them toward the warmth on offer. Resistance is acknowledged gently and redirected, never punished.\n\nThis approach relies on building false comfort and trust, making compliance feel like the captive\'s own idea. The pendant is used as a focal point for trance induction, while soft touches and kind words erode defenses from within.',
@@ -1016,8 +1018,9 @@ export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     },
     forceful: {
         id: 'forceful',
-        label: '⚡ Forceful Domination',
+        label: 'Forceful Domination',
         icon: '⚡',
+        color: '#f87171',
         tooltip: 'Overwhelming arcane power and psychic assault.',
         description: 'Best against weak-willed or fearful captives. Power bonus.',
         llmContext: 'The witch {pc} has chosen a forceful, dominating approach to conditioning {target}. The dungeon chamber crackles with arcane energy — the enchanted shackles flare brighter, and the air grows thick and heavy with magical pressure. The Arcane Visor blazes to life on {pc}\'s face, its golden spiral projecting directly into {target}\'s field of vision.\n\n{pc} stands over {target}, radiating authority and raw power. There is no gentleness here — commands are barked, resistance is met with psychic pressure that makes the captive\'s skull throb. The witch projects their will directly against {target}\'s mental barriers, hammering at them with focused arcane force. The captive feels their defenses cracking under the assault, each wave of power leaving them more dazed and disoriented.\n\nThis approach trades subtlety for speed and impact. It works fastest but provokes stronger resistance — the captive fights harder, but each failed attempt to push back drains them further. Obedience is extracted through overwhelming dominance.',
@@ -1025,8 +1028,9 @@ export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     },
     alchemical: {
         id: 'alchemical',
-        label: '🧪 Alchemical Approach',
+        label: 'Alchemical Approach',
         icon: '🧪',
+        color: '#4ade80',
         tooltip: 'Elixirs, incense, and chemical manipulation.',
         description: 'Best when well-stocked with potions. Uses consumables. Wisdom bonus.',
         llmContext: 'The witch {pc} has chosen an alchemical approach to conditioning {target}. A portable workstation has been set up in the dungeon chamber — vials of shimmering liquid arranged in neat rows, a mortar and pestle with freshly ground herbs, and a bronze incense burner already trailing golden smoke in lazy spirals.\n\n{pc} works methodically, almost clinically. Spiral Incense fills the room with a haze that makes {target}\'s thoughts sluggish and unfocused. Obedience Elixirs are administered — by coaxing or by force — their warm, syrupy liquid spreading a tingling numbness through the captive\'s body. Each substance compounds the effect of the last: the incense makes them suggestible, the elixirs weaken their resolve, and specially prepared salves applied to the temples dull their ability to form coherent resistance.\n\nThe captive feels their body betraying them — warmth pooling in their limbs, thoughts scattering like smoke, a creeping docility that no amount of willpower can fully suppress. This approach is reliable but requires supplies — without consumables, the witch has fewer tools to work with.',
@@ -1035,8 +1039,9 @@ export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     },
     conversational: {
         id: 'conversational',
-        label: '💬 Conversational',
+        label: 'Conversational',
         icon: '💬',
+        color: '#38bdf8',
         tooltip: 'Understanding, manipulation, and psychological tactics.',
         description: 'Best against intelligent or idealistic captives. Wisdom bonus.',
         llmContext: 'The witch {pc} has chosen a purely conversational, psychological approach to conditioning {target}. No tools, no potions, no overt magic — just two chairs facing each other in the dungeon, close enough that {target} can see the amber flecks in {pc}\'s eyes. The shackles have been loosened just enough to be comfortable, a deliberate gesture of trust.\n\n{pc} is a master manipulator. They ask probing questions about {target}\'s past, their motivations, the people they fought for — then carefully reframe each answer. Heroes who failed to protect them. Causes that never cared about their sacrifice. Freedom that only ever meant loneliness and pain. Every conviction is gently dismantled, not attacked directly but hollowed out from within.\n\n{pc} mirrors {target}\'s emotions, offering understanding where others offered orders. They create an intimacy that feels genuine — and perhaps, in its own twisted way, is. The captive may not even realize they\'re being conditioned; each session feels like a conversation with someone who finally understands them. By the time they notice the chains tightening, they no longer want to struggle.',
@@ -1045,8 +1050,9 @@ export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     },
     sensory: {
         id: 'sensory',
-        label: '✨ Sensory Overload',
+        label: 'Sensory Overload',
         icon: '✨',
+        color: '#fbbf24',
         tooltip: 'Flood the senses with overwhelming magical stimuli.',
         description: 'Best against disciplined or stoic captives. Charm bonus.',
         llmContext: 'The witch {pc} has chosen a sensory overload approach to conditioning {target}. The dungeon chamber has been transformed — enchanted crystals embedded in the walls pulse with shifting colors, casting kaleidoscopic light across every surface. A low harmonic hum resonates from sigils carved into the floor, vibrating through the stone and into the captive\'s bones. The air itself tastes sweet, almost intoxicating.\n\n{pc} orchestrates a deliberate assault on every sense simultaneously. The crystals shift through hypnotic patterns that the eyes cannot help but follow. The hum drops into frequencies that resonate with the heartbeat, forcing the captive\'s pulse to synchronize. Enchanted oils are traced along exposed skin — warm, tingling, each touch sending sparks of involuntary pleasure up the spine. The Hypnotic Pendant spins at the center of the visual storm, a fixed point that the overwhelmed mind clings to desperately.\n\nThe strategy does not break resistance so much as drown it. The captive\'s disciplined mind, accustomed to blocking one type of attack at a time, simply cannot process the flood. Their carefully built walls crumble not from force, but from being attacked from every direction at once. In the gaps between stimuli, {pc} weaves commands — and the overloaded mind accepts them without examination.',
@@ -1055,8 +1061,9 @@ export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     },
     ritualistic: {
         id: 'ritualistic',
-        label: '🕯️ Ritualistic',
+        label: 'Ritualistic',
         icon: '🕯️',
+        color: '#e879f9',
         tooltip: 'Ancient binding circles and ceremonial enchantment.',
         description: 'Best against magically attuned captives. Power bonus.',
         llmContext: 'The witch {pc} has chosen a ritualistic approach to conditioning {target}. The dungeon floor has been cleared and painted with an intricate binding circle — concentric rings of golden sigils that pulse faintly in the torchlight. Black candles burn at the cardinal points, their flames unnaturally still. The captive has been placed at the center of the circle, the enchanted shackles humming in resonance with the sigils beneath.\n\n{pc} moves with deliberate ceremonial precision, chanting in an ancient tongue as they walk the outer ring. Each completed circuit draws the circle\'s power tighter, and {target} feels it — a constriction not of the body but of the self. The sigils respond to resistance, glowing brighter when the captive fights, using their own willpower as fuel. {pc} incorporates ritual objects: the pendant is placed at the circle\'s focal point, elixirs are poured along the sigil lines where the captive can breathe them in, and at key moments the Visor\'s spiral is projected into the binding geometry.\n\nThis approach is slow and methodical, but its effects are deeply rooted. The ritual does not merely weaken resistance — it restructures it, redirecting the captive\'s own magical attunement and mental energy back against them. The more powerful the captive, the more fuel the circle has to work with.',
@@ -1434,37 +1441,37 @@ export const EVENT_BRAINWASHING: EventDefinition = {
             choices: [
                 {
                     id: 'gentle',
-                    label: '🌀 Gentle Persuasion',
+                    label: 'Gentle Persuasion',
                     tooltip: 'Soft words, soothing spirals, and patient coaxing. Charm bonus.',
                     nextStep: 'session',
                 },
                 {
                     id: 'forceful',
-                    label: '⚡ Forceful Domination',
+                    label: 'Forceful Domination',
                     tooltip: 'Overwhelming arcane power and psychic assault. Power bonus.',
                     nextStep: 'session',
                 },
                 {
                     id: 'alchemical',
-                    label: '🧪 Alchemical Approach',
+                    label: 'Alchemical Approach',
                     tooltip: 'Elixirs, incense, and chemical manipulation. Wisdom bonus.',
                     nextStep: 'session',
                 },
                 {
                     id: 'conversational',
-                    label: '💬 Conversational',
+                    label: 'Conversational',
                     tooltip: 'Understanding, manipulation, and psychological tactics. Wisdom bonus.',
                     nextStep: 'session',
                 },
                 {
                     id: 'sensory',
-                    label: '✨ Sensory Overload',
+                    label: 'Sensory Overload',
                     tooltip: 'Overwhelm their senses with magical stimuli. Charm bonus.',
                     nextStep: 'session',
                 },
                 {
                     id: 'ritualistic',
-                    label: '🕯️ Ritualistic',
+                    label: 'Ritualistic',
                     tooltip: 'Ancient binding circles and ceremonial enchantment. Power bonus.',
                     nextStep: 'session',
                 },

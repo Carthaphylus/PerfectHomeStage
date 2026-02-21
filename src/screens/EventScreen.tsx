@@ -679,21 +679,41 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         ✦ Finish
                     </button>
                 ) : showChoices ? (
-                    <div className="event-choices">
+                    <div className={`event-choices ${visibleChoices.some(c => CONDITIONING_STRATEGIES[c.id]) ? 'strategy-grid' : ''}`}>
                         {visibleChoices.map((choice) => {
                             const strat = CONDITIONING_STRATEGIES[choice.id];
+                            if (strat) {
+                                // Strategy card with accent color styling
+                                const skillLabel = strat.skillBonus
+                                    ? `${strat.skillBonus.skill.charAt(0).toUpperCase() + strat.skillBonus.skill.slice(1)} +${strat.skillBonus.bonus}`
+                                    : '';
+                                return (
+                                    <button
+                                        key={choice.id}
+                                        className="strategy-card"
+                                        style={{ '--strat-color': strat.color } as React.CSSProperties}
+                                        onClick={() => handleChoice(choice)}
+                                        title={strat.tooltip}
+                                    >
+                                        <div className="strategy-card-icon">{strat.icon}</div>
+                                        <div className="strategy-card-body">
+                                            <span className="strategy-card-name">{strat.label}</span>
+                                            <span className="strategy-card-desc">{strat.description}</span>
+                                        </div>
+                                        {skillLabel && (
+                                            <span className="strategy-card-bonus">{skillLabel}</span>
+                                        )}
+                                    </button>
+                                );
+                            }
                             return (
-                            <div key={choice.id} className={`event-choice-row ${strat ? 'strategy-choice' : ''}`}>
+                            <div key={choice.id} className="event-choice-row">
                                 <button
-                                    className={`event-btn event-btn-choice ${choice.skillCheck ? 'has-check' : ''} ${strat ? 'strategy-btn' : ''}`}
+                                    className={`event-btn event-btn-choice ${choice.skillCheck ? 'has-check' : ''}`}
                                     onClick={() => handleChoice(choice)}
-                                    title={choice.tooltip || strat?.description || ''}
+                                    title={choice.tooltip || ''}
                                 >
-                                    {strat && <span className="strategy-icon">{strat.icon}</span>}
                                     <span className="choice-label">{choice.label}</span>
-                                    {strat && (
-                                        <span className="strategy-desc">{strat.description}</span>
-                                    )}
                                     {choice.skillCheck && (
                                         <span className="choice-check-badge">
                                             {choice.skillCheck.skill.toUpperCase()} DC {choice.skillCheck.difficulty}
