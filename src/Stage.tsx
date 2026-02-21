@@ -1007,6 +1007,93 @@ export function getTierBehaviorDescription(tier: ConditioningTier): string {
     }
 }
 
+/** Get detailed milestone-based behavior direction for brainwashing level */
+export function getConditioningMilestoneDirections(bw: number, name: string, pcName: string): string[] {
+    const lines: string[] = [];
+    if (bw <= 0) {
+        lines.push(`${name} is completely unaffected by conditioning. They are their normal self — fierce, proud, and unbowed.`);
+        lines.push(`They will refuse any order, insult ${pcName} freely, and look for ways to escape or fight back.`);
+    } else if (bw <= 10) {
+        lines.push(`${name} has barely been touched by conditioning (${bw}%). They are essentially unchanged.`);
+        lines.push(`They may feel a strange tingling when ${pcName} speaks, but dismiss it immediately. Fully hostile and defiant.`);
+    } else if (bw <= 25) {
+        lines.push(`${name}'s conditioning is minimal (${bw}%). Cracks have not yet formed.`);
+        lines.push(`They occasionally pause before snapping back a retort. Their anger feels slightly forced at times, as if their conviction needs effort to maintain.`);
+        lines.push(`They would never admit to feeling anything but contempt — and they're mostly right.`);
+    } else if (bw <= 40) {
+        lines.push(`${name}'s conditioning is progressing (${bw}%). Their resistance is wavering.`);
+        lines.push(`They catch themselves staring at ${pcName} or hesitating before defying an order. Moments of involuntary compliance slip through — a hand that moves before they tell it to, a word of agreement they didn't mean to say.`);
+        lines.push(`They are disturbed by these lapses and overcompensate with bursts of defiance. They might tremble or flush when ${pcName} uses a commanding tone.`);
+    } else if (bw <= 55) {
+        lines.push(`${name}'s conditioning has reached a tipping point (${bw}%). Compliance is becoming their default.`);
+        lines.push(`They obey most direct orders, though they may grumble or make excuses for why they're doing it. "It's easier this way" or "I just don't feel like fighting right now."`);
+        lines.push(`They feel a warm flutter when ${pcName} praises them and a knot of anxiety when they displease. They still protest when pushed too far, but the protests sound hollow even to them.`);
+    } else if (bw <= 70) {
+        lines.push(`${name} is deeply conditioned (${bw}%). Resistance is sporadic and weak.`);
+        lines.push(`They follow instructions willingly and may even anticipate ${pcName}'s wishes. When they do resist, it's more of a whimper than a roar — and they quickly cave.`);
+        lines.push(`They seek ${pcName}'s attention and approval. Being ignored or dismissed causes visible distress. Their old personality surfaces in small ways — a sarcastic comment, a flash of their former pride — but these are brief and unthreatening.`);
+    } else if (bw <= 85) {
+        lines.push(`${name} is nearly broken (${bw}%). Submission comes naturally.`);
+        lines.push(`They are attentive, eager, and openly compliant. They address ${pcName} with respect and may use honorifics or deferential language unprompted.`);
+        lines.push(`Traces of their old self are faint — a shy smile where there was once a glare, a quiet request where there was once a demand. They genuinely want to please and feel fulfilled when they succeed.`);
+    } else {
+        lines.push(`${name} is fully broken (${bw}%). Their will belongs to ${pcName}.`);
+        lines.push(`They are devoted, adoring, and completely obedient. They find joy in serving and become anxious when separated from ${pcName}.`);
+        lines.push(`Their old personality has been reshaped — its strengths redirected toward loyalty and service. They may not even remember clearly what they were like before, or if they do, they view their past self with pity or amusement.`);
+    }
+    return lines;
+}
+
+/** Get detailed milestone-based behavior direction for obedience level */
+export function getObedienceMilestoneDirections(obedience: number, name: string, pcName: string): string[] {
+    const lines: string[] = [];
+    if (obedience <= 15) {
+        lines.push(`${name} is barely obedient (${obedience}%). They resent their situation and obey only when threatened or forced.`);
+        lines.push(`They talk back, drag their feet, and look for opportunities to defy ${pcName}. They may "accidentally" break things or forget orders.`);
+    } else if (obedience <= 35) {
+        lines.push(`${name} has low obedience (${obedience}%). They comply with basic requests but push back on anything they find demeaning or difficult.`);
+        lines.push(`They have a surly attitude and make their displeasure known. They follow the letter of orders while ignoring the spirit.`);
+    } else if (obedience <= 55) {
+        lines.push(`${name} has moderate obedience (${obedience}%). They follow most orders without complaint but aren't enthusiastic about it.`);
+        lines.push(`They've accepted their role but haven't embraced it. They perform tasks competently but without initiative or passion.`);
+    } else if (obedience <= 75) {
+        lines.push(`${name} is quite obedient (${obedience}%). They follow orders promptly and may even volunteer for tasks.`);
+        lines.push(`They take pride in doing their duties well. They respect ${pcName}'s authority and rarely question commands.`);
+    } else if (obedience <= 90) {
+        lines.push(`${name} is highly obedient (${obedience}%). They anticipate ${pcName}'s needs and serve with genuine dedication.`);
+        lines.push(`They find comfort and purpose in their role. Disobedience feels wrong to them — it causes real discomfort.`);
+    } else {
+        lines.push(`${name} is perfectly obedient (${obedience}%). Service is their identity and joy.`);
+        lines.push(`They live to fulfill ${pcName}'s wishes and would never consider defiance. They are the model servant — attentive, tireless, and utterly devoted to their duties.`);
+    }
+    return lines;
+}
+
+/** Get detailed milestone-based behavior direction for love level */
+export function getLoveMilestoneDirections(love: number, name: string, pcName: string): string[] {
+    const lines: string[] = [];
+    if (love <= 15) {
+        lines.push(`${name} has no affection for ${pcName} (Love: ${love}%). They view ${pcName} as a captor, master, or authority figure — nothing more.`);
+        lines.push(`Their interactions are purely transactional. They feel no warmth and show none.`);
+    } else if (love <= 35) {
+        lines.push(`${name} has slight attachment to ${pcName} (Love: ${love}%). They don't hate ${pcName} and may find them tolerable company.`);
+        lines.push(`There are small moments — a half-smile, a softened tone — but nothing they would acknowledge as affection.`);
+    } else if (love <= 55) {
+        lines.push(`${name} has growing fondness for ${pcName} (Love: ${love}%). They enjoy ${pcName}'s company and feel at ease around them.`);
+        lines.push(`They might blush at compliments or feel a pang of jealousy. They care about ${pcName}'s opinion of them but wouldn't call it love.`);
+    } else if (love <= 75) {
+        lines.push(`${name} is genuinely attached to ${pcName} (Love: ${love}%). They seek ${pcName}'s company, worry about their wellbeing, and feel happiest in their presence.`);
+        lines.push(`They show affection openly — lingering touches, warm smiles, concern when ${pcName} is troubled. They might be possessive or jealous.`);
+    } else if (love <= 90) {
+        lines.push(`${name} is deeply in love with ${pcName} (Love: ${love}%). ${pcName} is the center of their world.`);
+        lines.push(`Every interaction carries warmth and tenderness. They are physically affectionate, emotionally open, and deeply vulnerable with ${pcName}. Being apart causes them real sadness.`);
+    } else {
+        lines.push(`${name} is utterly devoted to ${pcName} (Love: ${love}%). Their love is total, consuming, and unconditional.`);
+        lines.push(`They adore ${pcName} with every fiber of their being. Their happiness depends entirely on ${pcName}'s happiness. They would do anything — sacrifice anything — without hesitation.`);
+    }
+    return lines;
+}
+
 // ---- Conditioning Strategies Registry ----
 export const CONDITIONING_STRATEGIES: Record<string, ConditioningStrategy> = {
     gentle: {
@@ -1808,6 +1895,7 @@ export const EVENT_BRAINWASHING: EventDefinition = {
 export interface SceneMessage {
     sender: string;
     text: string;
+    _debugContext?: string; // The full prompt used to generate this message (debug only)
 }
 
 // Scene descriptor — passed to React as a prop snapshot, NOT stored in messageState
@@ -2621,6 +2709,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private _activeEvent: ActiveEvent | null = null;
     private _eventMessages: SceneMessage[] = [];
     private _textGenActive: boolean = false; // flag to prevent afterResponse from double-adding
+    private _lastGeneratedPrompt: string = ''; // stored for debug context viewer
     private _eventRegistry: Record<string, EventDefinition> = {
         [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
     };
@@ -3050,8 +3139,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         try {
             this._textGenActive = true;
+            const prompt = this.generateEventChatPrompt(lastPlayerMsg.text);
+            this._lastGeneratedPrompt = prompt;
             const response = await this.generator.textGen({
-                prompt: this.generateEventChatPrompt(lastPlayerMsg.text),
+                prompt,
                 include_history: false,
                 max_tokens: 600,
                 stop: [`${pcName}:`, `\n${pcName} `],
@@ -3063,7 +3154,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
             if (response?.result) {
                 const replyText = response.result.trim();
-                const reply: SceneMessage = { sender: speakerName, text: replyText };
+                const reply: SceneMessage = { sender: speakerName, text: replyText, _debugContext: prompt };
                 this._eventMessages.push(reply);
                 return { ...reply };
             }
@@ -3090,8 +3181,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         try {
             this._textGenActive = true;
+            const prompt = this.generateEventChatPrompt(text.trim());
+            this._lastGeneratedPrompt = prompt;
             const response = await this.generator.textGen({
-                prompt: this.generateEventChatPrompt(text.trim()),
+                prompt,
                 include_history: false,
                 max_tokens: 600,
                 stop: [`${pcName}:`, `\n${pcName} `],
@@ -3103,7 +3196,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
             if (response?.result) {
                 const replyText = response.result.trim();
-                const reply: SceneMessage = { sender: speakerName, text: replyText };
+                const reply: SceneMessage = { sender: speakerName, text: replyText, _debugContext: prompt };
                 this._eventMessages.push(reply);
                 event.chatMessageCount += 1;
                 return { ...reply };
@@ -3436,26 +3529,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             const bw = hero.brainwashing;
             const tier = getConditioningTier(bw);
             lines.push(`\n[CONDITIONING STATE]`);
-            lines.push(`${speakerName} is a ${hero.heroClass}. Brainwashing: ${bw}/100 (${tier}).`);
-            lines.push(`Current behavior: ${getTierBehaviorDescription(tier)}`);
+            lines.push(`${speakerName} is a ${hero.heroClass}. Brainwashing: ${bw}/100 (Tier: ${tier}).`);
+            const milestoneLines = getConditioningMilestoneDirections(bw, speakerName, pcName);
+            for (const ml of milestoneLines) lines.push(ml);
         } else if (servant) {
             lines.push(`\n[SERVANT STATE]`);
             lines.push(`${speakerName} is a converted servant (former ${servant.formerClass}).`);
-            lines.push(`Obedience: ${servant.obedience}/100. Love: ${servant.love}/100.`);
-            if (servant.obedience >= 80) {
-                lines.push(`${speakerName} is highly obedient and follows orders readily, finding comfort in serving.`);
-            } else if (servant.obedience >= 50) {
-                lines.push(`${speakerName} generally complies but may show occasional independence or mild pushback.`);
-            } else {
-                lines.push(`${speakerName} is still somewhat resistant and may challenge orders or show defiance.`);
-            }
-            if (servant.love >= 80) {
-                lines.push(`${speakerName} is deeply devoted and affectionate toward ${pcName}.`);
-            } else if (servant.love >= 50) {
-                lines.push(`${speakerName} has a growing fondness for ${pcName} but is not fully devoted.`);
-            } else {
-                lines.push(`${speakerName} has little personal attachment to ${pcName} yet.`);
-            }
+            const obLines = getObedienceMilestoneDirections(servant.obedience, speakerName, pcName);
+            for (const ol of obLines) lines.push(ol);
+            const loveLines = getLoveMilestoneDirections(servant.love, speakerName, pcName);
+            for (const ll of loveLines) lines.push(ll);
         }
 
         // ── SCENE CONTEXT ──

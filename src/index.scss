@@ -4667,6 +4667,77 @@ html, body, #root {
   }
 }
 
+// ── Debug Context Viewer ──
+.debug-context-btn {
+  color: rgba(120, 180, 255, 0.5) !important;
+  &:hover {
+    color: rgba(120, 180, 255, 0.9) !important;
+  }
+}
+
+.debug-context-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.debug-context-panel {
+  background: #1a1225;
+  border: 1px solid rgba(200, 170, 110, 0.25);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.debug-context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: rgba(120, 180, 255, 0.8);
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.debug-context-close {
+  background: none;
+  border: none;
+  color: rgba(200, 170, 110, 0.5);
+  cursor: pointer;
+  padding: 2px;
+  &:hover { color: rgba(200, 170, 110, 0.9); }
+}
+
+.debug-context-body {
+  padding: 16px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: rgba(220, 210, 190, 0.85);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 8px 8px;
+}
+
 // ── Character History (profile section) ──
 .char-history-section {
   h4 {

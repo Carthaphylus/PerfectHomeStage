@@ -24,7 +24,7 @@ import {
     Droplets, Sun, Feather, Gem, Heart, Crown, Sparkles, Waves,
     Brain, Ghost, Skull, Shield, Star, Zap, Wind, CircleDot,
     ScanEye, TestTubes, Moon, Hand, MessageCircle,
-    Pencil, RotateCcw, Check, X, ChevronLeft, ChevronRight,
+    Pencil, RotateCcw, Check, X, ChevronLeft, ChevronRight, FileText,
 } from 'lucide-react';
 
 // ── Spell Icon Component ──
@@ -165,6 +165,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [summaryEditing, setSummaryEditing] = useState(false);
     const [summaryText, setSummaryText] = useState('');
     const [generatingSummary, setGeneratingSummary] = useState(false);
+
+    // ── Debug context viewer ──
+    const [debugContextText, setDebugContextText] = useState<string | null>(null);
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -759,6 +762,15 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                     <RotateCcw size={10} />
                                                 </button>
                                             )}
+                                            {!isPlayer && msg._debugContext && (
+                                                <button
+                                                    className="skit-msg-action-btn debug-context-btn"
+                                                    onClick={() => setDebugContextText(msg._debugContext || null)}
+                                                    title="View generation context"
+                                                >
+                                                    <FileText size={10} />
+                                                </button>
+                                            )}
                                             {hasAlts && (
                                                 <div className="skit-msg-swipe">
                                                     <button
@@ -934,6 +946,21 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         <button className="event-btn event-btn-continue" onClick={handleEndChat}>
                             Continue ▸
                         </button>
+                    </div>
+                )}
+
+                {/* Debug context viewer overlay */}
+                {debugContextText !== null && (
+                    <div className="debug-context-overlay" onClick={() => setDebugContextText(null)}>
+                        <div className="debug-context-panel" onClick={e => e.stopPropagation()}>
+                            <div className="debug-context-header">
+                                <span><FileText size={12} /> Generation Context</span>
+                                <button className="debug-context-close" onClick={() => setDebugContextText(null)}>
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            <pre className="debug-context-body">{debugContextText}</pre>
+                        </div>
                     </div>
                 )}
             </div>
