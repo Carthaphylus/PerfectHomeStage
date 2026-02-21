@@ -146,7 +146,6 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [chatStarted, setChatStarted] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
-    const editInputRef = useRef<HTMLTextAreaElement>(null);
 
     // ── Conditioning UI State ──
     const [actionsOpen, setActionsOpen] = useState(false);
@@ -720,48 +719,56 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                 <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
                                 <div className="skit-msg-body">
                                     <span className="skit-msg-name">{msg.sender}</span>
-                                    {isEditing ? (
-                                        <div className="skit-msg-edit-area">
-                                            <textarea
-                                                ref={editInputRef}
-                                                className="skit-msg-edit-input"
-                                                value={editText}
-                                                onChange={e => {
-                                                    setEditText(e.target.value);
-                                                    // Auto-resize
-                                                    const ta = e.target;
-                                                    ta.style.height = 'auto';
-                                                    ta.style.height = ta.scrollHeight + 'px';
-                                                }}
-                                                autoFocus
-                                                onFocus={e => {
-                                                    // Auto-resize on initial focus
-                                                    const ta = e.target;
-                                                    ta.style.height = 'auto';
-                                                    ta.style.height = ta.scrollHeight + 'px';
-                                                }}
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        handleSaveEdit();
-                                                    }
-                                                    if (e.key === 'Escape') handleCancelEdit();
-                                                }}
-                                            />
-                                            <div className="skit-msg-edit-buttons">
-                                                <button className="skit-edit-btn skit-edit-save" onClick={handleSaveEdit} title={isPlayer ? 'Save & regenerate' : 'Save edit'}>
-                                                    <Check size={11} /> Save
-                                                </button>
-                                                <button className="skit-edit-btn skit-edit-cancel" onClick={handleCancelEdit} title="Cancel">
-                                                    <X size={11} /> Cancel
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="skit-msg-text">
-                                            {isLatestNpc
+                                    <div
+                                        className={`skit-msg-text ${isEditing ? 'skit-msg-text-editing' : ''}`}
+                                        contentEditable={isEditing}
+                                        suppressContentEditableWarning
+                                        ref={el => {
+                                            if (isEditing && el) {
+                                                // Set initial content and focus
+                                                if (el.innerText !== editText) {
+                                                    el.innerText = editText;
+                                                }
+                                                if (document.activeElement !== el) {
+                                                    el.focus();
+                                                    // Move cursor to end
+                                                    const range = document.createRange();
+                                                    range.selectNodeContents(el);
+                                                    range.collapse(false);
+                                                    const sel = window.getSelection();
+                                                    sel?.removeAllRanges();
+                                                    sel?.addRange(range);
+                                                }
+                                            }
+                                        }}
+                                        onInput={e => {
+                                            if (isEditing) {
+                                                setEditText((e.target as HTMLDivElement).innerText);
+                                            }
+                                        }}
+                                        onKeyDown={e => {
+                                            if (!isEditing) return;
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSaveEdit();
+                                            }
+                                            if (e.key === 'Escape') handleCancelEdit();
+                                        }}
+                                    >
+                                        {!isEditing && (
+                                            isLatestNpc
                                                 ? <TypewriterText text={msg.text} speed={40} />
-                                                : <FormattedText text={isPlayer ? displayText : msg.text} />}
+                                                : <FormattedText text={isPlayer ? displayText : msg.text} />
+                                        )}
+                                    </div>
+                                    {isEditing && (
+                                        <div className="skit-msg-edit-buttons">
+                                            <button className="skit-edit-btn skit-edit-save" onClick={handleSaveEdit} title={isPlayer ? 'Save & regenerate' : 'Save edit'}>
+                                                <Check size={11} /> Save
+                                            </button>
+                                            <button className="skit-edit-btn skit-edit-cancel" onClick={handleCancelEdit} title="Cancel">
+                                                <X size={11} /> Cancel
+                                            </button>
                                         </div>
                                     )}
                                     {/* Edit / Regenerate / Swipe controls */}
