@@ -103,6 +103,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [actionsOpen, setActionsOpen] = useState(false);
     const [actionResults, setActionResults] = useState<ActionResult[]>([]);
     const [executingAction, setExecutingAction] = useState(false);
+    const [attachedAction, setAttachedAction] = useState<{ action: ConditioningAction; forceResult?: 'success' | 'failure' } | null>(null);
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -196,12 +197,40 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         if (!text || chatSending) return;
         setChatInput('');
 
-        const playerMsg: SceneMessage = { sender: pcName, text };
+        // Execute attached conditioning action first, if any
+        let actionResult: ActionResult | null = null;
+        const currentAttached = attachedAction;
+        if (currentAttached) {
+            setAttachedAction(null);
+            setExecutingAction(true);
+            try {
+                actionResult = currentAttached.forceResult
+                    ? stage().executeConditioningActionForced(currentAttached.action.id, currentAttached.forceResult === 'success')
+                    : stage().executeConditioningAction(currentAttached.action.id);
+                if (actionResult) {
+                    setActionResults(prev => [...prev, actionResult!]);
+                    onEventUpdate(stage().getActiveEvent());
+                }
+            } finally {
+                setExecutingAction(false);
+            }
+        }
+
+        // Build the message text — include action context for the LLM
+        let messageText = text;
+        if (currentAttached && actionResult) {
+            const actionNarrative = actionResult.success
+                ? `*uses ${currentAttached.action.label}*`
+                : `*attempts ${currentAttached.action.label}, but fails*`;
+            messageText = `${actionNarrative} ${text}`;
+        }
+
+        const playerMsg: SceneMessage = { sender: pcName, text: messageText };
         setChatMessages(prev => [...prev, playerMsg]);
 
         setChatSending(true);
         try {
-            const reply = await stage().sendEventMessage(text);
+            const reply = await stage().sendEventMessage(messageText);
             if (reply) {
                 setChatMessages(prev => [...prev, reply]);
             }
@@ -253,41 +282,21 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         broken: '#22c55e',
     };
 
-    const handleConditioningAction = useCallback(async (actionId: string, forceResult?: 'success' | 'failure') => {
-        if (executingAction || chatSending) return;
-        setExecutingAction(true);
-
-        try {
-            const result = forceResult
-                ? stage().executeConditioningActionForced(actionId, forceResult === 'success')
-                : stage().executeConditioningAction(actionId);
-
-            if (result) {
-                setActionResults(prev => [...prev, result]);
-                onEventUpdate(stage().getActiveEvent());
-
-                // After the action, trigger a nudge for the NPC to react
-                setChatSending(true);
-                try {
-                    const action = CONDITIONING_ACTIONS[actionId];
-                    const actionNarrative = result.success
-                        ? `*uses ${action?.label || actionId}*`
-                        : `*attempts ${action?.label || actionId}, but fails*`;
-
-                    const reply = await stage().sendEventMessage(actionNarrative);
-                    if (reply) {
-                        setChatMessages(prev => [...prev, reply]);
-                    }
-                    onEventUpdate(stage().getActiveEvent());
-                } finally {
-                    setChatSending(false);
-                }
-            }
-        } finally {
-            setExecutingAction(false);
-            setTimeout(() => chatInputRef.current?.focus(), 50);
+    const handleAttachAction = useCallback((actionId: string, forceResult?: 'success' | 'failure') => {
+        const action = CONDITIONING_ACTIONS[actionId];
+        if (!action) return;
+        // If already attached the same action, detach it (toggle)
+        if (attachedAction && attachedAction.action.id === actionId && attachedAction.forceResult === forceResult) {
+            setAttachedAction(null);
+            return;
         }
-    }, [executingAction, chatSending]);
+        setAttachedAction({ action, forceResult });
+        setTimeout(() => chatInputRef.current?.focus(), 50);
+    }, [attachedAction]);
+
+    const handleDetachAction = useCallback(() => {
+        setAttachedAction(null);
+    }, []);
 
     if (!currentStep) {
         return (
@@ -320,11 +329,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
         const chatItems: ChatItem[] = [];
         let arIdx = 0;
-        // Interleave: place action results before the NPC message they triggered
+        // Interleave: place action results before the player message that contains the action text
         for (let i = 0; i < chatMessages.length; i++) {
             const msg = chatMessages[i];
-            const isPlayerAction = msg.sender === pcName && msg.text.startsWith('*uses ');
-            const isPlayerFail = msg.sender === pcName && msg.text.startsWith('*attempts ');
+            const isPlayerAction = msg.sender === pcName && (msg.text.startsWith('*uses ') || msg.text.includes('*uses '));
+            const isPlayerFail = msg.sender === pcName && (msg.text.startsWith('*attempts ') || msg.text.includes('*attempts '));
             if ((isPlayerAction || isPlayerFail) && arIdx < actionResults.length) {
                 chatItems.push({ type: 'action-result', result: actionResults[arIdx], index: arIdx });
                 arIdx++;
@@ -444,9 +453,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         // Regular message
                         const msg = item.msg;
                         const isPlayer = msg.sender === pcName;
-                        // Hide "system action" messages from the player (the *uses X* messages)
-                        if (isPlayer && (msg.text.startsWith('*uses ') || msg.text.startsWith('*attempts '))) {
-                            return null;
+                        // Strip the action prefix from display — the action result banner shows it
+                        let displayText = msg.text;
+                        if (isPlayer) {
+                            displayText = displayText.replace(/^\*uses [^*]+\*\s*/, '').replace(/^\*attempts [^*]+, but fails\*\s*/, '');
+                            if (!displayText.trim()) return null; // pure action message with no text
                         }
                         const msgAvatar = isPlayer ? chatPcAvatar : chatCharAvatar;
                         const isLatestNpc = !isPlayer && idx === chatItems.length - 1;
@@ -461,7 +472,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                     <div className="skit-msg-text">
                                         {isLatestNpc
                                             ? <TypewriterText text={msg.text} speed={40} />
-                                            : <FormattedText text={msg.text} />}
+                                            : <FormattedText text={isPlayer ? displayText : msg.text} />}
                                     </div>
                                 </div>
                             </div>
@@ -484,58 +495,86 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                 {availableActions.filter(a => !a.locked).length} available
                             </span>
                         </button>
-                        {actionsOpen && (
-                            <div className="conditioning-actions-grid">
-                                {availableActions.map(({ action, locked, lockReason }) => {
-                                    const onCooldown = lockReason?.startsWith('Cooldown');
-                                    return (
-                                        <div key={action.id} className="conditioning-action-slot">
-                                            <button
-                                                className={`conditioning-action-btn ${locked ? 'locked' : 'available'} category-${action.category}`}
-                                                onClick={() => !locked && handleConditioningAction(action.id)}
-                                                disabled={locked || executingAction || chatSending}
-                                                title={locked ? lockReason : action.tooltip}
-                                            >
-                                                <span className="cond-action-icon">{action.icon}</span>
-                                                <span className="cond-action-label">{action.label}</span>
-                                                {action.skillCheck && (
-                                                    <span className="cond-action-badge check-badge">
-                                                        {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
-                                                    </span>
-                                                )}
-                                                {action.consumeItem && (
-                                                    <span className="cond-action-badge item-badge">
-                                                        🧪
-                                                    </span>
-                                                )}
-                                                {locked && (
-                                                    <span className="cond-action-lock">
-                                                        {onCooldown ? '⏳' : '🔒'}
-                                                    </span>
-                                                )}
-                                            </button>
-                                            {/* Debug force buttons */}
-                                            {action.skillCheck && !locked && (
-                                                <div className="cond-action-debug">
-                                                    <button
-                                                        className="event-debug-btn debug-success"
-                                                        onClick={() => handleConditioningAction(action.id, 'success')}
-                                                        title="Debug: Force success"
-                                                        disabled={executingAction || chatSending}
-                                                    >✓</button>
-                                                    <button
-                                                        className="event-debug-btn debug-fail"
-                                                        onClick={() => handleConditioningAction(action.id, 'failure')}
-                                                        title="Debug: Force failure"
-                                                        disabled={executingAction || chatSending}
-                                                    >✗</button>
-                                                </div>
-                                            )}
+                        {actionsOpen && (() => {
+                            const categoryOrder: { key: string; label: string; icon: string }[] = [
+                                { key: 'hypnosis', label: 'Hypnosis', icon: '🔮' },
+                                { key: 'social', label: 'Social', icon: '💬' },
+                                { key: 'physical', label: 'Physical', icon: '💪' },
+                                { key: 'alchemy', label: 'Alchemy', icon: '🧪' },
+                                { key: 'reward', label: 'Reward', icon: '🎁' },
+                            ];
+                            const grouped = categoryOrder.map(cat => ({
+                                ...cat,
+                                actions: availableActions.filter(a => a.action.category === cat.key),
+                            })).filter(cat => cat.actions.length > 0);
+
+                            return (
+                                <div className="conditioning-actions-categorized">
+                                    {grouped.map(cat => (
+                                        <div key={cat.key} className={`conditioning-category-group category-${cat.key}`}>
+                                            <div className="conditioning-category-header">
+                                                <span className="conditioning-category-icon">{cat.icon}</span>
+                                                <span className="conditioning-category-label">{cat.label}</span>
+                                            </div>
+                                            <div className="conditioning-category-actions">
+                                                {cat.actions.map(({ action, locked, lockReason }) => {
+                                                    const onCooldown = lockReason?.startsWith('Cooldown');
+                                                    const isAttached = attachedAction?.action.id === action.id && !attachedAction?.forceResult;
+                                                    return (
+                                                        <div key={action.id} className="conditioning-action-slot">
+                                                            <button
+                                                                className={`conditioning-action-btn ${locked ? 'locked' : 'available'} category-${action.category} ${isAttached ? 'attached' : ''}`}
+                                                                onClick={() => !locked && handleAttachAction(action.id)}
+                                                                disabled={locked || executingAction || chatSending}
+                                                                title={locked ? lockReason : action.tooltip}
+                                                            >
+                                                                <span className="cond-action-icon">{action.icon}</span>
+                                                                <span className="cond-action-label">{action.label}</span>
+                                                                {action.skillCheck && (
+                                                                    <span className="cond-action-badge check-badge">
+                                                                        {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
+                                                                    </span>
+                                                                )}
+                                                                {action.consumeItem && (
+                                                                    <span className="cond-action-badge item-badge">
+                                                                        🧪
+                                                                    </span>
+                                                                )}
+                                                                {locked && (
+                                                                    <span className="cond-action-lock">
+                                                                        {onCooldown ? '⏳' : '🔒'}
+                                                                    </span>
+                                                                )}
+                                                                {isAttached && (
+                                                                    <span className="cond-action-attached-indicator">✦</span>
+                                                                )}
+                                                            </button>
+                                                            {/* Debug force buttons */}
+                                                            {action.skillCheck && !locked && (
+                                                                <div className="cond-action-debug">
+                                                                    <button
+                                                                        className="event-debug-btn debug-success"
+                                                                        onClick={() => handleAttachAction(action.id, 'success')}
+                                                                        title="Debug: Force success"
+                                                                        disabled={executingAction || chatSending}
+                                                                    >✓</button>
+                                                                    <button
+                                                                        className="event-debug-btn debug-fail"
+                                                                        onClick={() => handleAttachAction(action.id, 'failure')}
+                                                                        title="Debug: Force failure"
+                                                                        disabled={executingAction || chatSending}
+                                                                    >✗</button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            );
+                        })()}
                     </div>
                 )}
 
@@ -544,10 +583,25 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                     <div className="skit-input-bar">
                         <img className="skit-input-avatar" src={chatPcAvatar} alt={pcName} />
                         <div className="skit-input-wrapper">
+                            {/* Attached action indicator */}
+                            {attachedAction && (
+                                <div className={`attached-action-tag category-${attachedAction.action.category}`}>
+                                    <span className="attached-action-icon">{attachedAction.action.icon}</span>
+                                    <span className="attached-action-name">{attachedAction.action.label}</span>
+                                    {attachedAction.forceResult && (
+                                        <span className={`attached-action-force ${attachedAction.forceResult}`}>
+                                            [{attachedAction.forceResult}]
+                                        </span>
+                                    )}
+                                    <button className="attached-action-remove" onClick={handleDetachAction} title="Remove action">✕</button>
+                                </div>
+                            )}
                             <textarea
                                 ref={chatInputRef}
                                 className="skit-input"
-                                placeholder={`Speak as ${pcName}...`}
+                                placeholder={attachedAction
+                                    ? `Speak while using ${attachedAction.action.label}...`
+                                    : `Speak as ${pcName}...`}
                                 value={chatInput}
                                 onChange={e => setChatInput(e.target.value)}
                                 onKeyDown={handleChatKeyDown}
@@ -556,11 +610,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             />
                         </div>
                         <button
-                            className={`skit-send-btn ${chatSending ? 'sending' : ''}`}
+                            className={`skit-send-btn ${chatSending ? 'sending' : ''} ${attachedAction ? 'has-action' : ''}`}
                             onClick={handleChatSend}
                             disabled={chatSending || executingAction || !chatInput.trim()}
                         >
-                            {chatSending ? '...' : '▶'}
+                            {chatSending ? '...' : attachedAction ? '⚡' : '▶'}
                         </button>
                     </div>
                 ) : (
