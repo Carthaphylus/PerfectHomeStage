@@ -27,11 +27,7 @@ interface SpreadPage {
     school?: typeof SCHOOLS[number];
     spells?: ConditioningAction[];
     tocSchools?: typeof SCHOOLS;
-    pageIndex?: number; // sub-page within school (1-based)
-    pageCount?: number; // total sub-pages for this school
 }
-
-const SPELLS_PER_PAGE = 5;
 
 function buildSpreads(allActions: ConditioningAction[]): Spread[] {
     const spreads: Spread[] = [];
@@ -45,25 +41,12 @@ function buildSpreads(allActions: ConditioningAction[]): Spread[] {
         right: { type: 'toc', tocSchools: usedSchools },
     });
 
-    // Each school: left = school header (repeated), right = spells page
+    // One spread per school: left = header, right = all spells (scrollable)
     for (const school of usedSchools) {
         const schoolSpells = allActions.filter(a => a.category === school.key);
-        const chunks: ConditioningAction[][] = [];
-        for (let i = 0; i < schoolSpells.length; i += SPELLS_PER_PAGE) {
-            chunks.push(schoolSpells.slice(i, i + SPELLS_PER_PAGE));
-        }
-        const pageCount = chunks.length;
-        chunks.forEach((chunk, idx) => {
-            spreads.push({
-                left: { type: 'school-header', school },
-                right: {
-                    type: 'spells',
-                    school,
-                    spells: chunk,
-                    pageIndex: idx + 1,
-                    pageCount,
-                },
-            });
+        spreads.push({
+            left: { type: 'school-header', school },
+            right: { type: 'spells', school, spells: schoolSpells },
         });
     }
 
@@ -263,11 +246,6 @@ const PageContent: FC<{
         }
         return (
             <div className="grimoire-spell-list">
-                {page.pageCount && page.pageCount > 1 && (
-                    <div className="grimoire-spell-page-indicator">
-                        {page.pageIndex} / {page.pageCount}
-                    </div>
-                )}
                 {page.spells.map(spell => {
                     const canAfford = mana >= spell.manaCost;
                     return (
