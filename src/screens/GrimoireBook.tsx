@@ -287,13 +287,21 @@ const PageContent: FC<{
                                         )}
                                     </div>
                                     <p className="grimoire-spell-desc">{spell.tooltip}</p>
-                                    {spell.skillCheck && (
-                                        <div className="grimoire-spell-footer">
+                                    <div className="grimoire-spell-footer">
+                                        {spell.skillCheck ? (
                                             <span className="grimoire-spell-dc">
                                                 {spell.skillCheck.skill.substring(0, 3).toUpperCase()} DC {spell.skillCheck.difficulty}
                                             </span>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <span className="grimoire-spell-badge no-check">NO CHECK</span>
+                                        )}
+                                        {(spell.requiresItem || spell.consumeItem) && (
+                                            <span className="grimoire-spell-badge item-req">
+                                                <GameIcon icon="flask" size={8} className="badge-icon" />
+                                                {spell.requiresItem || spell.consumeItem}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </React.Fragment>
