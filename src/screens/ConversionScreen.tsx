@@ -55,6 +55,14 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
+    // ── Edit / Regenerate State ──
+    const [editingMsgIndex, setEditingMsgIndex] = useState<number | null>(null);
+    const [editText, setEditText] = useState('');
+    const [regenerating, setRegenerating] = useState(false);
+    const [npcAlternatives, setNpcAlternatives] = useState<SceneMessage[]>([]);
+    const [currentAltIndex, setCurrentAltIndex] = useState(0);
+    const [debugContextText, setDebugContextText] = useState<string | null>(null);
+
     // Archetype confirmation
     const [confirmArchetype, setConfirmArchetype] = useState<ConversionArchetype | null>(null);
 
@@ -161,7 +169,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
         setEditingDescription(false);
     };
 
-    const handleCancelEdit = () => {
+    const handleCancelDescriptionEdit = () => {
         setEditedDescription(conversionResult?.description || '');
         setEditingDescription(false);
     };
@@ -197,6 +205,123 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
             e.preventDefault();
             handleChatSend();
         }
+    };
+
+    // ── Edit / Regenerate Handlers (mirroring EventScreen) ──
+
+    const handleStartEdit = (msgIndex: number) => {
+        const msg = chatMessages[msgIndex];
+        if (!msg) return;
+        setEditingMsgIndex(msgIndex);
+        setEditText(msg.text);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingMsgIndex(null);
+        setEditText('');
+    };
+
+    const handleSaveEdit = async () => {
+        if (editingMsgIndex === null || chatSending || regenerating) return;
+        const newText = editText.trim();
+        if (!newText) return;
+
+        const oldMsg = chatMessages[editingMsgIndex];
+        if (!oldMsg) return;
+        const isPlayerMsg = oldMsg.sender === pcName;
+
+        if (!isPlayerMsg) {
+            // NPC message edit: just update the text locally
+            const updated = [...chatMessages];
+            updated[editingMsgIndex] = { ...oldMsg, text: newText, _edited: true };
+            setChatMessages(updated);
+            setEditingMsgIndex(null);
+            setEditText('');
+            setNpcAlternatives([]);
+            setCurrentAltIndex(0);
+            return;
+        }
+
+        // Player message edit: truncate after, re-send for new NPC reply
+        const updatedMessages = chatMessages.slice(0, editingMsgIndex);
+        updatedMessages.push({ sender: oldMsg.sender, text: newText });
+        setChatMessages(updatedMessages);
+
+        setEditingMsgIndex(null);
+        setEditText('');
+        setNpcAlternatives([]);
+        setCurrentAltIndex(0);
+
+        setRegenerating(true);
+        setChatSending(true);
+        try {
+            const reply = await stage().generateConversionResponse(
+                heroName,
+                selectedArchetype?.id || null,
+                newText,
+                updatedMessages
+            );
+            if (reply) {
+                setChatMessages(prev => [...prev, reply]);
+            }
+        } finally {
+            setRegenerating(false);
+            setChatSending(false);
+        }
+    };
+
+    const handleRegenerate = async () => {
+        if (chatSending || regenerating || chatMessages.length === 0) return;
+
+        const lastMsg = chatMessages[chatMessages.length - 1];
+        if (lastMsg.sender === pcName) return;
+
+        // Save the current response as an alternative before regenerating
+        setNpcAlternatives(prev => {
+            if (prev.length === 0) return [lastMsg];
+            return prev;
+        });
+
+        // Find last player message text for re-send
+        const lastPlayerMsg = [...chatMessages].reverse().find(m => m.sender === pcName);
+        const trimmed = chatMessages.slice(0, -1);
+        setChatMessages(trimmed);
+
+        setRegenerating(true);
+        setChatSending(true);
+        try {
+            const reply = await stage().generateConversionResponse(
+                heroName,
+                selectedArchetype?.id || null,
+                lastPlayerMsg?.text || '',
+                trimmed
+            );
+            if (reply) {
+                setChatMessages(prev => [...prev, reply]);
+                setNpcAlternatives(prev => {
+                    const newAlts = [...prev, reply];
+                    setCurrentAltIndex(newAlts.length - 1);
+                    return newAlts;
+                });
+            }
+        } finally {
+            setRegenerating(false);
+            setChatSending(false);
+        }
+    };
+
+    const handleSwipeAlt = (direction: -1 | 1) => {
+        if (npcAlternatives.length <= 1) return;
+        const newIdx = Math.max(0, Math.min(npcAlternatives.length - 1, currentAltIndex + direction));
+        if (newIdx === currentAltIndex) return;
+        setCurrentAltIndex(newIdx);
+
+        const alt = npcAlternatives[newIdx];
+        setChatMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = alt;
+            return updated;
+        });
     };
 
     const handleFinishConversion = async () => {
@@ -525,22 +650,116 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         const isPlayer = msg.sender === pcName;
                         const msgAvatar = isPlayer ? pcAvatar : charAvatar;
                         const isLatestNpc = !isPlayer && idx === chatMessages.length - 1;
+                        const isEditing = editingMsgIndex === idx;
+                        const isLastNpcMsg = !isPlayer && idx === chatMessages.length - 1;
+                        const canEdit = !chatSending && !regenerating && editingMsgIndex === null;
+                        const canRegen = isLastNpcMsg && !chatSending && !regenerating && editingMsgIndex === null;
+                        const hasAlts = isLastNpcMsg && npcAlternatives.length > 1;
 
                         return (
                             <div
                                 key={`msg-${idx}`}
-                                className={`conversion-chat-msg ${isPlayer ? 'msg-player' : 'msg-captive'}`}
+                                className={`conversion-chat-msg ${isPlayer ? 'msg-player' : 'msg-captive'} ${isEditing ? 'msg-editing' : ''}`}
                             >
                                 <img className="conversion-chat-msg-avatar" src={msgAvatar} alt={msg.sender} />
                                 <div className="conversion-chat-msg-body">
                                     <span className="conversion-chat-msg-name">{msg.sender}</span>
-                                    <div className="conversion-chat-msg-text">
-                                        {isLatestNpc ? (
-                                            <TypewriterText text={msg.text} speed={40} />
-                                        ) : (
-                                            <FormattedText text={msg.text} />
+                                    <div
+                                        key={isEditing ? `edit-${idx}` : `display-${idx}`}
+                                        className={`conversion-chat-msg-text ${isEditing ? 'msg-text-editing' : ''}`}
+                                        contentEditable={isEditing}
+                                        suppressContentEditableWarning
+                                        ref={el => {
+                                            if (isEditing && el) {
+                                                if (el.innerText !== editText) {
+                                                    el.innerText = editText;
+                                                }
+                                                if (document.activeElement !== el) {
+                                                    el.focus();
+                                                    const range = document.createRange();
+                                                    range.selectNodeContents(el);
+                                                    range.collapse(false);
+                                                    const sel = window.getSelection();
+                                                    sel?.removeAllRanges();
+                                                    sel?.addRange(range);
+                                                }
+                                            }
+                                        }}
+                                        onInput={e => {
+                                            if (isEditing) {
+                                                setEditText((e.target as HTMLDivElement).innerText);
+                                            }
+                                        }}
+                                        onKeyDown={e => {
+                                            if (!isEditing) return;
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSaveEdit();
+                                            }
+                                            if (e.key === 'Escape') handleCancelEdit();
+                                        }}
+                                    >
+                                        {!isEditing && (
+                                            (isLatestNpc && !msg._edited)
+                                                ? <TypewriterText text={msg.text} speed={40} />
+                                                : <FormattedText text={msg.text} />
                                         )}
                                     </div>
+                                    {isEditing && (
+                                        <div className="conversion-msg-edit-buttons">
+                                            <button className="conversion-edit-btn edit-save" onClick={handleSaveEdit} title={isPlayer ? 'Save & regenerate' : 'Save edit'}>
+                                                <Check size={11} /> Save
+                                            </button>
+                                            <button className="conversion-edit-btn edit-cancel" onClick={handleCancelEdit} title="Cancel">
+                                                <X size={11} /> Cancel
+                                            </button>
+                                        </div>
+                                    )}
+                                    {/* Edit / Regenerate / Swipe controls */}
+                                    {!isEditing && canEdit && (
+                                        <div className="conversion-msg-actions">
+                                            <button className="conversion-msg-action-btn" onClick={() => handleStartEdit(idx)} title="Edit message">
+                                                <Pencil size={10} />
+                                            </button>
+                                            {canRegen && (
+                                                <button className="conversion-msg-action-btn" onClick={handleRegenerate} title="Regenerate response">
+                                                    <RotateCcw size={10} />
+                                                </button>
+                                            )}
+                                            {!isPlayer && msg._debugContext && (
+                                                <button
+                                                    className="conversion-msg-action-btn debug-context-btn"
+                                                    onClick={() => setDebugContextText(msg._debugContext || null)}
+                                                    title="View generation context"
+                                                >
+                                                    <FileText size={10} />
+                                                </button>
+                                            )}
+                                            {hasAlts && (
+                                                <div className="conversion-msg-swipe">
+                                                    <button
+                                                        className="conversion-msg-action-btn"
+                                                        onClick={() => handleSwipeAlt(-1)}
+                                                        disabled={currentAltIndex <= 0}
+                                                        title="Previous response"
+                                                    >
+                                                        <ChevronLeft size={10} />
+                                                    </button>
+                                                    <span className="conversion-msg-swipe-counter">
+                                                        {currentAltIndex + 1}/{npcAlternatives.length}
+                                                    </span>
+                                                    <button
+                                                        className="conversion-msg-action-btn"
+                                                        onClick={() => handleSwipeAlt(1)}
+                                                        disabled={currentAltIndex >= npcAlternatives.length - 1}
+                                                        title="Next response"
+                                                    >
+                                                        <ChevronRight size={10} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -549,6 +768,19 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                     {chatSending && <TypingIndicator name={heroName} avatar={charAvatar} />}
                     <div ref={chatEndRef} />
                 </div>
+
+                {/* Debug context viewer overlay */}
+                {debugContextText && (
+                    <div className="conversion-debug-overlay" onClick={() => setDebugContextText(null)}>
+                        <div className="conversion-debug-panel" onClick={e => e.stopPropagation()}>
+                            <div className="conversion-debug-header">
+                                <span>Generation Context</span>
+                                <button onClick={() => setDebugContextText(null)}><X size={14} /></button>
+                            </div>
+                            <pre className="conversion-debug-content">{debugContextText}</pre>
+                        </div>
+                    </div>
+                )}
 
                 {/* Input bar */}
                 <div className="conversion-chat-input-bar">
@@ -682,7 +914,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                                     <button className="conversion-action-btn action-save" onClick={handleSaveDescription}>
                                         <Check size={12} /> Save
                                     </button>
-                                    <button className="conversion-action-btn action-cancel" onClick={handleCancelEdit}>
+                                    <button className="conversion-action-btn action-cancel" onClick={handleCancelDescriptionEdit}>
                                         <X size={12} /> Cancel
                                     </button>
                                 </div>
