@@ -835,6 +835,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             this.applyEffects(startStep.effects, event);
         }
 
+        // Run onEnter hook for start step (e.g. auto-start chat phase)
+        if (startStep.onEnter) {
+            const ctx: EventContext = {
+                stage: this,
+                target: event.target,
+                eventId: event.definitionId,
+                vars: event.vars,
+            };
+            startStep.onEnter(ctx);
+        }
+
         console.log(`[Event] Started "${def.name}" ${target ? `targeting ${target}` : ''}`);
         return { ...event };
     }
@@ -957,6 +968,47 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             console.log(`[Event] Ended event "${this._activeEvent.definitionId}"`);
             this._activeEvent = null;
         }
+    }
+
+    // ============================
+    // Servant Chat (Event-based)
+    // ============================
+
+    /**
+     * Start a servant chat as an event.
+     * Creates a dynamic event definition with the correct location and auto-starts the chat phase.
+     * Returns the ActiveEvent for React to own.
+     */
+    startServantChat(servantName: string, location: string): ActiveEvent | null {
+        const eventId = 'servant_chat';
+        const chatEvent: EventDefinition = {
+            id: eventId,
+            name: `Chat with ${servantName}`,
+            description: `Have a casual conversation with ${servantName}.`,
+            icon: 'message-circle',
+            category: 'social',
+            startStep: 'session',
+            steps: {
+                session: {
+                    id: 'session',
+                    text: `*You find {target} at the ${location}. They turn to face you as you approach.*`,
+                    chatPhase: {
+                        context: `Casual conversation with servant ${servantName} at the ${location}`,
+                        speaker: '{target}',
+                        location: location,
+                        skippable: true,
+                        minMessages: 0,
+                    },
+                    isEnding: true,
+                    onEnter: (ctx: EventContext) => {
+                        ctx.stage.startEventChat();
+                    },
+                },
+            },
+        };
+
+        this.registerEvent(chatEvent);
+        return this.startEvent(eventId, servantName);
     }
 
     // ============================
@@ -2047,10 +2099,28 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         } else if (servant) {
             lines.push(`\n[SERVANT STATE]`);
             lines.push(`${speakerName} is a converted servant (former ${servant.formerClass}).`);
+            if (servant.description) {
+                lines.push(`Current Persona: ${servant.description}`);
+            }
+            if (servant.archetypeTraits && servant.archetypeTraits.length > 0) {
+                lines.push(`Conversion Traits: ${servant.archetypeTraits.join(', ')}`);
+            }
+            lines.push(`Love: ${servant.love}/100. Obedience: ${servant.obedience}/100.`);
             const obLines = getObedienceMilestoneDirections(servant.obedience, speakerName, pcName);
             for (const ol of obLines) lines.push(ol);
             const loveLines = getLoveMilestoneDirections(servant.love, speakerName, pcName);
             for (const ll of loveLines) lines.push(ll);
+
+            // Social event: add casual conversation guidance
+            if (def.category === 'social') {
+                lines.push(`\n[CONVERSATION GUIDANCE]`);
+                lines.push(`This is a casual, everyday conversation — NOT a conditioning or training session.`);
+                lines.push(`${speakerName} should behave according to their love (${servant.love}/100) and obedience (${servant.obedience}/100) levels.`);
+                lines.push(`Low love → cold, formal, resentful. High love → warm, affectionate, eager to please.`);
+                lines.push(`Low obedience → willful, pushes back, tests boundaries. High obedience → compliant, deferential, anticipates commands.`);
+                lines.push(`Show personality depth: opinions on manor life, memories of their past, reactions to ${pcName}, relationships with other servants.`);
+                lines.push(`React naturally to ${pcName}'s words. Do NOT be a blank drone — even obedient servants have personality.`);
+            }
         }
 
         // ── SCENE CONTEXT ──

@@ -88,6 +88,16 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         setScreenType(ScreenType.SERVANTS);
     }, []);
 
+    /** Start a servant chat via the event system */
+    const startServantChat = useCallback((servantName: string, location: string) => {
+        const eventData = stage().startServantChat(servantName, location);
+        if (eventData) {
+            setActiveEvent(eventData);
+            setReturnScreen(ScreenType.SERVANTS);
+            setScreenType(ScreenType.EVENT);
+        }
+    }, [stage]);
+
     const showStatBar = screenType !== ScreenType.MENU;
 
     return (
@@ -110,7 +120,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 <CaptivesScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} startConversion={startConversion} />
             )}
             {screenType === ScreenType.SERVANTS && (
-                <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} />
+                <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} startServantChat={startServantChat} />
             )}
             {screenType === ScreenType.PC_PROFILE && (
                 <PCProfileScreen stage={stage} setScreenType={setScreenType} />

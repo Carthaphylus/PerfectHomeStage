@@ -10,9 +10,10 @@ interface ServantsScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
     startScene: (participants: string[], location: string) => void;
+    startServantChat: (servantName: string, location: string) => void;
 }
 
-export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene }) => {
+export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene, startServantChat }) => {
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
@@ -21,7 +22,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
 
     const handleStartChat = (servant: Servant) => {
         const location = stage().currentState.location;
-        startScene([servant.name], location);
+        startServantChat(servant.name, location);
     };
 
     const openRoleModal = (servant: Servant) => {

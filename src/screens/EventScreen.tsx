@@ -8,6 +8,8 @@ import {
     EventChoice,
     EventChatPhase,
     SceneMessage,
+    SceneData,
+    Location,
     getItemDefinition,
     getRarityColor,
     ConditioningAction,
@@ -65,16 +67,23 @@ const SpellIcon: FC<{ icon: string; size?: number; className?: string }> = ({ ic
     if (!IconComponent) return <span className={className}>{icon}</span>;
     return <IconComponent size={size} className={className} />;
 };
+import { SceneVNView } from './SceneVNView';
 import DungeonBg from '../assets/Images/Rooms/dungeon.jpg';
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
+import ManorExteriorBg from '../assets/Images/Skits/Manor - Exterior.png';
 import WoodsBg from '../assets/Images/Skits/Woods.webp';
 import RuinsBg from '../assets/Images/Skits/Deep Ruins.png';
+import TownBg from '../assets/Images/Skits/Town.webp';
+import CircusBg from '../assets/Images/Skits/Circus.webp';
 
 const EVENT_CHAT_BACKGROUNDS: Record<string, string> = {
     'Dungeon': DungeonBg,
     'Manor': ManorBg,
     'Woods': WoodsBg,
     'Ruins': RuinsBg,
+    'Town': TownBg,
+    'Circus': CircusBg,
+    'Unknown': ManorExteriorBg,
 };
 
 interface EventScreenProps {
@@ -143,7 +152,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [chatMessages, setChatMessages] = useState<SceneMessage[]>([]);
     const [chatInput, setChatInput] = useState('');
     const [chatSending, setChatSending] = useState(false);
-    const [chatStarted, setChatStarted] = useState(false);
+    const [chatStarted, setChatStarted] = useState(event.chatPhaseActive);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -168,6 +177,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
     // ── Debug context viewer ──
     const [debugContextText, setDebugContextText] = useState<string | null>(null);
+
+    // ── VN view toggle (for social events like servant chats) ──
+    const [chatViewMode, setChatViewMode] = useState<'chat' | 'vn'>('chat');
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -564,6 +576,58 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         const atMaxMessages = chatPhase.maxMessages ? event.chatMessageCount >= chatPhase.maxMessages : false;
         const bg = EVENT_CHAT_BACKGROUNDS[chatPhase.location || 'Dungeon'] || DungeonBg;
         const isConditioning = event.conditioningStrategy !== undefined;
+        const isSocialEvent = def.category === 'social';
+
+        // ── VN View Handler (for social events) ──
+        const handleVNSend = async (text: string) => {
+            const playerMsg: SceneMessage = { sender: pcName, text };
+            setChatMessages(prev => [...prev, playerMsg]);
+            setChatSending(true);
+            try {
+                const reply = await stage().sendEventMessage(text);
+                if (reply) {
+                    setChatMessages(prev => [...prev, reply]);
+                }
+                onEventUpdate(stage().getActiveEvent());
+            } finally {
+                setChatSending(false);
+            }
+        };
+
+        // ── VN MODE (social events only) ──
+        if (isSocialEvent && chatViewMode === 'vn') {
+            const syntheticScene: SceneData = {
+                id: 0,
+                participants: [chatSpeaker],
+                location: (chatPhase.location || 'Manor') as Location,
+            };
+            return (
+                <div
+                    className="skit-screen skit-active skit-vn-wrapper"
+                    style={{ '--char-color': chatCharData?.color || '#c8aa6e' } as React.CSSProperties}
+                >
+                    <button
+                        className="vn-view-toggle"
+                        onClick={() => setChatViewMode('chat')}
+                        title="Switch to Chat view"
+                    >
+                        <MessageCircle size={14} />
+                    </button>
+                    <SceneVNView
+                        stage={stage}
+                        scene={syntheticScene}
+                        bgImage={bg}
+                        charAvatar={chatCharAvatar}
+                        pcAvatar={chatPcAvatar}
+                        pcName={pcName}
+                        messages={chatMessages}
+                        isSending={chatSending}
+                        onSend={handleVNSend}
+                        onEnd={handleEndChat}
+                    />
+                </div>
+            );
+        }
 
         // Build combined message list with inline action results
         type ChatItem =
@@ -607,6 +671,15 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         <span className="skit-header-name">{chatSpeaker}</span>
                     </div>
                     <div className="skit-header-right">
+                        {isSocialEvent && (
+                            <button
+                                className="skit-view-toggle"
+                                onClick={() => setChatViewMode('vn')}
+                                title="Switch to Visual Novel view"
+                            >
+                                <GameIcon icon="book-open" size={14} />
+                            </button>
+                        )}
                         <button
                             className={`nsfw-toggle-btn ${stage().currentState.nsfwMode ? 'nsfw-active' : ''}`}
                             onClick={() => {
