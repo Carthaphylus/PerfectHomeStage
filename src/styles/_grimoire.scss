@@ -554,21 +554,6 @@
   gap: 10px;
   text-align: center;
   position: relative;
-
-  // Subtle ambient glow from sigil
-  &::before {
-    content: '';
-    position: absolute;
-    top: 35%;
-    left: 50%;
-    width: 280px;
-    height: 280px;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(ellipse, var(--school-color, rgba(200, 170, 110, 1)) 0%, transparent 65%);
-    opacity: 0.025;
-    pointer-events: none;
-    filter: blur(20px);
-  }
 }
 
 .grimoire-arcane-sigil {
@@ -656,7 +641,10 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   margin: 0;
-  text-shadow: 0 0 12px currentColor;
+  text-shadow:
+    0 0 6px currentColor,
+    0 0 18px currentColor,
+    0 0 40px currentColor;
 }
 
 .grimoire-school-rule {
