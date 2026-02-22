@@ -1327,6 +1327,30 @@
   text-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
 }
 
+.conversion-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.conversion-badge-loading {
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  color: rgba(200, 170, 110, 0.5);
+  background: rgba(200, 170, 110, 0.06) !important;
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  padding: 4px 12px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    animation: spin 1.5s linear infinite;
+  }
+}
+
 .conversion-result-section {
   width: 100%;
   max-width: 600px;

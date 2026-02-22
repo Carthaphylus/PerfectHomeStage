@@ -150,15 +150,46 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     };
 
     const handleRegenerateDescription = async () => {
-        if (!conversionResult?.archetypeId || isGenerating) return;
+        if (isGenerating) return;
         setIsGenerating(true);
-        const narrative = await stage().generateArchetypeNarrative(heroName, conversionResult.archetypeId);
-        if (narrative) {
-            setEditedDescription(narrative);
-            setConversionResult(prev => prev ? { ...prev, description: narrative } : prev);
-            stage().updateServantDescription(heroName, narrative);
+
+        if (conversionResult?.archetypeId) {
+            // Archetype: use the dedicated narrative generator
+            const narrative = await stage().generateArchetypeNarrative(heroName, conversionResult.archetypeId);
+            if (narrative) {
+                setEditedDescription(narrative);
+                setConversionResult(prev => prev ? { ...prev, description: narrative } : prev);
+                stage().updateServantDescription(heroName, narrative);
+            }
+        } else {
+            // Freeform: re-run full generation, keep only description
+            const result = await stage().generateConversionResult(heroName, chatMessages);
+            if (result) {
+                setEditedDescription(result.description);
+                setConversionResult(prev => prev ? { ...prev, description: result.description } : prev);
+                stage().updateServantDescription(heroName, result.description);
+            }
         }
+
         setIsGenerating(false);
+    };
+
+    const [isRegeneratingTitle, setIsRegeneratingTitle] = useState(false);
+
+    const handleRegenerateTitle = async () => {
+        if (isRegeneratingTitle || isGenerating) return;
+        setIsRegeneratingTitle(true);
+
+        const result = await stage().generateConversionResult(heroName, chatMessages);
+        if (result) {
+            setConversionResult(prev => prev ? {
+                ...prev,
+                archetypeName: result.title,
+                archetypeColor: result.color,
+            } : prev);
+        }
+
+        setIsRegeneratingTitle(false);
     };
 
     const handleSaveDescription = () => {
@@ -862,12 +893,31 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                     </div>
                     <h3>{heroName}</h3>
                     {conversionResult.archetypeName && (
-                        <span
-                            className="conversion-archetype-badge"
-                            style={{ borderColor: conversionResult.archetypeColor, color: conversionResult.archetypeColor }}
-                        >
-                            {conversionResult.archetypeName}
-                        </span>
+                        <div className="conversion-title-row">
+                            {isRegeneratingTitle ? (
+                                <span className="conversion-archetype-badge conversion-badge-loading"
+                                    style={{ borderColor: 'rgba(200, 170, 110, 0.3)', color: 'rgba(200, 170, 110, 0.5)' }}
+                                >
+                                    <GameIcon icon="orbit" size={9} className="spin" /> Generating...
+                                </span>
+                            ) : (
+                                <span
+                                    className="conversion-archetype-badge"
+                                    style={{ borderColor: conversionResult.archetypeColor, color: conversionResult.archetypeColor }}
+                                >
+                                    {conversionResult.archetypeName}
+                                </span>
+                            )}
+                            {!isRegeneratingTitle && !isGenerating && (
+                                <button
+                                    className="conversion-action-btn"
+                                    onClick={handleRegenerateTitle}
+                                    title="Regenerate title"
+                                >
+                                    <RotateCcw size={10} />
+                                </button>
+                            )}
+                        </div>
                     )}
 
                     {/* ── Personality section ── */}
@@ -883,15 +933,13 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                                     >
                                         <Pencil size={11} />
                                     </button>
-                                    {conversionResult.archetypeId && (
-                                        <button
-                                            className="conversion-action-btn"
-                                            onClick={handleRegenerateDescription}
-                                            title="Regenerate description"
-                                        >
-                                            <RotateCcw size={11} />
-                                        </button>
-                                    )}
+                                    <button
+                                        className="conversion-action-btn"
+                                        onClick={handleRegenerateDescription}
+                                        title="Regenerate description"
+                                    >
+                                        <RotateCcw size={11} />
+                                    </button>
                                 </div>
                             )}
                         </div>
