@@ -15,8 +15,8 @@ interface TextSegment {
 /** Parse raw text into formatted segments */
 export function parseSkitText(raw: string): TextSegment[] {
     const segments: TextSegment[] = [];
-    // Regex for *actions* and "dialogue", non-greedy
-    const pattern = /(\*[^*]+\*)|("(?:[^"\\]|\\.)*")/g;
+    // Regex: **bold/action** first, then *action*, then "dialogue"
+    const pattern = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -33,11 +33,14 @@ export function parseSkitText(raw: string): TextSegment[] {
         }
 
         if (match[1]) {
-            // *action* — strip the asterisks
-            segments.push({ type: 'action', text: match[1].slice(1, -1) });
+            // **bold action** — strip the double asterisks
+            segments.push({ type: 'action', text: match[1].slice(2, -2) });
         } else if (match[2]) {
+            // *action* — strip the asterisks
+            segments.push({ type: 'action', text: match[2].slice(1, -1) });
+        } else if (match[3]) {
             // "dialogue" — strip the quotes
-            segments.push({ type: 'dialogue', text: match[2].slice(1, -1) });
+            segments.push({ type: 'dialogue', text: match[3].slice(1, -1) });
         }
 
         lastIndex = match.index + match[0].length;

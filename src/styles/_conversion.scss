@@ -776,7 +776,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 520px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -874,7 +873,7 @@
   flex-direction: column;
   gap: 3px;
   min-width: 0;
-  max-width: 80%;
+  flex: 1;
 }
 
 .conversion-chat-msg-name {
@@ -891,6 +890,19 @@
   padding: 8px 12px;
   word-break: break-word;
   white-space: pre-wrap;
+
+  // Text formatting: *actions*, **bold actions**, "dialogue"
+  .skit-fmt-action {
+    color: rgba(200, 180, 140, 0.55);
+    font-style: italic;
+  }
+  .skit-fmt-dialogue {
+    color: rgba(200, 170, 110, 0.9);
+    font-weight: bold;
+  }
+  .skit-fmt-narration {
+    color: rgba(255, 255, 255, 0.85);
+  }
 
   &.msg-text-editing {
     outline: none;
