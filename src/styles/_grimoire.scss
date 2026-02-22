@@ -636,15 +636,15 @@
     height: 70px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, var(--school-color, rgba(200, 170, 110, 0.1)) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--school-color, rgba(200, 170, 110, 0.05)) 0%, transparent 70%);
     animation: sigilPulse 3s ease-in-out infinite;
     pointer-events: none;
   }
 }
 
 .grimoire-school-icon {
-  filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor);
-  opacity: 0.8;
+  filter: drop-shadow(0 0 6px currentColor);
+  opacity: 0.7;
   animation: iconFloat 5s ease-in-out infinite;
   z-index: 1;
 }
@@ -655,7 +655,7 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   margin: 0;
-  text-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+  text-shadow: 0 0 12px currentColor;
 }
 
 .grimoire-school-rule {
@@ -673,9 +673,9 @@
 
 .grimoire-school-desc {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5.5px;
+  font-size: 7.5px;
   line-height: 2;
-  color: rgba(200, 170, 110, 0.35);
+  color: rgba(200, 170, 110, 0.5);
   max-width: 85%;
   margin: 0;
   letter-spacing: 0.3px;
@@ -684,8 +684,8 @@
 
 .grimoire-school-count {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
-  color: rgba(200, 170, 110, 0.2);
+  font-size: 7px;
+  color: rgba(200, 170, 110, 0.35);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-top: 4px;
