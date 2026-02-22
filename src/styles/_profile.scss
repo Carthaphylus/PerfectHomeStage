@@ -481,3 +481,87 @@
   }
 }
 
+// ── Mana Bar Section (PC Profile) ──
+.mana-section {
+  h4 {
+    color: #4da6ff !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mana-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mana-bar-track {
+    flex: 1;
+    height: 18px;
+    background: rgba(20, 30, 50, 0.8);
+    border-radius: 9px;
+    border: 1px solid rgba(60, 130, 240, 0.25);
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.4),
+      0 0 8px rgba(60, 130, 240, 0.1);
+  }
+
+  .mana-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+    border-radius: 9px;
+    transition: width 0.6s ease;
+    position: relative;
+    box-shadow:
+      0 0 8px rgba(60, 130, 240, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      right: 4px;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      border-radius: 2px;
+    }
+  }
+
+  .mana-bar-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(100, 180, 255, 0.1) 40%,
+      rgba(100, 180, 255, 0.2) 50%,
+      rgba(100, 180, 255, 0.1) 60%,
+      transparent 100%
+    );
+    animation: manaShimmer 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .mana-bar-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #4da6ff;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+    text-shadow: 0 0 8px rgba(60, 130, 240, 0.3);
+  }
+}
+
+@keyframes manaShimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+

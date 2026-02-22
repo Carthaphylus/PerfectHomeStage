@@ -119,6 +119,16 @@
       margin-left: 4px;
     }
 
+    .grimoire-toggle-mana {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 6px;
+      color: rgba(100, 160, 255, 0.85);
+      margin-left: auto;
+      text-shadow: 0 0 6px rgba(60, 130, 240, 0.3);
+    }
+
     .grimoire-toggle-arrow {
       font-size: 8px;
       opacity: 0.5;
@@ -343,6 +353,24 @@
     border-radius: 3px;
     background: rgba(200, 120, 60, 0.1);
     color: rgba(255, 180, 100, 0.7);
+  }
+
+  .spell-mana-cost {
+    font-size: 5px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    background: rgba(60, 130, 240, 0.12);
+    color: rgba(100, 170, 255, 0.8);
+    border: 1px solid rgba(60, 130, 240, 0.2);
+    text-shadow: 0 0 4px rgba(60, 130, 240, 0.3);
+
+    &.insufficient {
+      color: rgba(239, 68, 68, 0.7);
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+      text-shadow: none;
+    }
   }
 
   .spell-lock {

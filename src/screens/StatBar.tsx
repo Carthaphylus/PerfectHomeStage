@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { Stage } from '../Stage';
+import { GameIcon } from './GameIcon';
 
 // Skill icons
 import PowerIcon from '../assets/Images/Stats/Power.webp';
@@ -45,6 +46,15 @@ export const StatBar: FC<StatBarProps> = ({ stage }) => {
                 <div className="stat-item" title="Gold">
                     <img src={GoldIcon} alt="Gold" className="stat-icon" />
                     <span className="stat-value">{s.gold}</span>
+                </div>
+                <div className="stat-item bar-stat" title={`Mana: ${s.mana}/${s.maxMana}`}>
+                    <GameIcon icon="sparkles" size={14} className="icon-mana" />
+                    <div className="stat-blocks mana-blocks">
+                        {Array.from({ length: 10 }, (_, i) => (
+                            <span key={i} className={`stat-block ${i < Math.round((s.mana / s.maxMana) * 10) ? 'filled' : 'empty'}`} />
+                        ))}
+                        <span className="stat-blocks-value">{s.mana}</span>
+                    </div>
                 </div>
                 <div className="stat-item" title="Servants">
                     <img src={ServantsIcon} alt="Servants" className="stat-icon" />

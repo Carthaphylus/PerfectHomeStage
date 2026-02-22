@@ -520,7 +520,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const availableActions = useMemo(() => {
         if (!isChatActive) return [];
         return stage().getAvailableActions();
-    }, [isChatActive, event.chatMessageCount, actionResults.length]);
+    }, [isChatActive, event.chatMessageCount, actionResults.length, stage().currentState.stats.mana]);
 
     const targetBrainwashing = useMemo(() => {
         return stage().getTargetBrainwashing();
@@ -918,6 +918,10 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         >
                             <span className="grimoire-toggle-icon">{actionsOpen ? <Sparkles size={12} /> : <Sparkles size={12} />}</span>
                             <span className="grimoire-toggle-label">{actionsOpen ? 'Grimoire' : 'Grimoire'}</span>
+                            <span className="grimoire-toggle-mana">
+                                <GameIcon icon="sparkles" size={10} className="icon-mana" />
+                                {stage().currentState.stats.mana}/{stage().currentState.stats.maxMana}
+                            </span>
                             <span className="grimoire-toggle-count">
                                 {availableActions.filter(a => !a.locked).length} spells
                             </span>
@@ -950,6 +954,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                 {cat.actions.map(({ action, locked, lockReason }) => {
                                                     const onCooldown = lockReason?.startsWith('Cooldown');
                                                     const isAttached = attachedAction?.action.id === action.id && !attachedAction?.forceResult;
+                                                    const notEnoughMana = lockReason?.startsWith('Requires') && lockReason?.includes('mana');
                                                     return (
                                                         <div key={action.id} className="grimoire-spell-slot">
                                                             <button
@@ -960,6 +965,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                             >
                                                                 <span className="spell-icon"><SpellIcon icon={action.icon} size={18} /></span>
                                                                 <span className="spell-name">{action.label}</span>
+                                                                {action.manaCost > 0 && (
+                                                                    <span className={`spell-mana-cost ${notEnoughMana ? 'insufficient' : ''}`}>
+                                                                        {action.manaCost}
+                                                                    </span>
+                                                                )}
                                                                 {action.skillCheck && (
                                                                     <span className="spell-dc">
                                                                         {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}

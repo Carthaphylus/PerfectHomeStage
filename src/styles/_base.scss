@@ -103,6 +103,12 @@
         background: #7a3ad0 !important;
         border-color: #a06aee;
       }
+
+      &.mana-blocks .stat-block.filled {
+        background: #3a8ee6 !important;
+        border-color: #5aade8;
+        box-shadow: 0 0 4px rgba(60, 130, 240, 0.3);
+      }
     }
   }
 }

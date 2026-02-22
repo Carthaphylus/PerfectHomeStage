@@ -91,6 +91,8 @@ export interface WitchStats {
     skills: SkillStats;
     household: HouseholdStats;
     gold: number;
+    mana: number;
+    maxMana: number;
     servants: number;
     maxServants: number;
     day: number;
@@ -257,7 +259,7 @@ export interface ConditioningAction {
     };
     brainwashingDelta: number;
     failDelta: number;
-    minBrainwashing: number;
+    manaCost: number;
     maxBrainwashing?: number;
     cooldownMessages: number;
     llmDirective: string;

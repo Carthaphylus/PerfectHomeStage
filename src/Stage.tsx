@@ -137,6 +137,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     obedience: 5,
                 },
                 gold: 100,
+                mana: 100,
+                maxMana: 100,
                 servants: 0,
                 maxServants: 10,
                 day: 1,
@@ -271,6 +273,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 pc.traits = cd.traits;
                 pc.details = cd.details;
                 pc.color = cd.color;
+            }
+            // Backward compat: ensure mana stats exist
+            if (this.currentState.stats.mana === undefined) {
+                this.currentState.stats.mana = 100;
+                this.currentState.stats.maxMana = 100;
             }
             // Patch heroes missing bio fields
             for (const hero of Object.values(this.currentState.heroes)) {
@@ -430,6 +437,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private parseStats(text: string): void {
         // Parse numeric values for stats (simple regex matching)
         const goldMatch = text.match(/(?:gold|coins?)[:\s]+(\d+)/i);
+        const manaMatch = text.match(/mana[:\s]+(\d+)/i);
         const powerMatch = text.match(/power[:\s]+(\d+)/i);
         const wisdomMatch = text.match(/wisdom[:\s]+(\d+)/i);
         const charmMatch = text.match(/charm[:\s]+(\d+)/i);
@@ -439,6 +447,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const dayMatch = text.match(/day[:\s]+(\d+)/i);
 
         if (goldMatch) this.currentState.stats.gold = parseInt(goldMatch[1]);
+        if (manaMatch) this.currentState.stats.mana = Math.min(parseInt(manaMatch[1]), this.currentState.stats.maxMana);
         if (powerMatch) this.currentState.stats.skills.power = parseInt(powerMatch[1]);
         if (wisdomMatch) this.currentState.stats.skills.wisdom = parseInt(wisdomMatch[1]);
         if (charmMatch) this.currentState.stats.skills.charm = parseInt(charmMatch[1]);
@@ -1788,10 +1797,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             let locked = false;
             let lockReason: string | undefined;
 
-            // Brainwashing threshold
-            if (bw < action.minBrainwashing) {
+            // Mana cost check
+            if (action.manaCost > 0 && this.currentState.stats.mana < action.manaCost) {
                 locked = true;
-                lockReason = `Requires ${action.minBrainwashing}% conditioning`;
+                lockReason = `Requires ${action.manaCost} mana (you have ${this.currentState.stats.mana})`;
             }
 
             // Item requirement (show but lock if missing)
@@ -1836,6 +1845,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const pcName = this.currentState.playerCharacter.name;
         const oldBw = hero.brainwashing;
         const oldTier = getConditioningTier(oldBw);
+
+        // Deduct mana cost
+        if (action.manaCost > 0) {
+            if (this.currentState.stats.mana < action.manaCost) {
+                return { actionId, success: false, delta: 0, message: `Not enough mana! Need ${action.manaCost}, have ${this.currentState.stats.mana}.`, newBrainwashing: oldBw };
+            }
+            this.currentState.stats.mana = Math.max(0, this.currentState.stats.mana - action.manaCost);
+        }
 
         // Consume item if needed
         if (action.consumeItem) {
@@ -1964,6 +1981,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const pcName = this.currentState.playerCharacter.name;
         const oldBw = hero.brainwashing;
         const oldTier = getConditioningTier(oldBw);
+
+        // Deduct mana cost (debug still costs mana)
+        if (action.manaCost > 0) {
+            this.currentState.stats.mana = Math.max(0, this.currentState.stats.mana - action.manaCost);
+        }
 
         // Consume item if needed
         if (action.consumeItem) {
