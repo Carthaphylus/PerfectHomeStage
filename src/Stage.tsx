@@ -1278,13 +1278,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * After a freeform conversion chat, ask the LLM to determine the new personality.
      * Returns { description, traits } based on the conversation.
      */
-    async generateConversionResult(heroName: string, messages: SceneMessage[]): Promise<{ description: string; traits: string[] } | null> {
+    async generateConversionResult(heroName: string, messages: SceneMessage[]): Promise<{ description: string; traits: string[]; title: string; color: string } | null> {
         const pcName = this.currentState.playerCharacter.name;
         const charData = CHARACTER_DATA[heroName];
 
         // Build the reference examples from archetypes
-        const exampleFormats = CONVERSION_ARCHETYPES.slice(0, 3).map(a =>
-            `Example "${a.name}": Description: "${a.personalityRewrite.substring(0, 100)}..." / Traits: [${a.grantedTraits.join(', ')}]`
+        const exampleFormats = CONVERSION_ARCHETYPES.slice(0, 5).map(a =>
+            `Example — Title: "${a.name}" / Color: "${a.color}" / Description: "${a.personalityRewrite.substring(0, 80)}..." / Traits: [${a.grantedTraits.join(', ')}]`
         ).join('\n');
 
         const convoLines = messages
@@ -1306,10 +1306,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             ``,
             `[INSTRUCTIONS]`,
             `Based on how ${pcName} shaped ${heroName} during the conversation, write:`,
-            `1. A new personality description (3-5 sentences, third person, present tense) describing who ${heroName} is NOW after conversion.`,
-            `2. Exactly 1-2 new traits that reflect the conversion (e.g., "Devoted", "Cheerful", "Stoic", "Occultist", etc.)`,
+            `1. A short TITLE (2-3 words) that captures what ${heroName} has become (e.g. "Loyal Pet", "Perfect Servant", "Broken Oracle", "Dark Thrall", "Enchanted Paramour")`,
+            `2. A hex COLOR that fits the title's theme (e.g. "#fb7185" for something affectionate/pink, "#a78bfa" for something arcane/purple, "#60a5fa" for something disciplined/blue, "#34d399" for something useful/green, "#fbbf24" for devotion/gold, "#94a3b8" for something hollow/grey, "#f43f5e" for something passionate/red)`,
+            `3. A new personality DESCRIPTION (3-5 sentences, third person, present tense) describing who ${heroName} is NOW after conversion.`,
+            `4. Exactly 1-2 new TRAITS that reflect the conversion (e.g., "Devoted", "Cheerful", "Stoic", "Occultist", etc.)`,
             ``,
             `Respond in EXACTLY this format:`,
+            `TITLE: [short title]`,
+            `COLOR: [hex color]`,
             `DESCRIPTION: [the new personality description]`,
             `TRAITS: [Trait1, Trait2]`,
         ].join('\n');
@@ -1318,7 +1322,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             const response = await this.generator.textGen({
                 prompt,
                 include_history: false,
-                max_tokens: 400,
+                max_tokens: 500,
                 stop: [],
                 template: '',
                 context_length: null,
@@ -1327,15 +1331,19 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
             if (response?.result) {
                 const text = response.result.trim();
+                const titleMatch = text.match(/TITLE:\s*(.+?)(?=\n|$)/);
+                const colorMatch = text.match(/COLOR:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})/);
                 const descMatch = text.match(/DESCRIPTION:\s*(.+?)(?=\nTRAITS:|$)/s);
                 const traitMatch = text.match(/TRAITS:\s*(.+)/);
 
+                const title = titleMatch ? titleMatch[1].trim() : 'Converted';
+                const color = colorMatch ? colorMatch[1].trim() : '#c8aa6e';
                 const description = descMatch ? descMatch[1].trim() : text;
                 const traits = traitMatch
                     ? traitMatch[1].split(',').map(t => t.trim()).filter(Boolean)
                     : [];
 
-                return { description, traits };
+                return { description, traits, title, color };
             }
             return null;
         } catch (e) {

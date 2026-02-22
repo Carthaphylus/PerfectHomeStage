@@ -342,6 +342,8 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                     description: result.description,
                     traits: result.traits,
                     originalTraits: heroTraits,
+                    archetypeName: result.title,
+                    archetypeColor: result.color,
                 });
                 setEditedDescription(result.description);
                 // Save scene summary
