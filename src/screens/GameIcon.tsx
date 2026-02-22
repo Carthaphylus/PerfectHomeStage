@@ -20,6 +20,8 @@ import {
     Footprints, ShieldAlert, HeartCrack, LockKeyhole, Orbit, Flame,
     // Conversion & Archetypes
     List, ScrollText, Shield, ScanEye, Ghost,
+    // Extra spell icons
+    Music, Cloud, Waves, Hand, Droplets, Sun, Feather,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -117,6 +119,15 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     shield: Shield,
     'scan-eye': ScanEye,
     ghost: Ghost,
+
+    // ── Extra Spell Icons ──
+    music: Music,
+    cloud: Cloud,
+    waves: Waves,
+    hand: Hand,
+    droplets: Droplets,
+    sun: Sun,
+    feather: Feather,
 };
 
 export interface GameIconProps {

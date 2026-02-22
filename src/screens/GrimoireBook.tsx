@@ -11,47 +11,63 @@ const SCHOOLS: { key: string; label: string; icon: string; color: string }[] = [
     { key: 'beguile', label: 'Beguile', icon: 'heart', color: '#c86eb8' },
 ];
 
-/** Build a page-pair (left + right) from the spell list grouped by school */
-interface SpellPage {
-    type: 'cover' | 'toc' | 'school-header' | 'spells';
+/**
+ * Each spread is: left = school header, right = spells.
+ * If a school has more spells than fit on one page, it gets multiple spreads,
+ * with the school header always repeated on the left.
+ * First spread is always cover (left) + ToC (right).
+ */
+interface Spread {
+    left: SpreadPage;
+    right: SpreadPage;
+}
+
+interface SpreadPage {
+    type: 'cover' | 'toc' | 'school-header' | 'spells' | 'blank';
     school?: typeof SCHOOLS[number];
     spells?: ConditioningAction[];
     tocSchools?: typeof SCHOOLS;
-    pageLabel?: string;
+    pageIndex?: number; // sub-page within school (1-based)
+    pageCount?: number; // total sub-pages for this school
 }
 
-function buildPages(allActions: ConditioningAction[]): SpellPage[] {
-    const pages: SpellPage[] = [];
+const SPELLS_PER_PAGE = 5;
 
-    // Cover (takes left side of first spread)
-    pages.push({ type: 'cover' });
+function buildSpreads(allActions: ConditioningAction[]): Spread[] {
+    const spreads: Spread[] = [];
 
-    // Table of Contents (right side of first spread)
+    // Spread 0: Cover + ToC
     const usedSchools = SCHOOLS.filter(s =>
         allActions.some(a => a.category === s.key)
     );
-    pages.push({ type: 'toc', tocSchools: usedSchools });
+    spreads.push({
+        left: { type: 'cover' },
+        right: { type: 'toc', tocSchools: usedSchools },
+    });
 
-    // Each school: header page then spell pages (≤5 spells per page)
-    const SPELLS_PER_PAGE = 5;
+    // Each school: left = school header (repeated), right = spells page
     for (const school of usedSchools) {
         const schoolSpells = allActions.filter(a => a.category === school.key);
-        pages.push({ type: 'school-header', school });
+        const chunks: ConditioningAction[][] = [];
         for (let i = 0; i < schoolSpells.length; i += SPELLS_PER_PAGE) {
-            pages.push({
-                type: 'spells',
-                school,
-                spells: schoolSpells.slice(i, i + SPELLS_PER_PAGE),
-            });
+            chunks.push(schoolSpells.slice(i, i + SPELLS_PER_PAGE));
         }
+        const pageCount = chunks.length;
+        chunks.forEach((chunk, idx) => {
+            spreads.push({
+                left: { type: 'school-header', school },
+                right: {
+                    type: 'spells',
+                    school,
+                    spells: chunk,
+                    pageIndex: idx + 1,
+                    pageCount,
+                },
+            });
+        });
     }
 
-    // Pad to even count for left/right spreads
-    if (pages.length % 2 !== 0) {
-        pages.push({ type: 'spells', spells: [] }); // blank filler
-    }
-
-    return pages;
+    return spreads;
 }
 
 // ── Component ──
@@ -62,7 +78,6 @@ interface GrimoireBookProps {
 }
 
 export const GrimoireBook: FC<GrimoireBookProps> = ({ stage, onClose }) => {
-    // spread index: 0-based, each spread = 2 pages
     const [spreadIdx, setSpreadIdx] = useState(0);
     const [turning, setTurning] = useState<'next' | 'prev' | null>(null);
 
@@ -80,8 +95,8 @@ export const GrimoireBook: FC<GrimoireBookProps> = ({ stage, onClose }) => {
         });
     }, []);
 
-    const pages = useMemo(() => buildPages(allActions), [allActions]);
-    const totalSpreads = Math.ceil(pages.length / 2);
+    const spreads = useMemo(() => buildSpreads(allActions), [allActions]);
+    const totalSpreads = spreads.length;
 
     const goNext = useCallback(() => {
         if (spreadIdx >= totalSpreads - 1 || turning) return;
@@ -103,20 +118,19 @@ export const GrimoireBook: FC<GrimoireBookProps> = ({ stage, onClose }) => {
 
     // Jump to a specific school
     const jumpToSchool = useCallback((schoolKey: string) => {
-        const idx = pages.findIndex(p => p.type === 'school-header' && p.school?.key === schoolKey);
+        const idx = spreads.findIndex(s =>
+            s.left.type === 'school-header' && s.left.school?.key === schoolKey
+        );
         if (idx >= 0) {
-            const targetSpread = Math.floor(idx / 2);
             setTurning('next');
             setTimeout(() => {
-                setSpreadIdx(targetSpread);
+                setSpreadIdx(idx);
                 setTurning(null);
             }, 500);
         }
-    }, [pages]);
+    }, [spreads]);
 
-    // Current spread pages
-    const leftPage = pages[spreadIdx * 2] || null;
-    const rightPage = pages[spreadIdx * 2 + 1] || null;
+    const spread = spreads[spreadIdx];
 
     return (
         <div className="grimoire-overlay" onClick={onClose}>
@@ -144,17 +158,15 @@ export const GrimoireBook: FC<GrimoireBookProps> = ({ stage, onClose }) => {
                     {/* Left page */}
                     <div className="grimoire-page grimoire-page-left">
                         <div className="grimoire-page-inner">
-                            {leftPage && <PageContent page={leftPage} mana={mana} onSchoolClick={jumpToSchool} />}
+                            <PageContent page={spread.left} mana={mana} onSchoolClick={jumpToSchool} />
                         </div>
-                        <div className="grimoire-page-number">{spreadIdx * 2 + 1}</div>
                     </div>
 
                     {/* Right page */}
                     <div className="grimoire-page grimoire-page-right">
                         <div className="grimoire-page-inner">
-                            {rightPage && <PageContent page={rightPage} mana={mana} onSchoolClick={jumpToSchool} />}
+                            <PageContent page={spread.right} mana={mana} onSchoolClick={jumpToSchool} />
                         </div>
-                        <div className="grimoire-page-number">{spreadIdx * 2 + 2}</div>
                     </div>
 
                     {/* Page turn overlay (animated element) */}
@@ -192,7 +204,7 @@ export const GrimoireBook: FC<GrimoireBookProps> = ({ stage, onClose }) => {
 // ── Page Content Renderer ──
 
 const PageContent: FC<{
-    page: SpellPage;
+    page: SpreadPage;
     mana: number;
     onSchoolClick: (key: string) => void;
 }> = ({ page, mana, onSchoolClick }) => {
@@ -251,6 +263,11 @@ const PageContent: FC<{
         }
         return (
             <div className="grimoire-spell-list">
+                {page.pageCount && page.pageCount > 1 && (
+                    <div className="grimoire-spell-page-indicator">
+                        {page.pageIndex} / {page.pageCount}
+                    </div>
+                )}
                 {page.spells.map(spell => {
                     const canAfford = mana >= spell.manaCost;
                     return (
