@@ -57,13 +57,22 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     const chatEndRef = useRef<HTMLDivElement>(null);
     const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
+    // Archetype confirmation
+    const [confirmArchetype, setConfirmArchetype] = useState<ConversionArchetype | null>(null);
+
     // Completion state
     const [conversionResult, setConversionResult] = useState<{
         description: string;
         traits: string[];
+        originalTraits: string[];
         archetypeName?: string;
+        archetypeId?: string;
+        archetypeColor?: string;
     } | null>(null);
     const [isConverting, setIsConverting] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [editingDescription, setEditingDescription] = useState(false);
+    const [editedDescription, setEditedDescription] = useState('');
 
     const hero = stage().currentState.heroes[heroName];
     const pcName = stage().currentState.playerCharacter.name;
@@ -96,8 +105,67 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     };
 
     const handleSelectArchetype = (archetype: ConversionArchetype) => {
+        setConfirmArchetype(archetype);
+    };
+
+    const handleArchetypeConfirm = async () => {
+        if (!confirmArchetype) return;
+        const archetype = confirmArchetype;
+        setConfirmArchetype(null);
         setSelectedArchetype(archetype);
-        setPhase('final_session');
+        setChatMode('predefined');
+        setIsConverting(true);
+        setPhase('converting');
+
+        // Capture original traits before the hero is deleted
+        const heroTraits = hero ? [...hero.traits] : [];
+
+        // Generate personalized description via LLM
+        setIsGenerating(true);
+        const narrative = await stage().generateArchetypeNarrative(heroName, archetype.id);
+        const finalDescription = narrative || archetype.personalityRewrite;
+        setIsGenerating(false);
+
+        // Convert with the personalized description
+        const success = stage().convertCaptiveWithArchetype(heroName, archetype.id, finalDescription);
+        if (success) {
+            setConversionResult({
+                description: finalDescription,
+                traits: archetype.grantedTraits,
+                originalTraits: heroTraits,
+                archetypeName: archetype.name,
+                archetypeId: archetype.id,
+                archetypeColor: archetype.color,
+            });
+            setEditedDescription(finalDescription);
+        }
+        setPhase('complete');
+        setIsConverting(false);
+    };
+
+    const handleRegenerateDescription = async () => {
+        if (!conversionResult?.archetypeId || isGenerating) return;
+        setIsGenerating(true);
+        const narrative = await stage().generateArchetypeNarrative(heroName, conversionResult.archetypeId);
+        if (narrative) {
+            setEditedDescription(narrative);
+            setConversionResult(prev => prev ? { ...prev, description: narrative } : prev);
+            stage().updateServantDescription(heroName, narrative);
+        }
+        setIsGenerating(false);
+    };
+
+    const handleSaveDescription = () => {
+        if (conversionResult) {
+            setConversionResult(prev => prev ? { ...prev, description: editedDescription } : prev);
+            stage().updateServantDescription(heroName, editedDescription);
+        }
+        setEditingDescription(false);
+    };
+
+    const handleCancelEdit = () => {
+        setEditedDescription(conversionResult?.description || '');
+        setEditingDescription(false);
     };
 
     const handleChatSend = async () => {
@@ -137,16 +205,23 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
         setIsConverting(true);
         setPhase('converting');
 
-        if (chatMode === 'predefined' && selectedArchetype) {
-            // Predefined: use the archetype directly
-            const success = stage().convertCaptiveWithArchetype(heroName, selectedArchetype.id);
+        // Freeform: ask LLM to determine the result
+        const heroTraits = hero ? [...hero.traits] : [];
+        const result = await stage().generateConversionResult(heroName, chatMessages);
+        if (result) {
+            const success = stage().convertCaptiveWithCustom(
+                heroName,
+                result.description,
+                result.traits
+            );
             if (success) {
                 setConversionResult({
-                    description: selectedArchetype.personalityRewrite,
-                    traits: selectedArchetype.grantedTraits,
-                    archetypeName: selectedArchetype.name,
+                    description: result.description,
+                    traits: result.traits,
+                    originalTraits: heroTraits,
                 });
-                // Save scene summary to history
+                setEditedDescription(result.description);
+                // Save scene summary
                 if (chatMessages.length > 0) {
                     const summary = await stage().generateSceneSummary(heroName, chatMessages);
                     if (summary) {
@@ -154,32 +229,8 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                     }
                 }
             }
-            setPhase('complete');
-        } else {
-            // Freeform: ask LLM to determine the result
-            const result = await stage().generateConversionResult(heroName, chatMessages);
-            if (result) {
-                const success = stage().convertCaptiveWithCustom(
-                    heroName,
-                    result.description,
-                    result.traits
-                );
-                if (success) {
-                    setConversionResult({
-                        description: result.description,
-                        traits: result.traits,
-                    });
-                    // Save scene summary
-                    if (chatMessages.length > 0) {
-                        const summary = await stage().generateSceneSummary(heroName, chatMessages);
-                        if (summary) {
-                            stage().updateCharacterHistory(heroName, summary);
-                        }
-                    }
-                }
-            }
-            setPhase('complete');
         }
+        setPhase('complete');
         setIsConverting(false);
     };
 
@@ -360,6 +411,39 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         )}
                     </div>
                 </div>
+
+                {/* Confirmation overlay */}
+                {confirmArchetype && (
+                    <div className="conversion-confirm-overlay">
+                        <div className="conversion-confirm-dialog" style={{ borderColor: `${confirmArchetype.color}66` }}>
+                            <div className="conversion-confirm-icon" style={{ color: confirmArchetype.color }}>
+                                <GameIcon icon={confirmArchetype.icon} size={28} />
+                            </div>
+                            <h3 style={{ color: confirmArchetype.color }}>{confirmArchetype.name}</h3>
+                            <p>
+                                Convert <strong>{heroName}</strong> as <strong style={{ color: confirmArchetype.color }}>{confirmArchetype.name}</strong>?
+                            </p>
+                            <p className="conversion-confirm-note">
+                                A unique personality will be generated based on their history and the archetype.
+                            </p>
+                            <div className="confirmation-actions">
+                                <button
+                                    className="confirm-button cancel"
+                                    onClick={() => setConfirmArchetype(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="confirm-button confirm-convert"
+                                    style={{ backgroundColor: `${confirmArchetype.color}30`, borderColor: confirmArchetype.color, color: confirmArchetype.color }}
+                                    onClick={handleArchetypeConfirm}
+                                >
+                                    <GameIcon icon="sparkle" size={12} /> Confirm Conversion
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -573,28 +657,107 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                     </div>
                     <h3>{heroName}</h3>
                     {conversionResult.archetypeName && (
-                        <span className="conversion-archetype-badge">
+                        <span
+                            className="conversion-archetype-badge"
+                            style={{ borderColor: conversionResult.archetypeColor, color: conversionResult.archetypeColor }}
+                        >
                             {conversionResult.archetypeName}
                         </span>
                     )}
+
+                    {/* ── Personality section ── */}
                     <div className="conversion-result-section">
-                        <h4>New Personality</h4>
-                        <p className="conversion-result-description">
-                            {conversionResult.description}
-                        </p>
-                    </div>
-                    {conversionResult.traits.length > 0 && (
-                        <div className="conversion-result-section">
-                            <h4>New Traits</h4>
-                            <div className="conversion-result-traits">
-                                {conversionResult.traits.map((t, i) => (
-                                    <span key={i} className="archetype-trait-chip">
-                                        + {t}
-                                    </span>
-                                ))}
-                            </div>
+                        <div className="conversion-result-header">
+                            <h4>New Personality</h4>
+                            {!editingDescription && !isGenerating && (
+                                <div className="conversion-result-actions">
+                                    <button
+                                        className="conversion-action-btn"
+                                        onClick={() => { setEditingDescription(true); setEditedDescription(conversionResult.description); }}
+                                        title="Edit description"
+                                    >
+                                        <Pencil size={11} />
+                                    </button>
+                                    {conversionResult.archetypeId && (
+                                        <button
+                                            className="conversion-action-btn"
+                                            onClick={handleRegenerateDescription}
+                                            title="Regenerate description"
+                                        >
+                                            <RotateCcw size={11} />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        {isGenerating ? (
+                            <div className="conversion-result-generating">
+                                <div className="conversion-generating-shimmer" />
+                                <span className="conversion-generating-text">
+                                    <GameIcon icon="orbit" size={12} className="spin icon-gold" />{' '}
+                                    Weaving new personality...
+                                </span>
+                            </div>
+                        ) : editingDescription ? (
+                            <div className="conversion-result-edit">
+                                <textarea
+                                    className="conversion-edit-textarea"
+                                    value={editedDescription}
+                                    onChange={(e) => setEditedDescription(e.target.value)}
+                                    rows={6}
+                                />
+                                <div className="conversion-edit-actions">
+                                    <button className="conversion-action-btn action-save" onClick={handleSaveDescription}>
+                                        <Check size={12} /> Save
+                                    </button>
+                                    <button className="conversion-action-btn action-cancel" onClick={handleCancelEdit}>
+                                        <X size={12} /> Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="conversion-result-description">
+                                {conversionResult.description}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* ── Traits section ── */}
+                    <div className="conversion-result-section">
+                        <h4>Traits</h4>
+                        <div className="conversion-result-traits-split">
+                            {/* Original traits */}
+                            {conversionResult.originalTraits.length > 0 && (
+                                <div className="conversion-trait-group">
+                                    <span className="conversion-trait-label">Original</span>
+                                    <div className="conversion-trait-chips">
+                                        {conversionResult.originalTraits.map((t, i) => (
+                                            <span key={`orig-${i}`} className="conversion-trait-chip trait-original">
+                                                <span className="trait-decorator">◆</span> {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Archetype-granted traits */}
+                            {conversionResult.traits.length > 0 && (
+                                <div className="conversion-trait-group">
+                                    <span className="conversion-trait-label">
+                                        {conversionResult.archetypeName ? `Granted by ${conversionResult.archetypeName}` : 'New Traits'}
+                                    </span>
+                                    <div className="conversion-trait-chips">
+                                        {conversionResult.traits.map((t, i) => (
+                                            <span key={`new-${i}`} className="conversion-trait-chip trait-granted">
+                                                <span className="trait-decorator">★</span> {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <p className="conversion-result-subtext">
                         <em>{heroName} has been added to your servants.</em>
                     </p>

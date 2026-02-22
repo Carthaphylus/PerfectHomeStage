@@ -967,7 +967,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Convert a fully conditioned captive into a servant using a predefined archetype.
      * Rewrites their personality, keeps existing traits, and adds archetype-granted traits.
      */
-    convertCaptiveWithArchetype(heroName: string, archetypeId: string): boolean {
+    convertCaptiveWithArchetype(heroName: string, archetypeId: string, overrideDescription?: string): boolean {
         const hero = this.currentState.heroes[heroName];
         if (!hero || hero.brainwashing < 100) return false;
 
@@ -985,7 +985,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             formerClass: hero.heroClass,
             avatar: hero.avatar,
             color: hero.color,
-            description: archetype.personalityRewrite,
+            description: overrideDescription || archetype.personalityRewrite,
             traits: finalTraits,
             details: hero.details,
             stats: hero.stats,
@@ -1035,6 +1035,77 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         console.log(`[Conversion] ${heroName} converted with custom personality → Servant`);
         return true;
+    }
+
+    /**
+     * Generate a personalized servant description for an archetype conversion.
+     * Blends the archetype template with the character's original personality/backstory
+     * to produce a unique narrative even when multiple characters share the same archetype.
+     */
+    async generateArchetypeNarrative(heroName: string, archetypeId: string): Promise<string | null> {
+        const hero = this.currentState.heroes[heroName] || this.currentState.servants[heroName];
+        const charData = CHARACTER_DATA[heroName];
+        const archetype = getConversionArchetype(archetypeId);
+        if (!charData || !archetype) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const originalDesc = charData.description;
+        const backstory = hero?.backstory || originalDesc;
+        const gender = charData.details?.['Gender'] || 'unknown';
+        const species = charData.details?.['Species'] || 'unknown';
+        const charClass = charData.details?.['Class'] || charData.details?.['Former Role'] || 'unknown';
+
+        const prompt = [
+            `[SYSTEM] Write a personalized servant description for ${heroName} after being converted into the "${archetype.name}" archetype by ${pcName}.`,
+            ``,
+            `[CHARACTER — BEFORE CONVERSION]`,
+            `Name: ${heroName}`,
+            `Species: ${species}`,
+            `Gender: ${gender}`,
+            `Class/Role: ${charClass}`,
+            `Original Personality: ${originalDesc}`,
+            `Traits: ${charData.traits.join(', ')}`,
+            backstory !== originalDesc ? `Backstory: ${backstory}` : '',
+            `Details: ${Object.entries(charData.details).map(([k, v]) => `${k}: ${v}`).join(', ')}`,
+            ``,
+            `[ARCHETYPE TEMPLATE — "${archetype.name}"]`,
+            `${archetype.personalityRewrite}`,
+            ``,
+            `[INSTRUCTIONS]`,
+            `Write a 3-5 sentence description of ${heroName} as they are NOW — a brainwashed servant converted into the "${archetype.name}" archetype.`,
+            `Use the archetype template as the FRAMEWORK, but personalize it with unique details from ${heroName}'s original personality, backstory, and identity.`,
+            `Reference specific things about them: their species traits, former skills, mannerisms, quirks, or history — but recontextualized through their new converted identity.`,
+            `Write in third person, present tense. Do NOT mention ${pcName} by name — refer to them as "their master" or "their owner".`,
+            `The description should feel like it belongs to THIS specific character, not a generic template.`,
+            `Do NOT use any formatting — no asterisks, no quotes, no headers. Just plain prose paragraphs.`,
+        ].filter(Boolean).join('\n');
+
+        try {
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 400,
+                stop: [],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+            return response?.result?.trim() || null;
+        } catch (e) {
+            console.error('[Conversion] Archetype narrative generation failed:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Update a servant's description (for user edits on the conversion complete screen).
+     */
+    updateServantDescription(heroName: string, description: string): void {
+        const servant = this.currentState.servants[heroName];
+        if (servant) {
+            servant.description = description;
+            console.log(`[Conversion] Updated ${heroName}'s servant description.`);
+        }
     }
 
     /**
