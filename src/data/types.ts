@@ -39,6 +39,8 @@ export interface Servant {
     stats: Record<StatName, number>; // 0-100 values
     love: number; // 0-100
     obedience: number; // 0-100
+    servantTitle?: string;     // conversion archetype title e.g. "Handmaiden", "Loyal Pet"
+    servantTitleColor?: string;  // hex color for the title badge
     assignedTask?: string;
     assignedRole?: string; // role id from ROLE_REGISTRY
     personalHistory?: string;

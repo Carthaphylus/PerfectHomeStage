@@ -46,6 +46,9 @@ export interface CharacterProfileProps {
 
     /** Traits granted by the conversion archetype (displayed differently) */
     archetypeTraits?: string[];
+
+    /** Color for the title text (e.g. servant title color) */
+    titleColor?: string;
 }
 
 export const CharacterProfile: FC<CharacterProfileProps> = ({
@@ -56,7 +59,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     statusBadge,
     extraActions,
     extraSections,
-    assignedRole,    archetypeTraits,}) => {
+    assignedRole,    archetypeTraits, titleColor,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
 
     if (showGallery) {
@@ -90,7 +93,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                     </div>
                     <div className="char-info">
                         <h3 className="char-name">{character.name}</h3>
-                        <span className="char-title">{character.title}</span>
+                        <span className="char-title" style={titleColor ? { color: titleColor } : undefined}>{character.title}</span>
                         {statusBadge}
                     </div>
                     <div className="char-action-btns">

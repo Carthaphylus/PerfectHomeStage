@@ -219,6 +219,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     stats: CHARACTER_DATA.Felicity.stats,
                     love: 80,
                     obedience: 75,
+                    servantTitle: 'Handmaiden',
+                    servantTitleColor: '#e85d9a',
                     assignedTask: undefined,
                 },
                 'Locke': {
@@ -232,6 +234,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     stats: CHARACTER_DATA.Locke.stats,
                     love: 60,
                     obedience: 85,
+                    servantTitle: 'Butler',
+                    servantTitleColor: '#6a8caf',
                     assignedTask: undefined,
                 },
             },
@@ -1028,7 +1032,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Convert a fully conditioned captive into a servant using a predefined archetype.
      * Rewrites their personality, keeps existing traits, and adds archetype-granted traits.
      */
-    convertCaptiveWithArchetype(heroName: string, archetypeId: string, overrideDescription?: string): boolean {
+    convertCaptiveWithArchetype(heroName: string, archetypeId: string, overrideDescription?: string, servantTitle?: string, servantTitleColor?: string): boolean {
         const hero = this.currentState.heroes[heroName];
         if (!hero || hero.brainwashing < 100) return false;
 
@@ -1053,6 +1057,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             stats: hero.stats,
             love: 50,
             obedience: 100,
+            servantTitle: servantTitle || archetype.name,
+            servantTitleColor: servantTitleColor || archetype.color,
             personalHistory: hero.personalHistory,
             backstory: hero.backstory,
         };
@@ -1068,7 +1074,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Convert a captive using a chat-determined personality rewrite.
      * Called after the LLM chat produces a new personality description.
      */
-    convertCaptiveWithCustom(heroName: string, newDescription: string, newTraits: string[]): boolean {
+    convertCaptiveWithCustom(heroName: string, newDescription: string, newTraits: string[], servantTitle?: string, servantTitleColor?: string): boolean {
         const hero = this.currentState.heroes[heroName];
         if (!hero || hero.brainwashing < 100) return false;
 
@@ -1089,6 +1095,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             stats: hero.stats,
             love: 50,
             obedience: 100,
+            servantTitle: servantTitle,
+            servantTitleColor: servantTitleColor,
             personalHistory: hero.personalHistory,
             backstory: hero.backstory,
         };
@@ -1168,6 +1176,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (servant) {
             servant.description = description;
             console.log(`[Conversion] Updated ${heroName}'s servant description.`);
+        }
+    }
+
+    updateServantTitle(heroName: string, title: string, color?: string): void {
+        const servant = this.currentState.servants[heroName];
+        if (servant) {
+            servant.servantTitle = title;
+            if (color) servant.servantTitleColor = color;
+            console.log(`[Conversion] Updated ${heroName}'s servant title to "${title}".`);
         }
     }
 

@@ -1334,6 +1334,51 @@
   gap: 8px;
 }
 
+.conversion-title-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conversion-title-input {
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  color: rgba(251, 191, 36, 0.9);
+  background: rgba(251, 191, 36, 0.06) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 4px 10px;
+  border-radius: 3px;
+  text-align: center;
+  width: 160px;
+  outline: none;
+
+  &:focus {
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.15);
+  }
+}
+
+.conversion-title-color-picker {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(200, 170, 110, 0.25);
+  border-radius: 3px;
+  background: transparent !important;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 1px;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+  }
+}
+
 .conversion-badge-loading {
   font-size: 8px;
   font-family: 'Press Start 2P', monospace;

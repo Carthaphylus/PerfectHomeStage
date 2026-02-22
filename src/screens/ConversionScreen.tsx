@@ -79,6 +79,9 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     const [isGenerating, setIsGenerating] = useState(false);
     const [editingDescription, setEditingDescription] = useState(false);
     const [editedDescription, setEditedDescription] = useState('');
+    const [editingTitle, setEditingTitle] = useState(false);
+    const [editedTitle, setEditedTitle] = useState('');
+    const [editedTitleColor, setEditedTitleColor] = useState('');
 
     const hero = stage().currentState.heroes[heroName];
     const pcName = stage().currentState.playerCharacter.name;
@@ -133,7 +136,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
         setIsGenerating(false);
 
         // Convert with the personalized description
-        const success = stage().convertCaptiveWithArchetype(heroName, archetype.id, finalDescription);
+        const success = stage().convertCaptiveWithArchetype(heroName, archetype.id, finalDescription, archetype.name, archetype.color);
         if (success) {
             setConversionResult({
                 description: finalDescription,
@@ -187,6 +190,7 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                 archetypeName: result.title,
                 archetypeColor: result.color,
             } : prev);
+            stage().updateServantTitle(heroName, result.title || '', result.color);
         }
 
         setIsRegeneratingTitle(false);
@@ -203,6 +207,20 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
     const handleCancelDescriptionEdit = () => {
         setEditedDescription(conversionResult?.description || '');
         setEditingDescription(false);
+    };
+
+    const handleSaveTitle = () => {
+        if (conversionResult && editedTitle.trim()) {
+            setConversionResult(prev => prev ? { ...prev, archetypeName: editedTitle.trim(), archetypeColor: editedTitleColor || prev.archetypeColor } : prev);
+            stage().updateServantTitle(heroName, editedTitle.trim(), editedTitleColor || undefined);
+        }
+        setEditingTitle(false);
+    };
+
+    const handleCancelTitleEdit = () => {
+        setEditedTitle(conversionResult?.archetypeName || '');
+        setEditedTitleColor(conversionResult?.archetypeColor || '');
+        setEditingTitle(false);
     };
 
     const handleChatSend = async () => {
@@ -366,7 +384,9 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
             const success = stage().convertCaptiveWithCustom(
                 heroName,
                 result.description,
-                result.traits
+                result.traits,
+                result.title,
+                result.color
             );
             if (success) {
                 setConversionResult({
@@ -900,22 +920,58 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                                 >
                                     <GameIcon icon="orbit" size={9} className="spin" /> Generating...
                                 </span>
+                            ) : editingTitle ? (
+                                <div className="conversion-title-edit">
+                                    <input
+                                        type="text"
+                                        className="conversion-title-input"
+                                        value={editedTitle}
+                                        onChange={(e) => setEditedTitle(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') handleCancelTitleEdit(); }}
+                                        autoFocus
+                                        maxLength={30}
+                                    />
+                                    <input
+                                        type="color"
+                                        className="conversion-title-color-picker"
+                                        value={editedTitleColor || '#fbbf24'}
+                                        onChange={(e) => setEditedTitleColor(e.target.value)}
+                                        title="Title color"
+                                    />
+                                    <button className="conversion-action-btn action-save" onClick={handleSaveTitle}>
+                                        <Check size={10} />
+                                    </button>
+                                    <button className="conversion-action-btn action-cancel" onClick={handleCancelTitleEdit}>
+                                        <X size={10} />
+                                    </button>
+                                </div>
                             ) : (
-                                <span
-                                    className="conversion-archetype-badge"
-                                    style={{ borderColor: conversionResult.archetypeColor, color: conversionResult.archetypeColor }}
-                                >
-                                    {conversionResult.archetypeName}
-                                </span>
-                            )}
-                            {!isRegeneratingTitle && !isGenerating && (
-                                <button
-                                    className="conversion-action-btn"
-                                    onClick={handleRegenerateTitle}
-                                    title="Regenerate title"
-                                >
-                                    <RotateCcw size={10} />
-                                </button>
+                                <>
+                                    <span
+                                        className="conversion-archetype-badge"
+                                        style={{ borderColor: conversionResult.archetypeColor, color: conversionResult.archetypeColor }}
+                                    >
+                                        {conversionResult.archetypeName}
+                                    </span>
+                                    {!isGenerating && (
+                                        <div className="conversion-result-actions">
+                                            <button
+                                                className="conversion-action-btn"
+                                                onClick={() => { setEditingTitle(true); setEditedTitle(conversionResult.archetypeName || ''); setEditedTitleColor(conversionResult.archetypeColor || ''); }}
+                                                title="Edit title"
+                                            >
+                                                <Pencil size={10} />
+                                            </button>
+                                            <button
+                                                className="conversion-action-btn"
+                                                onClick={handleRegenerateTitle}
+                                                title="Regenerate title"
+                                            >
+                                                <RotateCcw size={10} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}

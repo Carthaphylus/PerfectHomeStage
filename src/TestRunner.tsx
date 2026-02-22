@@ -127,6 +127,8 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     stats: { prowess: 38, expertise: 85, attunement: 28, presence: 58, discipline: 90, insight: 68 },
                     love: 80,
                     obedience: 75,
+                    servantTitle: 'Handmaiden',
+                    servantTitleColor: '#e85d9a',
                     assignedTask: 'Brewing potions',
                 },
                 'Locke': {
@@ -140,6 +142,8 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     stats: { prowess: 62, expertise: 72, attunement: 32, presence: 66, discipline: 94, insight: 76 },
                     love: 60,
                     obedience: 85,
+                    servantTitle: 'Butler',
+                    servantTitleColor: '#6a8caf',
                     assignedTask: 'Guard duty',
                 },
             },

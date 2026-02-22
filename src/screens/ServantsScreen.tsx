@@ -68,7 +68,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         name: s.name,
                         avatar: s.avatar,
                         color: s.color,
-                        title: s.formerClass,
+                        title: s.servantTitle || s.formerClass,
                         description: s.description,
                         traits: s.traits,
                         details: s.details,
@@ -76,6 +76,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                     }}
                     onBack={() => setSelectedServant(null)}
                     archetypeTraits={s.archetypeTraits}
+                    titleColor={s.servantTitleColor}
                     statusBadge={currentRole && (
                         <div className="char-role-badge" style={{ 
                             borderColor: currentRole.color,
@@ -210,7 +211,8 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                     ) : (
                         servants.map((servant) => {
                             const role = servant.assignedRole ? getRoleById(servant.assignedRole) : undefined;
-                            const subtitleColor = role ? role.color : undefined;
+                            const subtitleColor = role ? role.color : servant.servantTitleColor || undefined;
+                            const subtitleText = role ? undefined : (servant.servantTitle || servant.formerClass);
                             return (
                                 <div 
                                     key={servant.name} 
@@ -229,7 +231,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                             onClick={role ? (e) => { e.stopPropagation(); openRoleModal(servant); } : undefined}
                                             title={role ? `Role: ${role.name} — click to change` : undefined}
                                         >
-                                            {role ? <><GameIcon icon={role.icon} size={10} /> {role.name}</> : servant.formerClass}
+                                            {role ? <><GameIcon icon={role.icon} size={10} /> {role.name}</> : subtitleText}
                                         </span>
                                     </div>
 
