@@ -3,13 +3,15 @@ import { Stage, CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES, ConditioningActio
 import { GameIcon } from './GameIcon';
 
 // ── Category metadata ──
-const SCHOOLS: { key: string; label: string; icon: string; color: string }[] = [
-    { key: 'enchantment', label: 'Enchantment', icon: 'sparkles', color: '#c8aa6e' },
-    { key: 'hex', label: 'Hexes', icon: 'skull', color: '#c75050' },
-    { key: 'binding', label: 'Binding', icon: 'link', color: '#6eaac8' },
-    { key: 'alchemy', label: 'Alchemy', icon: 'flask', color: '#6ec87a' },
-    { key: 'beguile', label: 'Beguile', icon: 'heart', color: '#c86eb8' },
+const SCHOOLS: { key: string; label: string; icon: string; color: string; desc: string }[] = [
+    { key: 'enchantment', label: 'Enchantment', icon: 'sparkles', color: '#c8aa6e', desc: 'Weaving threads of will into the fabric of the mind, bending thought and desire to the caster\'s command.' },
+    { key: 'hex', label: 'Hexes', icon: 'skull', color: '#c75050', desc: 'Dark incantations drawn from shadow and malice, cursing the target with afflictions of the spirit.' },
+    { key: 'binding', label: 'Binding', icon: 'link', color: '#6eaac8', desc: 'Arcane chains and wards that shackle body and spirit to the caster\'s unyielding dominion.' },
+    { key: 'alchemy', label: 'Alchemy', icon: 'flask', color: '#6ec87a', desc: 'Transmutation of essence through forbidden elixirs and reagents, reshaping form and mind alike.' },
+    { key: 'beguile', label: 'Beguile', icon: 'heart', color: '#c86eb8', desc: 'The subtle mastery of charm and fascination, ensnaring hearts with whispered enchantments.' },
 ];
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
 /**
  * Each spread is: left = school header, right = spells.
@@ -45,7 +47,7 @@ function buildSpreads(allActions: ConditioningAction[]): Spread[] {
     for (const school of usedSchools) {
         const schoolSpells = allActions.filter(a => a.category === school.key);
         spreads.push({
-            left: { type: 'school-header', school },
+            left: { type: 'school-header', school, spells: schoolSpells },
             right: { type: 'spells', school, spells: schoolSpells },
         });
     }
@@ -195,12 +197,21 @@ const PageContent: FC<{
     if (page.type === 'cover') {
         return (
             <div className="grimoire-cover">
+                <div className="grimoire-cover-filigree tl" />
+                <div className="grimoire-cover-filigree tr" />
+                <div className="grimoire-cover-filigree bl" />
+                <div className="grimoire-cover-filigree br" />
                 <div className="grimoire-cover-ornament top" />
-                <GameIcon icon="sparkles" size={36} className="grimoire-cover-icon" />
+                <div className="grimoire-cover-sigil">
+                    <div className="sigil-ring outer" />
+                    <div className="sigil-ring inner" />
+                    <GameIcon icon="sparkles" size={30} className="grimoire-cover-icon" />
+                </div>
                 <h2 className="grimoire-cover-title">Grimoire</h2>
                 <div className="grimoire-cover-line" />
                 <p className="grimoire-cover-sub">Spells & Incantations</p>
                 <div className="grimoire-cover-ornament bottom" />
+                <p className="grimoire-cover-edition">— Vol. I —</p>
             </div>
         );
     }
@@ -208,14 +219,16 @@ const PageContent: FC<{
     if (page.type === 'toc') {
         return (
             <div className="grimoire-toc">
+                <div className="grimoire-toc-header-ornament">✦</div>
                 <h3 className="grimoire-toc-title">Table of Contents</h3>
                 <div className="grimoire-toc-divider" />
-                {page.tocSchools?.map(school => (
+                {page.tocSchools?.map((school, i) => (
                     <button
                         key={school.key}
                         className="grimoire-toc-entry"
                         onClick={() => onSchoolClick(school.key)}
                     >
+                        <span className="grimoire-toc-numeral">{ROMAN[i]}</span>
                         <GameIcon icon={school.icon} size={14} color={school.color} />
                         <span className="grimoire-toc-label" style={{ color: school.color }}>
                             {school.label}
@@ -229,13 +242,20 @@ const PageContent: FC<{
 
     if (page.type === 'school-header' && page.school) {
         return (
-            <div className="grimoire-school-header">
-                <div className="grimoire-school-ornament" />
-                <GameIcon icon={page.school.icon} size={40} color={page.school.color} className="grimoire-school-icon" />
+            <div className="grimoire-school-header" style={{ '--school-color': page.school.color } as React.CSSProperties}>
+                <div className="grimoire-arcane-sigil">
+                    <div className="sigil-circle outer" />
+                    <div className="sigil-circle middle" />
+                    <div className="sigil-circle inner" />
+                    <div className="sigil-glow" />
+                    <GameIcon icon={page.school.icon} size={36} color={page.school.color} className="grimoire-school-icon" />
+                </div>
                 <h3 className="grimoire-school-name" style={{ color: page.school.color }}>
                     {page.school.label}
                 </h3>
-                <div className="grimoire-school-rule" style={{ borderColor: page.school.color }} />
+                <div className="grimoire-school-rule" />
+                <p className="grimoire-school-desc">{page.school.desc}</p>
+                <span className="grimoire-school-count">{page.spells?.length ?? 0} Incantations</span>
             </div>
         );
     }
@@ -245,32 +265,38 @@ const PageContent: FC<{
             return <div className="grimoire-blank" />;
         }
         return (
-            <div className="grimoire-spell-list">
-                {page.spells.map(spell => {
+            <div className="grimoire-spell-list" style={{ '--school-color': page.school?.color } as React.CSSProperties}>
+                {page.spells.map((spell, i) => {
                     const canAfford = mana >= spell.manaCost;
                     return (
-                        <div key={spell.id} className={`grimoire-spell-card ${canAfford ? '' : 'no-mana'}`}>
-                            <div className="grimoire-spell-header">
-                                <GameIcon
-                                    icon={spell.icon}
-                                    size={16}
-                                    color={page.school?.color}
-                                />
-                                <span className="grimoire-spell-name">{spell.label}</span>
-                                {spell.manaCost > 0 && (
-                                    <span className={`grimoire-spell-mana ${canAfford ? '' : 'no-mana'}`}>
-                                        <GameIcon icon="sparkles" size={8} className="icon-mana" />
-                                        {spell.manaCost}
-                                    </span>
-                                )}
+                        <React.Fragment key={spell.id}>
+                            {i > 0 && <div className="grimoire-spell-divider"><span className="divider-rune">◆</span></div>}
+                            <div className={`grimoire-spell-card ${canAfford ? '' : 'no-mana'}`}>
+                                <div className="spell-accent" />
+                                <div className="spell-content">
+                                    <div className="grimoire-spell-header">
+                                        <div className="spell-icon-frame">
+                                            <GameIcon icon={spell.icon} size={14} color={page.school?.color} />
+                                        </div>
+                                        <span className="grimoire-spell-name">{spell.label}</span>
+                                        {spell.manaCost > 0 && (
+                                            <span className={`grimoire-spell-mana ${canAfford ? '' : 'no-mana'}`}>
+                                                <GameIcon icon="sparkles" size={8} className="icon-mana" />
+                                                {spell.manaCost}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="grimoire-spell-desc">{spell.tooltip}</p>
+                                    {spell.skillCheck && (
+                                        <div className="grimoire-spell-footer">
+                                            <span className="grimoire-spell-dc">
+                                                {spell.skillCheck.skill.substring(0, 3).toUpperCase()} DC {spell.skillCheck.difficulty}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <p className="grimoire-spell-desc">{spell.tooltip}</p>
-                            {spell.skillCheck && (
-                                <span className="grimoire-spell-dc">
-                                    {spell.skillCheck.skill.substring(0, 3).toUpperCase()} DC {spell.skillCheck.difficulty}
-                                </span>
-                            )}
-                        </div>
+                        </React.Fragment>
                     );
                 })}
             </div>
