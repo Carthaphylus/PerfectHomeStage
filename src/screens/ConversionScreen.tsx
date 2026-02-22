@@ -12,8 +12,6 @@ import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { GameIcon } from './GameIcon';
 import { Pencil, Check, X, ChevronLeft, ChevronRight, RotateCcw, Flame, FileText } from 'lucide-react';
 
-import DungeonBg from '../assets/Images/Rooms/dungeon.jpg';
-
 // ── Phase of the conversion flow ──
 type ConversionPhase =
     | 'choose_mode'       // Choose between predefined or chat
@@ -456,24 +454,24 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
 
         return (
             <div
-                className="conversion-screen conversion-chat-mode skit-screen skit-active"
+                className="conversion-screen conversion-chat-mode"
                 style={{ '--char-color': stage().getCharacterData(heroName)?.color || '#c8aa6e' } as React.CSSProperties}
             >
-                <div className="skit-background" style={{ backgroundImage: `url(${DungeonBg})` }} />
-                <div className="skit-overlay" />
-
-                {/* Header */}
-                <div className="skit-header">
-                    <div className="skit-header-left">
-                        <span className="skit-location-badge">
-                            <GameIcon icon="sparkle" size={10} className="icon-gold" /> Final Conversion
-                        </span>
-                    </div>
-                    <div className="skit-header-center">
-                        <img className="skit-header-avatar" src={charAvatar} alt={heroName} />
-                        <span className="skit-header-name">{heroName}</span>
-                    </div>
-                    <div className="skit-header-right">
+                {/* Minimal top controls */}
+                <div className="conversion-chat-controls">
+                    <button
+                        className="conversion-chat-back"
+                        onClick={() => {
+                            if (chatMessages.length === 0) {
+                                setPhase(chatMode === 'freeform' ? 'choose_mode' : 'pick_archetype');
+                            }
+                        }}
+                        disabled={chatMessages.length > 0}
+                        title={chatMessages.length > 0 ? 'Cannot go back during conversation' : 'Go back'}
+                    >
+                        <ChevronLeft size={14} />
+                    </button>
+                    <div className="conversion-chat-controls-right">
                         <button
                             className={`nsfw-toggle-btn ${stage().currentState.nsfwMode ? 'nsfw-active' : ''}`}
                             onClick={() => {
@@ -484,76 +482,42 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                             <Flame size={12} />
                         </button>
                         {canFinish && (
-                            <button className="skit-end-btn" onClick={handleFinishConversion}>
-                                <GameIcon icon="sparkle" size={12} className="icon-gold" /> Complete Conversion ▸
+                            <button className="conversion-finish-btn" onClick={handleFinishConversion}>
+                                <GameIcon icon="sparkle" size={10} /> Complete
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* Conversion progress indicator */}
-                <div className="conditioning-progress-header">
-                    <div className="conditioning-progress-info">
-                        <span className="conditioning-tier-badge" style={{ color: '#fbbf24' }}>
-                            CONVERSION
+                {/* Focus portrait — the captive, large and centered */}
+                <div className="conversion-focus-portrait">
+                    <div className="conversion-focus-ring" />
+                    <div className="conversion-focus-ring conversion-focus-ring-outer" />
+                    <img src={charAvatar} alt={heroName} />
+                </div>
+                <div className="conversion-focus-identity">
+                    <span className="conversion-focus-name">{heroName}</span>
+                    {selectedArchetype ? (
+                        <span className="conversion-focus-path" style={{ color: selectedArchetype.color }}>
+                            <GameIcon icon={selectedArchetype.icon} size={9} /> {selectedArchetype.name}
                         </span>
-                        <span className="conditioning-bw-value">100%</span>
-                        {selectedArchetype && (
-                            <span
-                                className="conditioning-strategy-badge"
-                                style={{ color: selectedArchetype.color }}
-                            >
-                                <GameIcon icon={selectedArchetype.icon} size={10} />{' '}
-                                {selectedArchetype.name}
-                            </span>
-                        )}
-                        {!selectedArchetype && (
-                            <span className="conditioning-strategy-badge" style={{ color: '#38bdf8' }}>
-                                <GameIcon icon="message-circle" size={10} /> Freeform
-                            </span>
-                        )}
-                    </div>
-                    <div className="conditioning-progress-track">
-                        <div
-                            className="conditioning-progress-fill conversion-fill"
-                            style={{ width: '100%', backgroundColor: '#fbbf24' }}
-                        />
-                    </div>
+                    ) : (
+                        <span className="conversion-focus-path conversion-focus-freeform">
+                            <GameIcon icon="message-circle" size={9} /> Freeform
+                        </span>
+                    )}
                 </div>
 
-                {/* Chat messages */}
-                <div className="skit-conversation">
-                    {/* Intro narrative */}
-                    <div className="event-chat-context">
-                        <p className="event-text-line">
-                            <em>
-                                You enter the conditioning chamber for the final time. {heroName} kneels
-                                before you, eyes vacant, will completely shattered. The enchanted
-                                shackles barely glow — there is nothing left to restrain.
-                            </em>
-                        </p>
-                        <p className="event-text-line">
-                            <em>The spiral incense swirls golden in the dim light. It is time to reshape what remains.</em>
-                        </p>
-                        {selectedArchetype && (
-                            <p className="event-text-line">
-                                <em>
-                                    You have chosen the path of the{' '}
-                                    <span style={{ color: selectedArchetype.color, fontWeight: 'bold' }}>
-                                        {selectedArchetype.name}
-                                    </span>
-                                    .
-                                </em>
-                            </p>
-                        )}
-                    </div>
+                {/* Atmospheric flavor line */}
+                <p className="conversion-flavor">
+                    <em>Their mind is an open canvas. Every word you speak reshapes what remains.</em>
+                </p>
 
+                {/* Chat messages */}
+                <div className="conversion-chat-scroll">
                     {chatMessages.length === 0 && !chatSending && (
-                        <div className="skit-empty-hint">
-                            <div className="skit-empty-icon">
-                                <GameIcon icon="sparkle" size={24} className="icon-gold" />
-                            </div>
-                            <p>Begin the final conversion of {heroName}...</p>
+                        <div className="conversion-chat-empty">
+                            <span>Begin shaping {heroName}...</span>
                         </div>
                     )}
 
@@ -565,12 +529,12 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         return (
                             <div
                                 key={`msg-${idx}`}
-                                className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'}`}
+                                className={`conversion-chat-msg ${isPlayer ? 'msg-player' : 'msg-captive'}`}
                             >
-                                <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
-                                <div className="skit-msg-body">
-                                    <span className="skit-msg-name">{msg.sender}</span>
-                                    <div className="skit-msg-text">
+                                <img className="conversion-chat-msg-avatar" src={msgAvatar} alt={msg.sender} />
+                                <div className="conversion-chat-msg-body">
+                                    <span className="conversion-chat-msg-name">{msg.sender}</span>
+                                    <div className="conversion-chat-msg-text">
                                         {isLatestNpc ? (
                                             <TypewriterText text={msg.text} speed={40} />
                                         ) : (
@@ -587,13 +551,16 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                 </div>
 
                 {/* Input bar */}
-                <div className="skit-input-bar">
-                    <img className="skit-input-avatar" src={pcAvatar} alt={pcName} />
-                    <div className="skit-input-wrapper">
+                <div className="conversion-chat-input-bar">
+                    <img className="conversion-chat-input-avatar" src={pcAvatar} alt={pcName} />
+                    <div className="conversion-chat-input-wrapper">
                         <textarea
                             ref={chatInputRef}
-                            className="skit-input"
-                            placeholder={`Shape ${heroName}'s new identity...`}
+                            className="conversion-chat-input"
+                            placeholder={selectedArchetype
+                                ? `Shape ${heroName} into the ${selectedArchetype.name}...`
+                                : `Command ${heroName}'s transformation...`
+                            }
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
                             onKeyDown={handleChatKeyDown}
@@ -602,11 +569,15 @@ export const ConversionScreen: FC<ConversionScreenProps> = ({
                         />
                     </div>
                     <button
-                        className="skit-send-btn"
+                        className="conversion-chat-send"
                         onClick={handleChatSend}
                         disabled={chatSending || !chatInput.trim()}
                     >
-                        {chatSending ? '...' : '▶'}
+                        {chatSending ? (
+                            <GameIcon icon="orbit" size={14} className="spin" />
+                        ) : (
+                            <GameIcon icon="sparkle" size={14} />
+                        )}
                     </button>
                 </div>
             </div>

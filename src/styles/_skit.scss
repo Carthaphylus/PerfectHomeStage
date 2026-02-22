@@ -429,15 +429,136 @@
       .skit-input-wrapper {
         flex: 1;
         min-width: 0;
-        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        border-radius: 6px;
+        border: 1px solid rgba(200, 170, 110, 0.15);
+        background: rgba(200, 170, 110, 0.05) !important;
+        transition: border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+
+        // Spell-active school color variants
+        &.spell-enchantment {
+          border-color: rgba(200, 170, 110, 0.45);
+          background: rgba(200, 170, 110, 0.08) !important;
+          box-shadow: 0 0 12px rgba(200, 170, 110, 0.1), inset 0 0 20px rgba(200, 170, 110, 0.04);
+        }
+        &.spell-hex {
+          border-color: rgba(199, 80, 80, 0.45);
+          background: rgba(199, 80, 80, 0.06) !important;
+          box-shadow: 0 0 12px rgba(199, 80, 80, 0.1), inset 0 0 20px rgba(199, 80, 80, 0.04);
+        }
+        &.spell-binding {
+          border-color: rgba(110, 170, 200, 0.45);
+          background: rgba(110, 170, 200, 0.06) !important;
+          box-shadow: 0 0 12px rgba(110, 170, 200, 0.1), inset 0 0 20px rgba(110, 170, 200, 0.04);
+        }
+        &.spell-alchemy {
+          border-color: rgba(110, 200, 122, 0.45);
+          background: rgba(110, 200, 122, 0.06) !important;
+          box-shadow: 0 0 12px rgba(110, 200, 122, 0.1), inset 0 0 20px rgba(110, 200, 122, 0.04);
+        }
+        &.spell-beguile {
+          border-color: rgba(200, 110, 184, 0.45);
+          background: rgba(200, 110, 184, 0.06) !important;
+          box-shadow: 0 0 12px rgba(200, 110, 184, 0.1), inset 0 0 20px rgba(200, 110, 184, 0.04);
+        }
+      }
+
+      // Inline spell icon button inside input
+      .skit-spell-inline {
+        position: relative;
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        margin: 3px 0 3px 4px;
+        border-radius: 5px;
+        border: 1px solid rgba(200, 170, 110, 0.2);
+        background: rgba(200, 170, 110, 0.08);
+        color: rgba(200, 170, 110, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        animation: spellInlineAppear 0.3s ease-out both;
+        filter: drop-shadow(0 0 4px rgba(200, 170, 110, 0.2));
+
+        .skit-spell-inline-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity 0.15s;
+        }
+
+        .skit-spell-inline-x {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.15s;
+          color: #ef4444;
+        }
+
+        .skit-spell-inline-force {
+          position: absolute;
+          bottom: -2px;
+          right: -2px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          &.success { background: #22c55e; box-shadow: 0 0 4px rgba(34, 197, 94, 0.6); }
+          &.failure { background: #ef4444; box-shadow: 0 0 4px rgba(239, 68, 68, 0.6); }
+        }
+
+        &:hover {
+          .skit-spell-inline-icon { opacity: 0; }
+          .skit-spell-inline-x { opacity: 1; }
+          border-color: rgba(239, 68, 68, 0.35);
+          background: rgba(239, 68, 68, 0.08);
+        }
+      }
+
+      // Per-school inline icon colors
+      .spell-enchantment .skit-spell-inline {
+        color: #c8aa6e;
+        border-color: rgba(200, 170, 110, 0.3);
+        background: rgba(200, 170, 110, 0.1);
+        filter: drop-shadow(0 0 4px rgba(200, 170, 110, 0.25));
+      }
+      .spell-hex .skit-spell-inline {
+        color: #c75050;
+        border-color: rgba(199, 80, 80, 0.3);
+        background: rgba(199, 80, 80, 0.1);
+        filter: drop-shadow(0 0 4px rgba(199, 80, 80, 0.25));
+      }
+      .spell-binding .skit-spell-inline {
+        color: #6eaac8;
+        border-color: rgba(110, 170, 200, 0.3);
+        background: rgba(110, 170, 200, 0.1);
+        filter: drop-shadow(0 0 4px rgba(110, 170, 200, 0.25));
+      }
+      .spell-alchemy .skit-spell-inline {
+        color: #6ec87a;
+        border-color: rgba(110, 200, 122, 0.3);
+        background: rgba(110, 200, 122, 0.1);
+        filter: drop-shadow(0 0 4px rgba(110, 200, 122, 0.25));
+      }
+      .spell-beguile .skit-spell-inline {
+        color: #c86eb8;
+        border-color: rgba(200, 110, 184, 0.3);
+        background: rgba(200, 110, 184, 0.1);
+        filter: drop-shadow(0 0 4px rgba(200, 110, 184, 0.25));
       }
 
       .skit-input {
-        width: 100%;
-        box-sizing: border-box;
+        flex: 1;
+        min-width: 0;
         resize: none;
-        background: rgba(200, 170, 110, 0.05) !important;
-        border: 1px solid rgba(200, 170, 110, 0.15);
+        background: transparent !important;
+        border: none;
         border-radius: 6px;
         padding: 12px 14px;
         color: var(--text-primary);
@@ -450,21 +571,46 @@
         overflow-y: auto !important;
         transition: border-color 0.25s;
 
+        &.has-spell {
+          padding-left: 8px;
+        }
+
         &::placeholder {
           color: var(--text-muted);
           font-size: 9px;
           letter-spacing: 0.5px;
         }
 
-        &:focus {
-          border-color: rgba(200, 170, 110, 0.35);
-          background: rgba(200, 170, 110, 0.08) !important;
-        }
-
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
+      }
+
+      // Focus state on wrapper when textarea is focused
+      .skit-input-wrapper:focus-within:not([class*="spell-"]) {
+        border-color: rgba(200, 170, 110, 0.35);
+        background: rgba(200, 170, 110, 0.08) !important;
+      }
+      .skit-input-wrapper.spell-enchantment:focus-within {
+        border-color: rgba(200, 170, 110, 0.55);
+        box-shadow: 0 0 16px rgba(200, 170, 110, 0.15), inset 0 0 24px rgba(200, 170, 110, 0.06);
+      }
+      .skit-input-wrapper.spell-hex:focus-within {
+        border-color: rgba(199, 80, 80, 0.55);
+        box-shadow: 0 0 16px rgba(199, 80, 80, 0.15), inset 0 0 24px rgba(199, 80, 80, 0.06);
+      }
+      .skit-input-wrapper.spell-binding:focus-within {
+        border-color: rgba(110, 170, 200, 0.55);
+        box-shadow: 0 0 16px rgba(110, 170, 200, 0.15), inset 0 0 24px rgba(110, 170, 200, 0.06);
+      }
+      .skit-input-wrapper.spell-alchemy:focus-within {
+        border-color: rgba(110, 200, 122, 0.55);
+        box-shadow: 0 0 16px rgba(110, 200, 122, 0.15), inset 0 0 24px rgba(110, 200, 122, 0.06);
+      }
+      .skit-input-wrapper.spell-beguile:focus-within {
+        border-color: rgba(200, 110, 184, 0.55);
+        box-shadow: 0 0 16px rgba(200, 110, 184, 0.15), inset 0 0 24px rgba(200, 110, 184, 0.06);
       }
 
       .skit-send-btn {
@@ -504,94 +650,6 @@
           border-color: rgba(200, 170, 110, 0.5);
           background: rgba(200, 170, 110, 0.2) !important;
           box-shadow: 0 0 8px rgba(200, 170, 110, 0.15);
-        }
-      }
-
-      // Attached action tag above input
-      .attached-action-tag {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        margin-bottom: 6px;
-        border-radius: 5px;
-        background:
-          linear-gradient(135deg, rgba(60, 40, 30, 0.5) 0%, rgba(45, 30, 40, 0.6) 100%);
-        border: 1px solid rgba(200, 170, 110, 0.2);
-        animation: attachSlide 0.2s ease;
-
-        .attached-action-icon {
-          display: flex;
-          align-items: center;
-          color: rgba(200, 170, 110, 0.85);
-          filter: drop-shadow(0 0 3px rgba(200, 170, 110, 0.3));
-        }
-
-        .attached-action-name {
-          font-family: 'Press Start 2P', monospace;
-          font-size: 8px;
-          color: rgba(200, 170, 110, 0.9);
-          letter-spacing: 0.5px;
-        }
-
-        .attached-action-force {
-          font-family: 'Press Start 2P', monospace;
-          font-size: 7px;
-          letter-spacing: 0.3px;
-          &.success { color: #22c55e; }
-          &.failure { color: #ef4444; }
-        }
-
-        .attached-action-remove {
-          margin-left: auto;
-          background: none;
-          border: 1px solid rgba(200, 170, 110, 0.2);
-          color: rgba(200, 170, 110, 0.6);
-          cursor: pointer;
-          font-size: 14px;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-          padding-bottom: 5px;
-          border-radius: 4px;
-          line-height: 0;
-          transition: all 0.2s;
-
-          &:hover {
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.4);
-            background: rgba(239, 68, 68, 0.1);
-          }
-        }
-
-        // Category colors for attached tag
-        &.category-enchantment {
-          border-color: rgba(160, 100, 240, 0.3);
-          background: linear-gradient(135deg, rgba(160, 100, 240, 0.1) 0%, rgba(45, 30, 50, 0.6) 100%);
-          .attached-action-name { color: rgba(180, 140, 255, 0.9); }
-        }
-        &.category-hex {
-          border-color: rgba(100, 180, 240, 0.3);
-          background: linear-gradient(135deg, rgba(100, 180, 240, 0.1) 0%, rgba(30, 40, 50, 0.6) 100%);
-          .attached-action-name { color: rgba(130, 200, 255, 0.9); }
-        }
-        &.category-binding {
-          border-color: rgba(240, 100, 100, 0.3);
-          background: linear-gradient(135deg, rgba(240, 100, 100, 0.1) 0%, rgba(50, 30, 30, 0.6) 100%);
-          .attached-action-name { color: rgba(255, 140, 140, 0.9); }
-        }
-        &.category-alchemy {
-          border-color: rgba(100, 200, 140, 0.3);
-          background: linear-gradient(135deg, rgba(100, 200, 140, 0.1) 0%, rgba(30, 50, 40, 0.6) 100%);
-          .attached-action-name { color: rgba(130, 220, 160, 0.9); }
-        }
-        &.category-beguile {
-          border-color: rgba(240, 180, 100, 0.3);
-          background: linear-gradient(135deg, rgba(240, 180, 100, 0.1) 0%, rgba(50, 40, 30, 0.6) 100%);
-          .attached-action-name { color: rgba(255, 200, 130, 0.9); }
         }
       }
 

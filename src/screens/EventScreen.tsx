@@ -1,4 +1,5 @@
 import React, { FC, useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { ScreenType } from './BaseScreen';
 import {
     Stage,
@@ -67,6 +68,142 @@ const SpellIcon: FC<{ icon: string; size?: number; className?: string }> = ({ ic
     if (!IconComponent) return <span className={className}>{icon}</span>;
     return <IconComponent size={size} className={className} />;
 };
+
+// ── Category metadata for tooltips ──
+const SPELL_CATEGORY_META: Record<string, { label: string; color: string }> = {
+    enchantment: { label: 'Enchantment', color: '#c8aa6e' },
+    hex:         { label: 'Hex',         color: '#c75050' },
+    binding:     { label: 'Binding',     color: '#6eaac8' },
+    alchemy:     { label: 'Alchemy',     color: '#6ec87a' },
+    beguile:     { label: 'Beguile',     color: '#c86eb8' },
+};
+
+// ── Spell Tooltip Component (portal-based, like TraitChip) ──
+const SPELL_TOOLTIP_WIDTH = 300;
+const SPELL_TOOLTIP_MARGIN = 16;
+
+const SpellTooltip: FC<{
+    action: ConditioningAction;
+    anchorRef: React.RefObject<HTMLElement | null>;
+    visible: boolean;
+    lockReason?: string;
+}> = ({ action, anchorRef, visible, lockReason }) => {
+    const [pos, setPos] = useState<{ top: number; left: number; arrowLeft: string }>({ top: 0, left: 0, arrowLeft: '50%' });
+
+    useEffect(() => {
+        if (visible && anchorRef.current) {
+            const rect = anchorRef.current.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const vw = window.innerWidth;
+
+            // Clamp so tooltip stays within viewport
+            const halfW = SPELL_TOOLTIP_WIDTH / 2;
+            let left = centerX;
+            let arrowLeft = '50%';
+
+            if (centerX - halfW < SPELL_TOOLTIP_MARGIN) {
+                // Would overflow left
+                left = SPELL_TOOLTIP_MARGIN + halfW;
+                const arrowPx = Math.max(12, centerX - SPELL_TOOLTIP_MARGIN);
+                arrowLeft = `${arrowPx}px`;
+            } else if (centerX + halfW > vw - SPELL_TOOLTIP_MARGIN) {
+                // Would overflow right
+                left = vw - SPELL_TOOLTIP_MARGIN - halfW;
+                const arrowPx = Math.min(SPELL_TOOLTIP_WIDTH - 12, SPELL_TOOLTIP_WIDTH - (vw - SPELL_TOOLTIP_MARGIN - centerX));
+                arrowLeft = `${arrowPx}px`;
+            }
+
+            setPos({
+                top: rect.top,
+                left,
+                arrowLeft,
+            });
+        }
+    }, [visible, anchorRef]);
+
+    if (!visible) return null;
+
+    const catMeta = SPELL_CATEGORY_META[action.category];
+
+    return ReactDOM.createPortal(
+        <span
+            className={`spell-tooltip visible`}
+            role="tooltip"
+            aria-label={`${action.label} details`}
+            style={{
+                position: 'fixed',
+                top: `${pos.top}px`,
+                left: `${pos.left}px`,
+                ['--arrow-left' as string]: pos.arrowLeft,
+            }}
+        >
+            <span className="spell-tooltip-head">
+                <span className="spell-tooltip-icon" style={{ color: catMeta?.color }}>
+                    <SpellIcon icon={action.icon} size={14} />
+                </span>
+                <span className="spell-tooltip-title">{action.label}</span>
+                {catMeta && (
+                    <span className="spell-tooltip-school" style={{ borderColor: `${catMeta.color}66`, color: catMeta.color }}>
+                        {catMeta.label}
+                    </span>
+                )}
+            </span>
+
+            <span className="spell-tooltip-desc">{action.tooltip}</span>
+
+            <span className="spell-tooltip-stats">
+                {action.manaCost > 0 && (
+                    <span className="spell-tooltip-stat mana">
+                        <GameIcon icon="sparkles" size={9} className="icon-mana" />
+                        {action.manaCost} Mana
+                    </span>
+                )}
+                {action.skillCheck && (
+                    <span className="spell-tooltip-stat dc">
+                        {action.skillCheck.skill.substring(0, 3).toUpperCase()} DC {action.skillCheck.difficulty}
+                    </span>
+                )}
+                {action.brainwashingDelta !== 0 && (
+                    <span className="spell-tooltip-stat effect">
+                        {action.brainwashingDelta > 0 ? '+' : ''}{action.brainwashingDelta}% BW
+                    </span>
+                )}
+                {action.cooldownMessages > 0 && (
+                    <span className="spell-tooltip-stat cooldown">
+                        <GameIcon icon="hourglass" size={9} /> {action.cooldownMessages} msg CD
+                    </span>
+                )}
+            </span>
+
+            {(action.requiresItem || action.consumeItem) && (
+                <span className="spell-tooltip-section">
+                    <span className="spell-tooltip-req">
+                        <GameIcon icon="flask" size={9} />
+                        {action.consumeItem
+                            ? `Consumes: ${action.consumeItem}`
+                            : `Requires: ${action.requiresItem}`}
+                    </span>
+                </span>
+            )}
+
+            {action.maxBrainwashing && (
+                <span className="spell-tooltip-section">
+                    <span className="spell-tooltip-cap">
+                        Effective up to {action.maxBrainwashing}% brainwashing
+                    </span>
+                </span>
+            )}
+
+            {lockReason && (
+                <span className="spell-tooltip-lock">
+                    <GameIcon icon="lock" size={9} /> {lockReason}
+                </span>
+            )}
+        </span>,
+        document.body
+    );
+};
+
 import { SceneVNView } from './SceneVNView';
 import DungeonBg from '../assets/Images/Rooms/dungeon.jpg';
 import ManorBg from '../assets/Images/Skits/Manor - Decorated.png';
@@ -144,6 +281,86 @@ function renderNarrative(text: string): React.ReactNode[] {
         return <p key={li} className="event-text-line">{parts}</p>;
     });
 }
+
+// ── Spell Slot with Tooltip (extracted for per-slot hover state) ──
+const SpellSlotWithTooltip: FC<{
+    action: ConditioningAction;
+    locked: boolean;
+    lockReason?: string;
+    onCooldown?: boolean;
+    isAttached: boolean;
+    notEnoughMana?: boolean;
+    executingAction: boolean;
+    chatSending: boolean;
+    handleAttachAction: (actionId: string, forceResult?: 'success' | 'failure') => void;
+    attachedAction: { action: ConditioningAction; forceResult?: 'success' | 'failure' } | null;
+}> = ({ action, locked, lockReason, onCooldown, isAttached, notEnoughMana, executingAction, chatSending, handleAttachAction }) => {
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const [showTooltip, setShowTooltip] = useState(false);
+
+    const handleMouseEnter = useCallback(() => setShowTooltip(true), []);
+    const handleMouseLeave = useCallback(() => setShowTooltip(false), []);
+
+    return (
+        <div className="grimoire-spell-slot">
+            <button
+                ref={btnRef}
+                className={`grimoire-spell ${locked ? 'locked' : 'available'} chapter-${action.category} ${isAttached ? 'attached' : ''}`}
+                onClick={() => !locked && handleAttachAction(action.id)}
+                disabled={locked || executingAction || chatSending}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <span className="spell-icon"><SpellIcon icon={action.icon} size={18} /></span>
+                <span className="spell-name">{action.label}</span>
+                {action.manaCost > 0 && (
+                    <span className={`spell-mana-cost ${notEnoughMana ? 'insufficient' : ''}`}>
+                        {action.manaCost}
+                    </span>
+                )}
+                {action.skillCheck && (
+                    <span className="spell-dc">
+                        {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
+                    </span>
+                )}
+                {action.consumeItem && (
+                    <span className="spell-cost"><FlaskConical size={10} /></span>
+                )}
+                {locked && (
+                    <span className="spell-lock">
+                        {onCooldown ? <GameIcon icon="hourglass" size={10} className="icon-muted" /> : <GameIcon icon="lock" size={10} className="icon-muted" />}
+                    </span>
+                )}
+                {isAttached && (
+                    <span className="spell-attached-glow" />
+                )}
+            </button>
+            {/* Debug force buttons */}
+            {action.skillCheck && !locked && (
+                <div className="spell-debug">
+                    <button
+                        className="event-debug-btn debug-success"
+                        onClick={() => handleAttachAction(action.id, 'success')}
+                        title="Debug: Force success"
+                        disabled={executingAction || chatSending}
+                    ><GameIcon icon="check" size={12} /></button>
+                    <button
+                        className="event-debug-btn debug-fail"
+                        onClick={() => handleAttachAction(action.id, 'failure')}
+                        title="Debug: Force failure"
+                        disabled={executingAction || chatSending}
+                    ><GameIcon icon="x" size={12} /></button>
+                </div>
+            )}
+            <SpellTooltip
+                action={action}
+                anchorRef={btnRef}
+                visible={showTooltip}
+                lockReason={locked ? lockReason : undefined}
+            />
+        </div>
+    );
+};
 
 export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType, onEventUpdate, onEnd }) => {
     const [fadeState, setFadeState] = useState<'in' | 'out' | 'none'>('in');
@@ -956,55 +1173,19 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                                                     const isAttached = attachedAction?.action.id === action.id && !attachedAction?.forceResult;
                                                     const notEnoughMana = lockReason?.startsWith('Requires') && lockReason?.includes('mana');
                                                     return (
-                                                        <div key={action.id} className="grimoire-spell-slot">
-                                                            <button
-                                                                className={`grimoire-spell ${locked ? 'locked' : 'available'} chapter-${action.category} ${isAttached ? 'attached' : ''}`}
-                                                                onClick={() => !locked && handleAttachAction(action.id)}
-                                                                disabled={locked || executingAction || chatSending}
-                                                                title={locked ? lockReason : action.tooltip}
-                                                            >
-                                                                <span className="spell-icon"><SpellIcon icon={action.icon} size={18} /></span>
-                                                                <span className="spell-name">{action.label}</span>
-                                                                {action.manaCost > 0 && (
-                                                                    <span className={`spell-mana-cost ${notEnoughMana ? 'insufficient' : ''}`}>
-                                                                        {action.manaCost}
-                                                                    </span>
-                                                                )}
-                                                                {action.skillCheck && (
-                                                                    <span className="spell-dc">
-                                                                        {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
-                                                                    </span>
-                                                                )}
-                                                                {action.consumeItem && (
-                                                                    <span className="spell-cost"><FlaskConical size={10} /></span>
-                                                                )}
-                                                                {locked && (
-                                                                    <span className="spell-lock">
-                                                                        {onCooldown ? <GameIcon icon="hourglass" size={10} className="icon-muted" /> : <GameIcon icon="lock" size={10} className="icon-muted" />}
-                                                                    </span>
-                                                                )}
-                                                                {isAttached && (
-                                                                    <span className="spell-attached-glow" />
-                                                                )}
-                                                            </button>
-                                                            {/* Debug force buttons */}
-                                                            {action.skillCheck && !locked && (
-                                                                <div className="spell-debug">
-                                                                    <button
-                                                                        className="event-debug-btn debug-success"
-                                                                        onClick={() => handleAttachAction(action.id, 'success')}
-                                                                        title="Debug: Force success"
-                                                                        disabled={executingAction || chatSending}
-                                                                    ><GameIcon icon="check" size={12} /></button>
-                                                                    <button
-                                                                        className="event-debug-btn debug-fail"
-                                                                        onClick={() => handleAttachAction(action.id, 'failure')}
-                                                                        title="Debug: Force failure"
-                                                                        disabled={executingAction || chatSending}
-                                                                    ><GameIcon icon="x" size={12} /></button>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                        <SpellSlotWithTooltip
+                                                            key={action.id}
+                                                            action={action}
+                                                            locked={locked}
+                                                            lockReason={lockReason}
+                                                            onCooldown={onCooldown}
+                                                            isAttached={isAttached}
+                                                            notEnoughMana={notEnoughMana}
+                                                            executingAction={executingAction}
+                                                            chatSending={chatSending}
+                                                            handleAttachAction={handleAttachAction}
+                                                            attachedAction={attachedAction}
+                                                        />
                                                     );
                                                 })}
                                             </div>
@@ -1018,25 +1199,24 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
                 {/* Input bar or max-messages continue */}
                 {!atMaxMessages ? (
-                    <div className="skit-input-bar">
+                    <div className={`skit-input-bar ${attachedAction ? 'spell-active' : ''}`}>
                         <img className="skit-input-avatar" src={chatPcAvatar} alt={pcName} />
-                        <div className="skit-input-wrapper">
-                            {/* Attached action indicator */}
+                        <div className={`skit-input-wrapper ${attachedAction ? `spell-${attachedAction.action.category}` : ''}`}>
+                            {/* Inline spell icon in input */}
                             {attachedAction && (
-                                <div className={`attached-action-tag category-${attachedAction.action.category}`}>
-                                    <span className="attached-action-icon"><SpellIcon icon={attachedAction.action.icon} size={16} /></span>
-                                    <span className="attached-action-name">{attachedAction.action.label}</span>
+                                <button className="skit-spell-inline" onClick={handleDetachAction} title={`Remove ${attachedAction.action.label}`}>
+                                    <span className="skit-spell-inline-icon">
+                                        <SpellIcon icon={attachedAction.action.icon} size={16} />
+                                    </span>
+                                    <span className="skit-spell-inline-x"><GameIcon icon="x" size={8} /></span>
                                     {attachedAction.forceResult && (
-                                        <span className={`attached-action-force ${attachedAction.forceResult}`}>
-                                            [{attachedAction.forceResult}]
-                                        </span>
+                                        <span className={`skit-spell-inline-force ${attachedAction.forceResult}`} />
                                     )}
-                                    <button className="attached-action-remove" onClick={handleDetachAction} title="Remove action"><GameIcon icon="x" size={12} /></button>
-                                </div>
+                                </button>
                             )}
                             <textarea
                                 ref={chatInputRef}
-                                className="skit-input"
+                                className={`skit-input ${attachedAction ? 'has-spell' : ''}`}
                                 placeholder={attachedAction
                                     ? `Speak while using ${attachedAction.action.label}...`
                                     : `Speak as ${pcName}...`}
