@@ -182,8 +182,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px 18px 28px;
+  padding: 16px 18px 12px;
   position: relative;
+  overflow: hidden;
+  min-height: 0;
 
   // Parchment background
   background:
@@ -498,15 +500,19 @@
 .grimoire-spell-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .grimoire-spell-card {
-  padding: 10px 12px;
+  min-height: 80px;
+  padding: 12px 14px;
   border: 1px solid rgba(200, 170, 110, 0.1);
   border-radius: 4px;
   background: rgba(200, 170, 110, 0.02);
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
   &:hover {
     background: rgba(200, 170, 110, 0.06);
@@ -522,14 +528,14 @@
 .grimoire-spell-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .grimoire-spell-name {
   flex: 1;
   font-family: 'Press Start 2P', monospace;
-  font-size: 7.5px;
+  font-size: 9px;
   color: rgba(200, 170, 110, 0.85);
   letter-spacing: 0.3px;
 }
@@ -537,10 +543,10 @@
 .grimoire-spell-mana {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  padding: 2px 7px;
+  font-size: 8px;
+  padding: 3px 8px;
   border-radius: 3px;
   background: rgba(60, 130, 240, 0.1);
   color: rgba(100, 170, 255, 0.85);
@@ -556,18 +562,18 @@
 
 .grimoire-spell-desc {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5.5px;
-  line-height: 1.8;
+  font-size: 6.5px;
+  line-height: 1.9;
   color: rgba(200, 170, 110, 0.45);
   margin: 0;
 }
 
 .grimoire-spell-dc {
   display: inline-block;
-  margin-top: 4px;
+  margin-top: 5px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 5.5px;
-  padding: 2px 6px;
+  font-size: 6.5px;
+  padding: 2px 7px;
   border-radius: 3px;
   background: rgba(120, 90, 200, 0.12);
   color: rgba(180, 160, 240, 0.6);
