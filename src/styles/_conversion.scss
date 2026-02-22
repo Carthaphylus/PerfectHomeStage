@@ -625,7 +625,7 @@
 
 .conversion-result-section {
   width: 100%;
-  max-width: 420px;
+  max-width: 600px;
 
   h4 {
     font-size: 7px;
@@ -656,6 +656,8 @@
   border-radius: 4px;
   border-left: 2px solid rgba(74, 222, 128, 0.35);
   box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .conversion-result-traits {
@@ -715,16 +717,45 @@
     }
   }
 
-  .confirm-convert {
-    transition: all 0.3s;
+  .confirmation-actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
 
-    &:hover {
-      filter: brightness(1.3);
-      transform: translateY(-1px);
+    .confirm-button {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid;
+
+      &.cancel {
+        background: rgba(200, 170, 110, 0.08) !important;
+        border-color: rgba(200, 170, 110, 0.25);
+        color: var(--text-primary);
+
+        &:hover {
+          background: rgba(200, 170, 110, 0.14) !important;
+          border-color: rgba(200, 170, 110, 0.35);
+          transform: translateY(-1px);
+        }
+      }
+
+      &.confirm-convert {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: center;
+
+        &:hover {
+          filter: brightness(1.3);
+          transform: translateY(-1px);
+        }
+      }
     }
   }
 }

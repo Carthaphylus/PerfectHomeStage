@@ -21,6 +21,7 @@ export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color, so
         character: 'diamond',
         role: 'home',
         room: 'home',
+        archetype: 'sparkle',
         situational: 'sparkle',
     };
 
@@ -28,6 +29,7 @@ export const TraitChip: FC<TraitChipProps> = ({ trait, className = '', color, so
         character: 'character',
         role: 'room role',
         room: 'room role',
+        archetype: 'archetype',
         situational: 'situational',
     };
 

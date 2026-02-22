@@ -34,6 +34,7 @@ export interface Servant {
     color: string;
     description: string;
     traits: string[];
+    archetypeTraits?: string[];  // traits granted by the conversion archetype
     details: Record<string, string>;
     stats: Record<StatName, number>; // 0-100 values
     love: number; // 0-100

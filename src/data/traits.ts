@@ -2,7 +2,7 @@
 // TRAIT SYSTEM
 // ──────────────────────────────────────────
 
-export type TraitScope = 'character' | 'role' | 'room' | 'situational';
+export type TraitScope = 'character' | 'role' | 'room' | 'archetype' | 'situational';
 
 export interface TraitDefinition {
     name: string;

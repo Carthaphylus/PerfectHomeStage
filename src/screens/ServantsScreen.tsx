@@ -74,6 +74,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         stats: s.stats || { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 },
                     }}
                     onBack={() => setSelectedServant(null)}
+                    archetypeTraits={s.archetypeTraits}
                     statusBadge={currentRole && (
                         <div className="char-role-badge" style={{ 
                             borderColor: currentRole.color,

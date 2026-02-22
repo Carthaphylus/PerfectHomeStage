@@ -43,6 +43,9 @@ export interface CharacterProfileProps {
         color: string;
         traits: string[];
     };
+
+    /** Traits granted by the conversion archetype (displayed differently) */
+    archetypeTraits?: string[];
 }
 
 export const CharacterProfile: FC<CharacterProfileProps> = ({
@@ -53,8 +56,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     statusBadge,
     extraActions,
     extraSections,
-    assignedRole,
-}) => {
+    assignedRole,    archetypeTraits,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
 
     if (showGallery) {
@@ -178,13 +180,24 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
 
                     <div className="char-bio-section">
                         <h4>Traits</h4>
-                        <div className="char-trait-list">{character.traits.map(t => (
+                        <div className="char-trait-list">{character.traits
+                            .filter(t => !archetypeTraits?.includes(t))
+                            .map(t => (
                                 <TraitChip
                                     key={`innate-${t}`} 
                                     trait={t}
                                     className="char-trait char-trait-innate"
                                     color={character.color}
                                     source="character"
+                                />
+                            ))}
+                            {archetypeTraits?.map(t => (
+                                <TraitChip
+                                    key={`arch-${t}`}
+                                    trait={t}
+                                    className="char-trait char-trait-archetype"
+                                    color="#fbbf24"
+                                    source="archetype"
                                 />
                             ))}
                             {assignedRole?.traits.map(t => (
