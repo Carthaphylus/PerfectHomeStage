@@ -1,8 +1,9 @@
 import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
-import { Stage, CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES, ConditioningAction } from '../Stage';
+import { Stage } from '../Stage';
 import type { SaveFileSlot } from '../Stage';
 import { GameIcon } from './GameIcon';
+import { GrimoireBook } from './GrimoireBook';
 
 // Skill icons
 import PowerIcon from '../assets/Images/Stats/Power.webp';
@@ -27,6 +28,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     const [saveSlots, setSaveSlots] = useState<(SaveFileSlot | null)[]>([]);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
     const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
+    const [showGrimoire, setShowGrimoire] = useState(false);
 
     const menuOptions = [
         { label: 'Profile', icon: 'wand', screen: ScreenType.PC_PROFILE },
@@ -132,9 +134,21 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     ))}
                 </div>
 
-                {/* Grimoire Quick-View */}
-                <MenuGrimoire stage={stage} />
+                {/* Grimoire */}
+                <button className="menu-grimoire-btn" onClick={() => setShowGrimoire(true)}>
+                    <GameIcon icon="book-open" size={18} className="grimoire-btn-icon" />
+                    Grimoire
+                    <span className="grimoire-btn-mana">
+                        <GameIcon icon="sparkles" size={10} className="icon-mana" />
+                        {stage().currentState.stats.mana}/{stage().currentState.stats.maxMana}
+                    </span>
+                </button>
             </div>
+
+            {/* Grimoire overlay */}
+            {showGrimoire && (
+                <GrimoireBook stage={stage} onClose={() => setShowGrimoire(false)} />
+            )}
 
             {/* New Game Confirmation */}
             {showNewGameConfirm && (
@@ -277,86 +291,4 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     );
 };
 
-// ── Grimoire Quick-View Panel ──
 
-const GRIMOIRE_CATEGORIES: { key: string; label: string; icon: string }[] = [
-    { key: 'enchantment', label: 'Enchantment', icon: 'sparkles' },
-    { key: 'hex', label: 'Hexes', icon: 'skull' },
-    { key: 'binding', label: 'Binding', icon: 'link' },
-    { key: 'alchemy', label: 'Alchemy', icon: 'flask' },
-    { key: 'beguile', label: 'Beguile', icon: 'heart' },
-];
-
-const MenuGrimoire: FC<{ stage: () => Stage }> = ({ stage }) => {
-    const [open, setOpen] = useState(false);
-    const stats = stage().currentState.stats;
-    const mana = stats.mana;
-    const maxMana = stats.maxMana;
-    const pct = maxMana > 0 ? (mana / maxMana) * 100 : 0;
-
-    // Get all non-strategy-bonus spells grouped by category
-    const allActions = Object.values(CONDITIONING_ACTIONS).filter(action => {
-        const isBonusAction = Object.values(CONDITIONING_STRATEGIES).some(
-            s => s.bonusActions?.includes(action.id)
-        );
-        return !isBonusAction;
-    });
-
-    const grouped = GRIMOIRE_CATEGORIES.map(cat => ({
-        ...cat,
-        actions: allActions.filter(a => a.category === cat.key),
-    })).filter(g => g.actions.length > 0);
-
-    return (
-        <div className={`menu-grimoire ${open ? 'open' : 'collapsed'}`}>
-            <button className="menu-grimoire-toggle" onClick={() => setOpen(!open)}>
-                <GameIcon icon="sparkles" size={12} className="icon-mana" />
-                <span className="menu-grimoire-title">Grimoire</span>
-                <span className="menu-grimoire-mana">
-                    <span className="menu-grimoire-mana-bar">
-                        <span className="menu-grimoire-mana-fill" style={{ width: `${pct}%` }} />
-                    </span>
-                    <span className="menu-grimoire-mana-text">{mana}/{maxMana}</span>
-                </span>
-                <span className="menu-grimoire-arrow">{open ? '▾' : '▸'}</span>
-            </button>
-            {open && (
-                <div className="menu-grimoire-content">
-                    {grouped.map(cat => (
-                        <div key={cat.key} className="menu-grimoire-category">
-                            <div className="menu-grimoire-cat-header">
-                                <GameIcon icon={cat.icon} size={10} />
-                                <span>{cat.label}</span>
-                            </div>
-                            <div className="menu-grimoire-spells">
-                                {cat.actions.map(action => {
-                                    const canAfford = mana >= action.manaCost;
-                                    return (
-                                        <div
-                                            key={action.id}
-                                            className={`menu-grimoire-spell ${canAfford ? '' : 'insufficient'}`}
-                                            title={action.tooltip}
-                                        >
-                                            <GameIcon icon={action.icon} size={14} />
-                                            <span className="menu-grimoire-spell-name">{action.label}</span>
-                                            {action.manaCost > 0 && (
-                                                <span className={`menu-grimoire-spell-mana ${canAfford ? '' : 'insufficient'}`}>
-                                                    {action.manaCost}
-                                                </span>
-                                            )}
-                                            {action.skillCheck && (
-                                                <span className="menu-grimoire-spell-dc">
-                                                    {action.skillCheck.skill.substring(0, 3).toUpperCase()} {action.skillCheck.difficulty}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};

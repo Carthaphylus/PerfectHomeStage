@@ -1,0 +1,632 @@
+// ── Grimoire Book Overlay ──
+
+// -- Keyframes --
+@keyframes grimoireOpen {
+  0%   { opacity: 0; transform: scale(0.85) rotateY(-10deg); }
+  100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+}
+
+@keyframes pageTurnNext {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(-180deg); }
+}
+
+@keyframes pageTurnPrev {
+  0%   { transform: rotateY(-180deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes shimmerGold {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spineGlow {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.5; }
+}
+
+// -- Overlay --
+.grimoire-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 3, 8, 0.88);
+  backdrop-filter: blur(6px);
+  animation: grimoireOpen 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+// -- Book Container --
+.grimoire-book {
+  position: relative;
+  width: 94vw;
+  max-width: 720px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(80, 50, 30, 0.12) 0%, transparent 65%),
+    linear-gradient(160deg, #2a1e14 0%, #1e150e 40%, #18100a 100%);
+  border: 2px solid rgba(160, 120, 60, 0.35);
+  border-radius: 6px 12px 12px 6px;
+  box-shadow:
+    0 0 60px rgba(120, 80, 30, 0.12),
+    0 8px 32px rgba(0, 0, 0, 0.7),
+    inset 0 0 80px rgba(0, 0, 0, 0.4),
+    inset 2px 0 8px rgba(160, 120, 60, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // Leather texture grain
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23a07840' fill-opacity='0.04'%3E%3Cpath d='M0 0h1v1H0zM3 3h1v1H3z'/%3E%3C/g%3E%3C/svg%3E") repeat;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 0;
+  }
+}
+
+// -- Close --
+.grimoire-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 20;
+  background: rgba(30, 20, 15, 0.7) !important;
+  border: 1px solid rgba(160, 120, 60, 0.3);
+  color: rgba(200, 170, 110, 0.7);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: rgba(60, 40, 25, 0.9) !important;
+    color: rgba(200, 170, 110, 1);
+    border-color: rgba(200, 170, 110, 0.6);
+  }
+}
+
+// -- Mana strip --
+.grimoire-mana-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(15, 25, 45, 0.7) 0%, rgba(20, 30, 55, 0.5) 100%);
+  border-bottom: 1px solid rgba(60, 130, 240, 0.15);
+  position: relative;
+  z-index: 2;
+}
+
+.grimoire-mana-bar {
+  flex: 1;
+  max-width: 140px;
+  height: 6px;
+  background: rgba(15, 20, 40, 0.9);
+  border-radius: 3px;
+  border: 1px solid rgba(60, 130, 240, 0.25);
+  overflow: hidden;
+}
+
+.grimoire-mana-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6, #60a5fa);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 6px rgba(60, 130, 240, 0.5);
+}
+
+.grimoire-mana-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: rgba(100, 170, 255, 0.8);
+  white-space: nowrap;
+}
+
+// -- Spread (two-page view) --
+.grimoire-spread {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+  perspective: 1200px;
+}
+
+// -- Spine --
+.grimoire-spine {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg,
+    rgba(100, 70, 30, 0.5) 0%,
+    rgba(80, 55, 25, 0.7) 50%,
+    rgba(100, 70, 30, 0.5) 100%
+  );
+  z-index: 10;
+  box-shadow:
+    -3px 0 8px rgba(0, 0, 0, 0.4),
+     3px 0 8px rgba(0, 0, 0, 0.4);
+  animation: spineGlow 3s ease-in-out infinite;
+
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    border-radius: 50%;
+    background: rgba(120, 80, 30, 0.3);
+  }
+  &::before { top: 16px; }
+  &::after  { bottom: 16px; }
+}
+
+// -- Page --
+.grimoire-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px 28px;
+  position: relative;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(160, 120, 60, 0.2) transparent;
+
+  // Parchment background
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(200, 180, 140, 0.04) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(40, 30, 22, 0.95) 0%, rgba(35, 26, 18, 0.97) 100%);
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(160, 120, 60, 0.25);
+    border-radius: 2px;
+  }
+}
+
+.grimoire-page-left {
+  border-right: 1px solid rgba(100, 70, 30, 0.15);
+  // Old page edge shadow
+  box-shadow: inset -8px 0 16px -8px rgba(0, 0, 0, 0.3);
+}
+
+.grimoire-page-right {
+  border-left: 1px solid rgba(100, 70, 30, 0.15);
+  box-shadow: inset 8px 0 16px -8px rgba(0, 0, 0, 0.3);
+}
+
+.grimoire-page-inner {
+  flex: 1;
+  min-height: 0;
+}
+
+.grimoire-page-number {
+  position: absolute;
+  bottom: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5px;
+  color: rgba(160, 120, 60, 0.25);
+
+  .grimoire-page-left & { right: 14px; }
+  .grimoire-page-right & { left: 14px; }
+}
+
+// -- Page turn animation --
+.grimoire-turning-page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 20;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  pointer-events: none;
+
+  &.next {
+    left: 50%;
+    transform-origin: left center;
+    animation: pageTurnNext 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  &.prev {
+    left: 0%;
+    transform-origin: right center;
+    animation: pageTurnPrev 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+
+.grimoire-turning-front,
+.grimoire-turning-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 2px;
+}
+
+.grimoire-turning-front {
+  background: linear-gradient(135deg, rgba(45, 33, 22, 0.97) 0%, rgba(38, 28, 18, 0.98) 100%);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.4);
+}
+
+.grimoire-turning-back {
+  background: linear-gradient(225deg, rgba(45, 33, 22, 0.97) 0%, rgba(38, 28, 18, 0.98) 100%);
+  transform: rotateY(180deg);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.4);
+}
+
+// -- Navigation --
+.grimoire-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, rgba(30, 20, 14, 0.95) 0%, rgba(25, 18, 12, 0.95) 100%);
+  border-top: 1px solid rgba(160, 120, 60, 0.15);
+  position: relative;
+  z-index: 2;
+}
+
+.grimoire-nav-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 6px 16px;
+  background: rgba(80, 55, 25, 0.2) !important;
+  border: 1px solid rgba(160, 120, 60, 0.25);
+  border-radius: 3px;
+  color: rgba(200, 170, 110, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+
+  &:hover:not(:disabled) {
+    background: rgba(100, 70, 30, 0.35) !important;
+    color: rgba(200, 170, 110, 1);
+    border-color: rgba(200, 170, 110, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+}
+
+.grimoire-nav-pages {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5px;
+  color: rgba(160, 120, 60, 0.4);
+  letter-spacing: 1px;
+}
+
+// ========================================
+// Page Content Styles
+// ========================================
+
+// -- Cover --
+.grimoire-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  gap: 10px;
+}
+
+.grimoire-cover-ornament {
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(200, 170, 110, 0.3) 20%,
+    rgba(200, 170, 110, 0.5) 50%,
+    rgba(200, 170, 110, 0.3) 80%,
+    transparent 100%
+  );
+  position: relative;
+
+  &::before, &::after {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 6px;
+    color: rgba(200, 170, 110, 0.35);
+  }
+  &::before { left: -8px; }
+  &::after  { right: -8px; }
+}
+
+.grimoire-cover-icon {
+  color: rgba(200, 170, 110, 0.6);
+  filter: drop-shadow(0 0 12px rgba(200, 170, 110, 0.25));
+  margin: 8px 0;
+}
+
+.grimoire-cover-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--highlight);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(200, 170, 110, 0.2);
+  margin: 0;
+  background: linear-gradient(90deg, rgba(220, 190, 130, 1) 0%, rgba(200, 170, 110, 0.8) 50%, rgba(220, 190, 130, 1) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerGold 4s linear infinite;
+}
+
+.grimoire-cover-line {
+  width: 40%;
+  height: 1px;
+  background: rgba(200, 170, 110, 0.2);
+}
+
+.grimoire-cover-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5px;
+  color: rgba(200, 170, 110, 0.35);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+// -- Table of Contents --
+.grimoire-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.grimoire-toc-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: rgba(200, 170, 110, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  margin: 0 0 4px;
+}
+
+.grimoire-toc-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.2), transparent);
+  margin-bottom: 6px;
+}
+
+.grimoire-toc-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: transparent !important;
+  border: 1px solid rgba(200, 170, 110, 0.06);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Press Start 2P', monospace;
+
+  &:hover {
+    background: rgba(200, 170, 110, 0.06) !important;
+    border-color: rgba(200, 170, 110, 0.15);
+  }
+}
+
+.grimoire-toc-label {
+  font-size: 7px;
+  letter-spacing: 0.5px;
+}
+
+.grimoire-toc-dots {
+  flex: 1;
+  border-bottom: 1px dotted rgba(200, 170, 110, 0.12);
+  margin: 0 4px;
+  height: 0;
+}
+
+// -- School Header --
+.grimoire-school-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  text-align: center;
+}
+
+.grimoire-school-ornament {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 170, 110, 0.04) 0%, transparent 70%);
+}
+
+.grimoire-school-icon {
+  filter: drop-shadow(0 0 10px currentColor);
+  opacity: 0.7;
+}
+
+.grimoire-school-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.grimoire-school-rule {
+  width: 50%;
+  height: 0;
+  border-bottom: 1px solid;
+  opacity: 0.3;
+}
+
+// -- Spell list --
+.grimoire-spell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grimoire-spell-card {
+  padding: 8px 10px;
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  border-radius: 4px;
+  background: rgba(200, 170, 110, 0.02);
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(200, 170, 110, 0.06);
+    border-color: rgba(200, 170, 110, 0.2);
+  }
+
+  &.no-mana {
+    opacity: 0.4;
+    border-color: rgba(120, 60, 60, 0.15);
+  }
+}
+
+.grimoire-spell-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.grimoire-spell-name {
+  flex: 1;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: rgba(200, 170, 110, 0.85);
+  letter-spacing: 0.3px;
+}
+
+.grimoire-spell-mana {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(60, 130, 240, 0.1);
+  color: rgba(100, 170, 255, 0.85);
+  border: 1px solid rgba(60, 130, 240, 0.2);
+  white-space: nowrap;
+
+  &.no-mana {
+    color: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+}
+
+.grimoire-spell-desc {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 4.5px;
+  line-height: 1.8;
+  color: rgba(200, 170, 110, 0.4);
+  margin: 0;
+}
+
+.grimoire-spell-dc {
+  display: inline-block;
+  margin-top: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 4.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(120, 90, 200, 0.12);
+  color: rgba(180, 160, 240, 0.55);
+  border: 1px solid rgba(120, 90, 200, 0.15);
+}
+
+// -- Blank page --
+.grimoire-blank {
+  height: 100%;
+}
+
+// ── Open Grimoire button (used in MenuScreen) ──
+.menu-grimoire-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 8px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 50, 30, 0.15) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(40, 28, 18, 0.9) 0%, rgba(30, 20, 12, 0.95) 100%) !important;
+  border: 1px solid rgba(160, 120, 60, 0.3);
+  border-radius: 4px;
+  color: rgba(200, 170, 110, 0.8);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+
+  // shimmer sweep
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(200, 170, 110, 0.06) 45%,
+      rgba(200, 170, 110, 0.12) 50%,
+      rgba(200, 170, 110, 0.06) 55%,
+      transparent 60%
+    );
+    background-size: 250% 100%;
+    animation: shimmerGold 5s linear infinite;
+  }
+
+  &:hover {
+    border-color: rgba(200, 170, 110, 0.55);
+    color: var(--highlight);
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 16px rgba(200, 170, 110, 0.1),
+      inset 0 1px 0 rgba(200, 170, 110, 0.08);
+  }
+
+  .grimoire-btn-icon {
+    color: rgba(200, 170, 110, 0.6);
+    filter: drop-shadow(0 0 6px rgba(200, 170, 110, 0.2));
+  }
+
+  .grimoire-btn-mana {
+    font-size: 6px;
+    color: rgba(100, 170, 255, 0.7);
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
