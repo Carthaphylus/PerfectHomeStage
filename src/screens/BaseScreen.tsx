@@ -1,5 +1,5 @@
 import React, { FC, useState, useCallback } from 'react';
-import { Stage, SceneData, ActiveEvent } from '../Stage';
+import { Stage, SceneData, ActiveEvent, Location } from '../Stage';
 import { MenuScreen } from './MenuScreen';
 import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
@@ -11,6 +11,7 @@ import { PCProfileScreen } from './PCProfileScreen';
 import { InventoryScreen } from './InventoryScreen';
 import { EventScreen } from './EventScreen';
 import { ConversionScreen } from './ConversionScreen';
+import { ExploreScreen } from './ExploreScreen';
 import { StatBar } from './StatBar';
 
 export enum ScreenType {
@@ -25,6 +26,7 @@ export enum ScreenType {
     SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
     CONVERSION = 'conversion',
+    EXPLORE = 'explore',
 }
 
 interface BaseScreenProps {
@@ -43,6 +45,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
 
     // Conversion target name
     const [conversionTarget, setConversionTarget] = useState<string | null>(null);
+
+    // Explore location
+    const [exploreLocation, setExploreLocation] = useState<Location | null>(null);
 
     /**
      * Start a scene: creates it on Stage (for API use), stores snapshot in React state,
@@ -98,6 +103,12 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         }
     }, [stage]);
 
+    /** Start exploring a location */
+    const startExplore = useCallback((location: Location) => {
+        setExploreLocation(location);
+        setScreenType(ScreenType.EXPLORE);
+    }, []);
+
     const showStatBar = screenType !== ScreenType.MENU;
 
     return (
@@ -111,7 +122,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 <ManorScreen stage={stage} setScreenType={setScreenType} />
             )}
             {screenType === ScreenType.WORLD_MAP && (
-                <WorldMapScreen stage={stage} setScreenType={setScreenType} />
+                <WorldMapScreen stage={stage} setScreenType={setScreenType} startExplore={startExplore} />
             )}
             {screenType === ScreenType.HEROES && (
                 <HeroesScreen stage={stage} setScreenType={setScreenType} />
@@ -127,6 +138,17 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             )}
             {screenType === ScreenType.INVENTORY && (
                 <InventoryScreen stage={stage} setScreenType={setScreenType} />
+            )}
+
+            {/* Explore screen */}
+            {screenType === ScreenType.EXPLORE && exploreLocation && (
+                <ExploreScreen
+                    key={`explore-${exploreLocation}`}
+                    stage={stage}
+                    location={exploreLocation}
+                    setScreenType={setScreenType}
+                    startEvent={startEvent}
+                />
             )}
 
             {/* Event screen */}

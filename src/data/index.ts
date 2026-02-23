@@ -29,5 +29,8 @@ export * from './conditioning';
 // Event system
 export * from './events';
 
+// Exploration system
+export * from './exploration';
+
 // Task system
 export * from './tasks';

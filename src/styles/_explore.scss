@@ -1,0 +1,276 @@
+// ==========================================
+// Explore Screen — Location Hub
+// ==========================================
+.explore-screen {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    // Reuse skit background/overlay from scene system
+    .skit-background {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.45) saturate(0.7);
+        z-index: 0;
+    }
+
+    .skit-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(180deg,
+            rgba(18, 12, 24, 0.5) 0%,
+            rgba(18, 12, 24, 0.2) 20%,
+            rgba(18, 12, 24, 0.2) 50%,
+            rgba(18, 12, 24, 0.75) 80%,
+            rgba(18, 12, 24, 0.95) 100%
+        );
+        z-index: 1;
+    }
+
+    // ── Header ──
+    .explore-header {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background:
+            linear-gradient(135deg, rgba(200, 170, 110, 0.04) 25%, transparent 25%),
+            linear-gradient(180deg, rgba(18, 12, 24, 0.92), rgba(18, 12, 24, 0.7));
+        border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+
+        .back-button {
+            background: none;
+            border: 1px solid rgba(200, 170, 110, 0.25);
+            color: rgba(200, 170, 110, 0.8);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+
+            &:hover {
+                background: rgba(200, 170, 110, 0.1);
+                border-color: rgba(200, 170, 110, 0.4);
+                color: #c8aa6e;
+            }
+        }
+
+        .explore-header-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #c8aa6e;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .explore-header-location {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: rgba(200, 170, 110, 0.5);
+            letter-spacing: 1px;
+        }
+    }
+
+    // ── Body ──
+    .explore-body {
+        position: relative;
+        z-index: 10;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 20px 24px;
+        gap: 16px;
+        overflow-y: auto;
+    }
+
+    // ── Intro Narration ──
+    .explore-intro {
+        background: rgba(18, 12, 24, 0.8);
+        border: 1px solid rgba(200, 170, 110, 0.15);
+        border-radius: 8px;
+        padding: 20px 24px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: var(--text-primary);
+        cursor: pointer;
+        max-height: 200px;
+        overflow-y: auto;
+
+        // Skit formatting (action/dialogue/narration) inherited from SkitText
+        .skit-fmt-action {
+            color: rgba(200, 170, 110, 0.7);
+            font-style: italic;
+        }
+        .skit-fmt-dialogue {
+            color: #e0d6c8;
+            font-weight: 500;
+        }
+    }
+
+    // ── Activity Options ──
+    .explore-activities {
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        pointer-events: none;
+
+        &.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .activities-header {
+            margin-bottom: 8px;
+
+            .activities-label {
+                font-size: 10px;
+                color: rgba(200, 170, 110, 0.6);
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+        }
+
+        .activities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+    }
+
+    .activity-button {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(30, 22, 38, 0.85);
+        border: 1px solid rgba(200, 170, 110, 0.12);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-align: left;
+
+        &:hover,
+        &.selected {
+            background: rgba(200, 170, 110, 0.08);
+            border-color: rgba(200, 170, 110, 0.35);
+            transform: translateX(4px);
+
+            .activity-icon {
+                color: #c8aa6e;
+                background: rgba(200, 170, 110, 0.15);
+                border-color: rgba(200, 170, 110, 0.4);
+            }
+
+            .activity-label {
+                color: #c8aa6e;
+            }
+
+            .activity-arrow {
+                opacity: 1;
+                color: #c8aa6e;
+            }
+        }
+
+        &:active {
+            transform: translateX(6px) scale(0.98);
+        }
+
+        .activity-icon {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(200, 170, 110, 0.06);
+            border: 1px solid rgba(200, 170, 110, 0.15);
+            color: rgba(200, 170, 110, 0.6);
+            transition: all 0.25s ease;
+        }
+
+        .activity-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .activity-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+            transition: color 0.25s ease;
+        }
+
+        .activity-tooltip {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .activity-arrow {
+            flex-shrink: 0;
+            opacity: 0.3;
+            color: var(--text-muted);
+            transition: all 0.25s ease;
+        }
+    }
+
+    // ── Leave Button ──
+    .explore-leave {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
+        pointer-events: none;
+        display: flex;
+        justify-content: center;
+        padding-top: 4px;
+
+        &.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .leave-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            background: none;
+            border: 1px solid rgba(200, 170, 110, 0.2);
+            border-radius: 6px;
+            color: rgba(200, 170, 110, 0.5);
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+                background: rgba(200, 170, 110, 0.06);
+                border-color: rgba(200, 170, 110, 0.35);
+                color: rgba(200, 170, 110, 0.8);
+            }
+        }
+    }
+}

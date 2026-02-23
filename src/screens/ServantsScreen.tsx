@@ -2,7 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './BaseScreen';
 import {
     Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor,
-    TaskDefinition, TaskOutcome, TaskCategory,
+    TaskDefinition, TaskOutcome, TaskCategory, TaskReward,
     getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, checkTaskRequirements, getApplicableTraitModifiers,
 } from '../Stage';
@@ -650,78 +650,119 @@ interface TaskAssignmentModalProps {
 const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAssign, onClose }) => {
     const [previewTask, setPreviewTask] = useState<TaskDefinition | null>(null);
     const [searchFilter, setSearchFilter] = useState('');
-    const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const [activeCategory, setActiveCategory] = useState<TaskCategory | 'all'>('all');
 
-    // Get available tasks
     const availableTasks = stage().getAvailableTasksForServantByName(target.name);
-
-    // Filter by search
-    const filteredTasks = searchFilter
-        ? availableTasks.filter(t =>
-            t.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-            t.description.toLowerCase().includes(searchFilter.toLowerCase())
-        )
-        : availableTasks;
-
-    // Group by category
     const categoryOrder: TaskCategory[] = ['room', 'exploration', 'training', 'upkeep', 'personal'];
-    const groups: Record<string, TaskDefinition[]> = {};
-    for (const task of filteredTasks) {
-        if (!groups[task.category]) groups[task.category] = [];
-        groups[task.category].push(task);
+
+    // Filter by search + category
+    const filteredTasks = availableTasks.filter(t => {
+        if (activeCategory !== 'all' && t.category !== activeCategory) return false;
+        if (searchFilter) {
+            const q = searchFilter.toLowerCase();
+            return t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+        }
+        return true;
+    });
+
+    // Category counts for tabs
+    const categoryCounts: Record<string, number> = {};
+    for (const t of availableTasks) {
+        categoryCounts[t.category] = (categoryCounts[t.category] || 0) + 1;
     }
 
-    const toggleCategory = (cat: string) => {
-        setCollapsedCategories(prev => {
-            const next = new Set(prev);
-            if (next.has(cat)) next.delete(cat);
-            else next.add(cat);
-            return next;
-        });
+    // Calculate raw quality score (mirrors Stage.calculateTaskQuality but returns the number 0-120)
+    const getQualityScore = (task: TaskDefinition): number => {
+        let score = 0;
+        if (task.primaryStat) {
+            score += target.stats[task.primaryStat] ?? 0;
+        } else {
+            const vals = Object.values(target.stats);
+            score += vals.reduce((s, v) => s + v, 0) / vals.length;
+        }
+        const applicable = getApplicableTraitModifiers(target, task);
+        for (const { modifier } of applicable) {
+            score += modifier.effect === 'bonus' ? modifier.magnitude : -modifier.magnitude;
+        }
+        if (task.roleBonus && target.assignedRole === task.roleBonus) score += 15;
+        score += (target.obedience || 0) / 10;
+        return Math.max(0, Math.min(120, score));
     };
 
-    const renderTaskRow = (task: TaskDefinition) => {
+    const getQualityLabel = (score: number) => {
+        if (score >= 95) return 'masterful';
+        if (score >= 75) return 'excellent';
+        if (score >= 55) return 'good';
+        if (score >= 40) return 'decent';
+        if (score >= 25) return 'poor';
+        return 'terrible';
+    };
+
+    const getQualityStars = (q: string) => {
+        switch (q) {
+            case 'masterful': return '★★★★★';
+            case 'excellent': return '★★★★';
+            case 'good': return '★★★';
+            case 'decent': return '★★';
+            case 'poor': return '★';
+            default: return '—';
+        }
+    };
+
+    // Render a task card in the left panel
+    const renderTaskCard = (task: TaskDefinition) => {
         const reqCheck = checkTaskRequirements(target, task);
-        const isDisabled = !reqCheck.met;
+        const isLocked = !reqCheck.met;
         const hasActiveTask = !!target.activeTask;
+        const score = getQualityScore(task);
+        const quality = getQualityLabel(score);
 
         return (
             <div
                 key={task.id}
-                className={`task-row ${previewTask?.id === task.id ? 'previewing' : ''} ${isDisabled ? 'disabled' : ''}`}
+                className={`task-card ${previewTask?.id === task.id ? 'selected' : ''} ${isLocked ? 'locked' : ''}`}
                 onClick={() => setPreviewTask(task)}
             >
-                <span className="task-row-icon" style={{ color: task.color }}><GameIcon icon={task.icon} size={16} /></span>
-                <div className="task-row-info">
-                    <span className="task-row-name" style={{ color: isDisabled ? undefined : task.color }}>
-                        {task.name}
-                    </span>
-                    <span className="task-row-meta">
-                        <GameIcon icon="clock" size={10} /> {task.duration} turn{task.duration !== 1 ? 's' : ''}
-                        {task.manaCost ? <> · <GameIcon icon="sparkles" size={10} /> {task.manaCost} mana</> : null}
+                <div className="task-card-accent" style={{ backgroundColor: task.color }} />
+                <div className="task-card-icon" style={{ color: task.color }}>
+                    <GameIcon icon={task.icon} size={18} />
+                </div>
+                <div className="task-card-body">
+                    <span className="task-card-name">{task.name}</span>
+                    <span className="task-card-meta">
+                        <span className="task-card-duration">
+                            {Array.from({ length: Math.min(task.duration, 5) }, (_, i) => (
+                                <span key={i} className="duration-pip" />
+                            ))}
+                        </span>
+                        {task.manaCost ? (
+                            <span className="task-card-mana"><GameIcon icon="sparkles" size={9} /> {task.manaCost}</span>
+                        ) : null}
                     </span>
                 </div>
-                <button
-                    className="task-row-assign-btn"
-                    disabled={isDisabled || hasActiveTask}
-                    onClick={(e) => { e.stopPropagation(); if (!isDisabled && !hasActiveTask) onAssign(task.id); }}
-                >
-                    {hasActiveTask ? 'Busy' : isDisabled ? 'Locked' : 'Assign'}
-                </button>
+                <div className={`task-card-suitability suitability-${isLocked ? 'locked' : quality}`}>
+                    {isLocked ? <GameIcon icon="lock" size={10} /> : <span className="suitability-diamond" />}
+                </div>
             </div>
         );
     };
 
-    // Preview panel helpers
+    // Preview panel calculations
     const previewReqCheck = previewTask ? checkTaskRequirements(target, previewTask) : null;
     const previewTraitMods = previewTask ? getApplicableTraitModifiers(target, previewTask) : [];
-    const previewQuality = previewTask ? stage().calculateTaskQuality(target, previewTask) : null;
+    const previewScore = previewTask ? getQualityScore(previewTask) : 0;
+    const previewQuality = previewTask ? getQualityLabel(previewScore) : null;
 
     return (
         <div className="task-modal-overlay" onClick={onClose}>
             <div className="task-modal" onClick={e => e.stopPropagation()}>
+                {/* ── Header ── */}
                 <div className="task-modal-header">
-                    <h3>Assign Task — {target.name}</h3>
+                    <div className="task-modal-title">
+                        <GameIcon icon="scroll-text" size={14} />
+                        <h3>Assign Task</h3>
+                        <span className="task-modal-servant">{target.name}</span>
+                    </div>
                     <div className="task-modal-search">
                         <GameIcon icon="search" size={12} />
                         <input
@@ -735,175 +776,225 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                     <button className="task-modal-close" onClick={onClose}><GameIcon icon="x" size={14} /></button>
                 </div>
 
+                {/* ── Category tabs ── */}
+                <div className="task-category-tabs">
+                    <button
+                        className={`task-cat-tab ${activeCategory === 'all' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('all')}
+                    >
+                        <GameIcon icon="list-todo" size={11} />
+                        <span>All</span>
+                        <span className="tab-count">{availableTasks.length}</span>
+                    </button>
+                    {categoryOrder.map(cat => {
+                        const count = categoryCounts[cat] || 0;
+                        if (count === 0) return null;
+                        return (
+                            <button
+                                key={cat}
+                                className={`task-cat-tab ${activeCategory === cat ? 'active' : ''}`}
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                <GameIcon icon={getTaskCategoryIcon(cat)} size={11} />
+                                <span>{getTaskCategoryLabel(cat)}</span>
+                                <span className="tab-count">{count}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
                 <div className="task-modal-body">
-                    {/* Left: task list */}
+                    {/* ── Left: task cards ── */}
                     <div className="task-list">
-                        {categoryOrder.map(cat => {
-                            const tasksInCat = groups[cat];
-                            if (!tasksInCat || tasksInCat.length === 0) return null;
-                            const isCollapsed = collapsedCategories.has(cat);
-
-                            return (
-                                <div key={cat} className="task-group">
-                                    <div
-                                        className="task-group-header"
-                                        onClick={() => toggleCategory(cat)}
-                                    >
-                                        <GameIcon icon={getTaskCategoryIcon(cat as TaskCategory)} size={12} />
-                                        <span>{getTaskCategoryLabel(cat as TaskCategory)}</span>
-                                        <span className="task-group-count">{tasksInCat.length}</span>
-                                        <GameIcon icon={isCollapsed ? 'chevron-right' : 'chevron-down'} size={12} className="task-group-chevron" />
-                                    </div>
-                                    {!isCollapsed && tasksInCat.map(renderTaskRow)}
-                                </div>
-                            );
-                        })}
-
-                        {filteredTasks.length === 0 && (
+                        {filteredTasks.length > 0 ? (
+                            filteredTasks.map(renderTaskCard)
+                        ) : (
                             <div className="task-list-empty">
-                                <p>No tasks match your search</p>
+                                <GameIcon icon="search" size={20} />
+                                <p>No tasks found</p>
                             </div>
                         )}
                     </div>
 
-                    {/* Right: task preview */}
-                    <div className="task-preview">
+                    {/* ── Right: task detail panel ── */}
+                    <div className="task-detail">
                         {previewTask ? (
                             <>
-                                <div className="task-preview-scroll">
-                                    <div className="task-preview-icon" style={{ color: previewTask.color }}>
-                                        <GameIcon icon={previewTask.icon} size={28} />
+                                <div className="task-detail-scroll">
+                                    {/* Hero header with glowing icon */}
+                                    <div className="task-detail-header">
+                                        <div className="task-detail-icon-aura" style={{ '--task-glow': previewTask.color } as React.CSSProperties}>
+                                            <GameIcon icon={previewTask.icon} size={28} />
+                                        </div>
+                                        <h4 className="task-detail-name" style={{ color: previewTask.color }}>
+                                            {previewTask.name}
+                                        </h4>
+                                        <span className="task-detail-tag">
+                                            <GameIcon icon={getTaskCategoryIcon(previewTask.category)} size={10} />
+                                            {previewTask.roomType
+                                                ? getRoomTypeLabel(previewTask.roomType)
+                                                : getTaskCategoryLabel(previewTask.category)}
+                                        </span>
                                     </div>
-                                    <h4 className="task-preview-name" style={{ color: previewTask.color }}>
-                                        {previewTask.name}
-                                    </h4>
-                                    <span className="task-preview-category">
-                                        <GameIcon icon={getTaskCategoryIcon(previewTask.category)} size={11} />
-                                        {previewTask.roomType
-                                            ? getRoomTypeLabel(previewTask.roomType)
-                                            : getTaskCategoryLabel(previewTask.category)}
-                                        {previewTask.location && <> · {previewTask.location}</>}
-                                    </span>
-                                    <p className="task-preview-desc">{previewTask.description}</p>
 
-                                    {/* Duration & cost */}
-                                    <div className="task-preview-meta">
-                                        <div className="task-preview-meta-item">
+                                    {/* Description */}
+                                    <div className="task-detail-desc">
+                                        <p>{previewTask.description}</p>
+                                    </div>
+
+                                    {/* Info chips: duration + cost + role */}
+                                    <div className="task-detail-info">
+                                        <div className="task-info-chip">
                                             <GameIcon icon="clock" size={12} />
                                             <span>{previewTask.duration} turn{previewTask.duration !== 1 ? 's' : ''}</span>
                                         </div>
                                         {previewTask.manaCost ? (
-                                            <div className="task-preview-meta-item mana">
+                                            <div className="task-info-chip mana">
                                                 <GameIcon icon="sparkles" size={12} />
                                                 <span>{previewTask.manaCost} mana</span>
                                             </div>
                                         ) : null}
+                                        {previewTask.roleBonus && (() => {
+                                            const role = getRoleById(previewTask.roleBonus!);
+                                            const hasBonus = target.assignedRole === previewTask.roleBonus;
+                                            return role ? (
+                                                <div className={`task-info-chip ${hasBonus ? 'role-active' : 'role-inactive'}`}>
+                                                    <GameIcon icon="shield-plus" size={12} />
+                                                    <span>{role.name}</span>
+                                                </div>
+                                            ) : null;
+                                        })()}
                                     </div>
 
-                                    {/* Requirements */}
+                                    {/* ── Quality gauge ── */}
+                                    <div className="task-detail-gauge">
+                                        <div className="task-gauge-header">
+                                            <span className="task-gauge-title">Suitability</span>
+                                            <span className={`task-gauge-rating quality-${previewQuality}`}>
+                                                {getQualityStars(previewQuality!)} {previewQuality!.charAt(0).toUpperCase() + previewQuality!.slice(1)}
+                                            </span>
+                                        </div>
+                                        <div className="task-gauge-track">
+                                            <div className="task-gauge-zone zone-terrible" />
+                                            <div className="task-gauge-zone zone-poor" />
+                                            <div className="task-gauge-zone zone-decent" />
+                                            <div className="task-gauge-zone zone-good" />
+                                            <div className="task-gauge-zone zone-excellent" />
+                                            <div className="task-gauge-zone zone-masterful" />
+                                            <div
+                                                className={`task-gauge-marker quality-${previewQuality}`}
+                                                style={{ left: `${Math.min(100, (previewScore / 120) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <div className="task-gauge-labels">
+                                            <span>Terrible</span>
+                                            <span>Decent</span>
+                                            <span>Excellent</span>
+                                        </div>
+                                    </div>
+
+                                    {/* ── Requirements as stat bars ── */}
                                     {previewTask.requirements.length > 0 && (
-                                        <div className="task-preview-section">
+                                        <div className="task-detail-section">
                                             <h5>Requirements</h5>
                                             {previewTask.requirements.map((req, i) => {
                                                 const current = target.stats[req.stat] ?? 0;
                                                 const met = current >= req.minimum;
                                                 return (
-                                                    <div key={i} className={`task-preview-req ${met ? 'met' : 'unmet'}`}>
-                                                        <span className="task-req-icon">{met ? '✓' : '✗'}</span>
-                                                        <span className="task-req-stat">{req.stat}</span>
-                                                        <span className="task-req-values">{current} / {req.minimum}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* Trait modifiers on this servant */}
-                                    {previewTask.traitModifiers.length > 0 && (
-                                        <div className="task-preview-section">
-                                            <h5>Trait Effects</h5>
-                                            {previewTask.traitModifiers.map((mod, i) => {
-                                                const isActive = previewTraitMods.some(a => a.modifier.traitKey === mod.traitKey);
-                                                return (
-                                                    <div key={i} className={`task-preview-trait-mod ${isActive ? 'active' : 'inactive'} ${mod.effect}`}>
-                                                        <div className="task-trait-header">
-                                                            <span className="task-trait-indicator">{mod.effect === 'bonus' ? '+' : '−'}</span>
-                                                            <span className="task-trait-name">{mod.traitKey}</span>
-                                                            {isActive && <span className="task-trait-active-badge">Active</span>}
+                                                    <div key={i} className={`task-stat-row ${met ? 'met' : 'unmet'}`}>
+                                                        <div className="task-stat-label">
+                                                            <span className={`task-stat-check ${met ? 'met' : 'unmet'}`}>{met ? '✓' : '✗'}</span>
+                                                            <span className="task-stat-name">{req.stat}</span>
                                                         </div>
-                                                        <span className="task-trait-desc">{mod.description}</span>
+                                                        <div className="task-stat-bar-track">
+                                                            <div
+                                                                className={`task-stat-bar-fill ${met ? 'met' : 'unmet'}`}
+                                                                style={{ width: `${Math.min(100, current)}%` }}
+                                                            />
+                                                            <div
+                                                                className="task-stat-threshold"
+                                                                style={{ left: `${Math.min(100, req.minimum)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="task-stat-values">
+                                                            <span className={met ? 'val-met' : 'val-unmet'}>{current}</span>
+                                                            <span className="task-stat-sep">/</span>
+                                                            <span>{req.minimum}</span>
+                                                        </span>
                                                     </div>
                                                 );
                                             })}
                                         </div>
                                     )}
 
-                                    {/* Expected rewards */}
-                                    <div className="task-preview-section">
-                                        <h5>Rewards</h5>
-                                        {previewTask.rewards.map((reward, i) => (
-                                            <div key={i} className="task-preview-reward">
-                                                <span className="task-reward-icon">
-                                                    {reward.type === 'gold' && <GameIcon icon="coins" size={12} />}
-                                                    {reward.type === 'mana' && <GameIcon icon="sparkles" size={12} />}
-                                                    {reward.type === 'item' && <GameIcon icon="package" size={12} />}
-                                                    {reward.type === 'stat' && <GameIcon icon="trending-up" size={12} />}
-                                                    {reward.type === 'household' && <GameIcon icon="building" size={12} />}
-                                                </span>
-                                                <span className="task-reward-text">
-                                                    {reward.type === 'gold' && `${reward.amount} Gold`}
-                                                    {reward.type === 'mana' && `${reward.amount} Mana`}
-                                                    {reward.type === 'item' && `${reward.amount}× ${reward.itemName}`}
-                                                    {reward.type === 'stat' && `+${reward.amount} ${reward.stat}`}
-                                                    {reward.type === 'household' && `+${reward.amount} ${reward.stat}`}
-                                                </span>
+                                    {/* ── Trait effects as compact chips ── */}
+                                    {previewTask.traitModifiers.length > 0 && (
+                                        <div className="task-detail-section">
+                                            <h5>Trait Effects</h5>
+                                            <div className="task-trait-grid">
+                                                {previewTask.traitModifiers.map((mod, i) => {
+                                                    const isActive = previewTraitMods.some(a => a.modifier.traitKey === mod.traitKey);
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            className={`task-trait-chip ${mod.effect} ${isActive ? 'active' : 'inactive'}`}
+                                                            title={mod.description}
+                                                        >
+                                                            <span className="task-trait-sign">{mod.effect === 'bonus' ? '+' : '−'}</span>
+                                                            <span className="task-trait-label">{mod.traitKey}</span>
+                                                            {isActive && <span className="task-trait-dot" />}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Expected quality */}
-                                    <div className="task-preview-quality">
-                                        <span className="task-quality-label">Expected Quality</span>
-                                        <span className={`task-quality-badge quality-${previewQuality}`}>
-                                            {previewQuality === 'excellent' ? '★★★ Excellent' : previewQuality === 'standard' ? '★★ Standard' : '★ Poor'}
-                                        </span>
-                                    </div>
-
-                                    {/* Role bonus */}
-                                    {previewTask.roleBonus && (
-                                        <div className="task-preview-role-bonus">
-                                            <GameIcon icon="shield-plus" size={12} />
-                                            <span>
-                                                Role bonus: {(() => {
-                                                    const role = getRoleById(previewTask.roleBonus!);
-                                                    const hasBonus = target.assignedRole === previewTask.roleBonus;
-                                                    return role ? (
-                                                        <span className={hasBonus ? 'bonus-active' : 'bonus-inactive'}>
-                                                            {role.name} {hasBonus ? '(active)' : '(not assigned)'}
-                                                        </span>
-                                                    ) : null;
-                                                })()}
-                                            </span>
                                         </div>
                                     )}
+
+                                    {/* ── Rewards as chips ── */}
+                                    <div className="task-detail-section">
+                                        <h5>Rewards</h5>
+                                        <div className="task-reward-grid">
+                                            {previewTask.rewards.map((reward, i) => (
+                                                <div key={i} className={`task-reward-chip reward-${reward.type}`}>
+                                                    <span className="task-reward-chip-icon">
+                                                        {reward.type === 'gold' && <GameIcon icon="coins" size={13} />}
+                                                        {reward.type === 'mana' && <GameIcon icon="sparkles" size={13} />}
+                                                        {reward.type === 'item' && <GameIcon icon="package" size={13} />}
+                                                        {reward.type === 'stat' && <GameIcon icon="trending-up" size={13} />}
+                                                        {reward.type === 'household' && <GameIcon icon="building" size={13} />}
+                                                    </span>
+                                                    <span className="task-reward-chip-text">
+                                                        {reward.type === 'gold' && `${reward.amount} Gold`}
+                                                        {reward.type === 'mana' && `${reward.amount} Mana`}
+                                                        {reward.type === 'item' && `${reward.amount}× ${reward.itemName}`}
+                                                        {reward.type === 'stat' && `+${reward.amount} ${reward.stat}`}
+                                                        {reward.type === 'household' && `+${reward.amount} ${reward.stat}`}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="task-preview-footer">
+                                {/* Sticky footer */}
+                                <div className="task-detail-footer">
                                     <button
-                                        className="task-preview-assign-btn"
+                                        className="task-detail-assign-btn"
                                         disabled={!previewReqCheck?.met || !!target.activeTask}
                                         onClick={() => onAssign(previewTask.id)}
                                     >
                                         {target.activeTask ? 'Already on a Task' :
                                          !previewReqCheck?.met ? 'Requirements Not Met' :
-                                         `Assign ${previewTask.name} to ${target.name}`}
+                                         'Assign Task'}
                                     </button>
                                 </div>
                             </>
                         ) : (
-                            <div className="task-preview-empty">
-                                <div className="task-preview-empty-icon"><GameIcon icon="list-todo" size={24} className="icon-muted" /></div>
-                                <p>Select a task to preview</p>
+                            <div className="task-detail-empty">
+                                <div className="task-detail-empty-aura">
+                                    <GameIcon icon="scroll-text" size={32} />
+                                </div>
+                                <p>Select a task to view details</p>
                             </div>
                         )}
                     </div>
@@ -925,46 +1016,79 @@ interface TaskOutcomeOverlayProps {
 }
 
 const TaskOutcomeOverlay: FC<TaskOutcomeOverlayProps> = ({ outcome, servantName, onDismiss }) => {
-    const qualityColors = { excellent: '#d4a040', standard: '#78a8d0', poor: '#a06060' };
-    const qualityLabels = { excellent: '★★★ Excellent', standard: '★★ Standard', poor: '★ Poor' };
+    const qualityConfig: Record<string, { color: string; stars: string; label: string; glow: string }> = {
+        excellent: { color: '#d4a040', stars: '★★★', label: 'Excellent', glow: 'rgba(212, 160, 64, 0.35)' },
+        standard: { color: '#78a8d0', stars: '★★', label: 'Standard', glow: 'rgba(120, 168, 208, 0.25)' },
+        poor:     { color: '#a06060', stars: '★', label: 'Poor', glow: 'rgba(160, 96, 96, 0.25)' },
+    };
+    const qc = qualityConfig[outcome.quality] || qualityConfig.standard;
+
+    const getRewardIcon = (type: string) => {
+        switch (type) {
+            case 'gold': return 'coins';
+            case 'mana': return 'sparkles';
+            case 'item': return 'package';
+            case 'stat': return 'trending-up';
+            case 'household': return 'building';
+            default: return 'gift';
+        }
+    };
+
+    const getRewardLabel = (reward: TaskReward) => {
+        switch (reward.type) {
+            case 'gold': return `+${reward.amount} Gold`;
+            case 'mana': return `+${reward.amount} Mana`;
+            case 'item': return `+${reward.amount}× ${reward.itemName}`;
+            case 'stat': return `+${reward.amount} ${reward.stat}`;
+            case 'household': return `+${reward.amount} ${reward.stat}`;
+            default: return `+${reward.amount}`;
+        }
+    };
 
     return (
         <div className="task-outcome-overlay" onClick={onDismiss}>
-            <div className="task-outcome-panel" onClick={e => e.stopPropagation()}>
+            <div className="task-outcome-panel" onClick={e => e.stopPropagation()}
+                 style={{ '--outcome-accent': qc.color, '--outcome-glow': qc.glow } as React.CSSProperties}>
+
+                {/* ── Accent bar ── */}
+                <div className="task-outcome-accent" />
+
+                {/* ── Header ── */}
                 <div className="task-outcome-header">
-                    <h3>Task Complete</h3>
-                    <span className="task-outcome-servant">{servantName}</span>
+                    <div className="task-outcome-title">Task Complete</div>
+                    <div className="task-outcome-servant">{servantName}</div>
                 </div>
 
-                <div className="task-outcome-quality" style={{ '--quality-color': qualityColors[outcome.quality] } as React.CSSProperties}>
-                    <span className={`task-outcome-quality-badge quality-${outcome.quality}`}>
-                        {qualityLabels[outcome.quality]}
-                    </span>
+                {/* ── Quality badge ── */}
+                <div className={`task-outcome-quality quality-${outcome.quality}`}>
+                    <span className="task-outcome-quality-stars">{qc.stars}</span>
+                    <span className="task-outcome-quality-label">{qc.label}</span>
                 </div>
 
+                {/* ── Divider ── */}
+                <div className="task-outcome-divider" />
+
+                {/* ── Rewards ── */}
                 <div className="task-outcome-rewards">
-                    <h4>Rewards Earned</h4>
-                    {outcome.rewards.map((reward, i) => (
-                        <div key={i} className="task-outcome-reward-row">
-                            <span className="task-outcome-reward-icon">
-                                {reward.type === 'gold' && <GameIcon icon="coins" size={14} />}
-                                {reward.type === 'mana' && <GameIcon icon="sparkles" size={14} />}
-                                {reward.type === 'item' && <GameIcon icon="package" size={14} />}
-                                {reward.type === 'stat' && <GameIcon icon="trending-up" size={14} />}
-                                {reward.type === 'household' && <GameIcon icon="building" size={14} />}
-                            </span>
-                            <span className="task-outcome-reward-text">
-                                {reward.type === 'gold' && `+${reward.amount} Gold`}
-                                {reward.type === 'mana' && `+${reward.amount} Mana`}
-                                {reward.type === 'item' && `+${reward.amount}× ${reward.itemName}`}
-                                {reward.type === 'stat' && `+${reward.amount} ${reward.stat}`}
-                                {reward.type === 'household' && `+${reward.amount} ${reward.stat}`}
-                            </span>
-                            {reward.narrative && <span className="task-outcome-reward-narrative">{reward.narrative}</span>}
-                        </div>
-                    ))}
+                    <div className="task-outcome-rewards-heading">Rewards Earned</div>
+                    <div className="task-outcome-rewards-list">
+                        {outcome.rewards.map((reward, i) => (
+                            <div key={i} className="task-outcome-reward-card">
+                                <div className="task-outcome-reward-icon-box">
+                                    <GameIcon icon={getRewardIcon(reward.type)} size={16} />
+                                </div>
+                                <div className="task-outcome-reward-info">
+                                    <div className="task-outcome-reward-value">{getRewardLabel(reward)}</div>
+                                    {reward.narrative && (
+                                        <div className="task-outcome-reward-narrative">{reward.narrative}</div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
+                {/* ── Continue button ── */}
                 <button className="task-outcome-dismiss" onClick={onDismiss}>
                     Continue
                 </button>

@@ -144,14 +144,14 @@
 
 
 // ==========================================
-// Task Assignment Modal
+// Task Assignment Modal — Game-Inspired UI
 // ==========================================
 .task-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,28 +159,51 @@
 }
 
 .task-modal {
-  width: min(820px, 94vw);
-  height: 85vh;
+  width: min(960px, 96vw);
+  height: 92vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(28, 20, 36, 0.99) 100%);
-  border: 1px solid rgba(200, 170, 110, 0.2);
-  border-radius: 10px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(200, 170, 110, 0.08);
+  background: linear-gradient(180deg, rgba(38, 28, 48, 0.99) 0%, rgba(22, 16, 30, 1) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.18);
+  border-radius: 12px;
+  box-shadow:
+    0 16px 64px rgba(0, 0, 0, 0.7),
+    0 0 1px 0 rgba(200, 170, 110, 0.3),
+    inset 0 1px 0 rgba(200, 170, 110, 0.06);
   animation: slideUp 0.25s ease;
+  overflow: hidden;
 
+  // ── Header ──
   .task-modal-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    border-bottom: 1px solid rgba(200, 170, 110, 0.12);
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+    background: rgba(200, 170, 110, 0.02);
+    flex-shrink: 0;
 
-    h3 {
-      margin: 0;
-      font-size: 15px;
-      color: rgba(240, 230, 210, 0.95);
+    .task-modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       flex-shrink: 0;
+      color: rgba(200, 170, 110, 0.7);
+
+      h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(240, 230, 210, 0.95);
+        letter-spacing: 0.3px;
+      }
+
+      .task-modal-servant {
+        font-size: 12px;
+        color: rgba(200, 170, 110, 0.55);
+        padding-left: 8px;
+        border-left: 1px solid rgba(200, 170, 110, 0.12);
+      }
     }
 
     .task-modal-search {
@@ -188,34 +211,34 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
-      border-radius: 5px;
-      border: 1px solid rgba(200, 170, 110, 0.12);
-      background: rgba(200, 170, 110, 0.04);
-      color: rgba(240, 230, 210, 0.4);
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(200, 170, 110, 0.1);
+      background: rgba(0, 0, 0, 0.15);
+      color: rgba(240, 230, 210, 0.35);
+      margin-left: auto;
+      max-width: 200px;
 
       input {
         flex: 1;
         border: none;
         background: transparent;
         color: rgba(240, 230, 210, 0.85);
-        font-size: 12px;
+        font-size: 11px;
         font-family: inherit;
         outline: none;
 
-        &::placeholder {
-          color: rgba(240, 230, 210, 0.3);
-        }
+        &::placeholder { color: rgba(240, 230, 210, 0.25); }
       }
     }
 
     .task-modal-close {
       width: 28px;
       height: 28px;
-      border-radius: 50%;
-      border: 1px solid rgba(200, 170, 110, 0.15);
+      border-radius: 6px;
+      border: 1px solid rgba(200, 170, 110, 0.1);
       background: transparent;
-      color: rgba(240, 230, 210, 0.6);
+      color: rgba(240, 230, 210, 0.5);
       cursor: pointer;
       font-size: 14px;
       display: flex;
@@ -225,489 +248,845 @@
       flex-shrink: 0;
 
       &:hover {
-        background: rgba(200, 170, 110, 0.1);
-        color: rgba(240, 230, 210, 0.9);
+        background: rgba(180, 80, 80, 0.12);
+        color: rgba(180, 80, 80, 0.9);
+        border-color: rgba(180, 80, 80, 0.3);
       }
     }
   }
 
+  // ── Category filter tabs ──
+  .task-category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 16px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+
+    .task-cat-tab {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      border: 1px solid rgba(200, 170, 110, 0.08);
+      background: rgba(200, 170, 110, 0.02);
+      color: rgba(240, 230, 210, 0.45);
+      font-size: 10px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      .tab-count {
+        font-size: 9px;
+        color: rgba(200, 170, 110, 0.3);
+        background: rgba(200, 170, 110, 0.04);
+        padding: 1px 5px;
+        border-radius: 8px;
+        min-width: 16px;
+        text-align: center;
+      }
+
+      &:hover {
+        background: rgba(200, 170, 110, 0.06);
+        border-color: rgba(200, 170, 110, 0.15);
+        color: rgba(240, 230, 210, 0.7);
+      }
+
+      &.active {
+        background: linear-gradient(135deg, rgba(200, 170, 110, 0.12) 0%, rgba(200, 170, 110, 0.06) 100%);
+        border-color: rgba(200, 170, 110, 0.3);
+        color: rgba(200, 170, 110, 0.95);
+        font-weight: 600;
+
+        .tab-count {
+          color: rgba(200, 170, 110, 0.7);
+          background: rgba(200, 170, 110, 0.1);
+        }
+      }
+    }
+  }
+
+  // ── Body: two-column layout ──
   .task-modal-body {
     display: flex;
     overflow: hidden;
-    max-height: calc(85vh - 60px);
+    flex: 1;
+    min-height: 0;
   }
 
-  // Left: scrollable task list
+  // ── Left: scrollable task card list ──
   .task-list {
     flex: 1;
-    max-height: calc(85vh - 60px);
+    max-width: 320px;
+    min-height: 0;
     overflow-y: scroll !important;
     overflow-x: hidden;
-    padding: 10px;
-    padding-right: 6px;
-    border-right: 1px solid rgba(200, 170, 110, 0.08);
+    padding: 8px;
+    border-right: 1px solid rgba(200, 170, 110, 0.06);
     scrollbar-width: thin;
-    scrollbar-color: rgba(200, 170, 110, 0.3) rgba(200, 170, 110, 0.04);
+    scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
 
-    &::-webkit-scrollbar { width: 6px; }
-    &::-webkit-scrollbar-track { background: rgba(200, 170, 110, 0.04); border-radius: 3px; }
+    &::-webkit-scrollbar { width: 5px; }
+    &::-webkit-scrollbar-track { background: transparent; }
     &::-webkit-scrollbar-thumb {
-      background: rgba(200, 170, 110, 0.3);
+      background: rgba(200, 170, 110, 0.2);
       border-radius: 3px;
-      &:hover { background: rgba(200, 170, 110, 0.4); }
+      &:hover { background: rgba(200, 170, 110, 0.35); }
     }
 
-    .task-group {
-      margin-bottom: 8px;
-
-      .task-group-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        color: rgba(200, 170, 110, 0.55);
-        padding: 6px 8px;
-        font-weight: 600;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background 0.15s;
-        user-select: none;
-
-        &:hover {
-          background: rgba(200, 170, 110, 0.06);
-        }
-
-        .task-group-count {
-          margin-left: auto;
-          font-size: 9px;
-          color: rgba(200, 170, 110, 0.35);
-          font-weight: 400;
-        }
-
-        .task-group-chevron {
-          color: rgba(200, 170, 110, 0.3);
-        }
-      }
-    }
-
-    .task-row {
+    // ── Task card ──
+    .task-card {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 10px;
-      border-radius: 6px;
+      padding: 9px 10px;
+      margin-bottom: 3px;
+      border-radius: 7px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      position: relative;
+      border: 1px solid transparent;
 
-      &:hover {
-        background: rgba(200, 170, 110, 0.08);
+      .task-card-accent {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        border-radius: 0 3px 3px 0;
+        opacity: 0.5;
+        transition: all 0.2s;
       }
 
-      &.previewing {
-        background: rgba(200, 170, 110, 0.12);
-        border-left: 2px solid rgba(200, 170, 110, 0.5);
-      }
-
-      &.disabled {
-        opacity: 0.45;
-
-        .task-row-assign-btn {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-      }
-
-      .task-row-icon {
-        font-size: 18px;
-        line-height: 1;
+      .task-card-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(200, 170, 110, 0.06);
         flex-shrink: 0;
+        transition: all 0.2s;
       }
 
-      .task-row-info {
+      .task-card-body {
         flex: 1;
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
 
-        .task-row-name {
+        .task-card-name {
           font-size: 12px;
           font-weight: 600;
-          color: rgba(240, 230, 210, 0.9);
+          color: rgba(240, 230, 210, 0.88);
+          line-height: 1.2;
         }
 
-        .task-row-meta {
-          font-size: 10px;
-          color: rgba(240, 230, 210, 0.4);
+        .task-card-meta {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 8px;
+          font-size: 10px;
+          color: rgba(240, 230, 210, 0.35);
+
+          .task-card-duration {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+          }
+
+          .duration-pip {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(200, 170, 110, 0.25);
+            border: 1px solid rgba(200, 170, 110, 0.15);
+          }
+
+          .task-card-mana {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            color: rgba(168, 136, 200, 0.6);
+          }
         }
       }
 
-      .task-row-assign-btn {
+      // Suitability indicator (right side)
+      .task-card-suitability {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
-        padding: 4px 10px;
-        font-size: 10px;
-        border-radius: 4px;
-        border: 1px solid rgba(200, 170, 110, 0.2);
-        background: rgba(200, 170, 110, 0.08);
-        color: rgba(200, 170, 110, 0.8);
-        cursor: pointer;
-        transition: all 0.2s;
-        font-family: inherit;
 
-        &:hover:not(:disabled) {
-          background: rgba(200, 170, 110, 0.2);
-          border-color: rgba(200, 170, 110, 0.4);
+        .suitability-diamond {
+          width: 8px;
+          height: 8px;
+          border-radius: 2px;
+          transform: rotate(45deg);
+          border: 1px solid;
+          transition: all 0.2s;
         }
+
+        &.suitability-masterful .suitability-diamond {
+          background: rgba(230, 190, 60, 0.6);
+          border-color: rgba(230, 190, 60, 0.8);
+          box-shadow: 0 0 8px rgba(230, 190, 60, 0.4);
+        }
+
+        &.suitability-excellent .suitability-diamond {
+          background: rgba(212, 160, 64, 0.5);
+          border-color: rgba(212, 160, 64, 0.7);
+          box-shadow: 0 0 6px rgba(212, 160, 64, 0.3);
+        }
+
+        &.suitability-good .suitability-diamond {
+          background: rgba(100, 180, 150, 0.45);
+          border-color: rgba(100, 180, 150, 0.65);
+          box-shadow: 0 0 4px rgba(100, 180, 150, 0.2);
+        }
+
+        &.suitability-decent .suitability-diamond {
+          background: rgba(120, 148, 188, 0.4);
+          border-color: rgba(120, 148, 188, 0.6);
+          box-shadow: 0 0 4px rgba(120, 148, 188, 0.15);
+        }
+
+        &.suitability-poor .suitability-diamond {
+          background: rgba(170, 100, 80, 0.4);
+          border-color: rgba(170, 100, 80, 0.6);
+        }
+
+        &.suitability-terrible .suitability-diamond {
+          background: rgba(140, 60, 60, 0.4);
+          border-color: rgba(140, 60, 60, 0.6);
+        }
+
+        &.suitability-locked {
+          color: rgba(240, 230, 210, 0.2);
+        }
+      }
+
+      // Hover state
+      &:hover {
+        background: rgba(200, 170, 110, 0.05);
+        border-color: rgba(200, 170, 110, 0.08);
+
+        .task-card-accent { opacity: 0.8; height: 75%; }
+        .task-card-icon { border-color: rgba(200, 170, 110, 0.12); }
+      }
+
+      // Selected state
+      &.selected {
+        background: rgba(200, 170, 110, 0.08);
+        border-color: rgba(200, 170, 110, 0.15);
+
+        .task-card-accent { opacity: 1; height: 80%; width: 3px; }
+        .task-card-icon {
+          border-color: rgba(200, 170, 110, 0.2);
+          background: rgba(0, 0, 0, 0.3);
+        }
+      }
+
+      // Locked state
+      &.locked {
+        opacity: 0.4;
+        .task-card-name { color: rgba(240, 230, 210, 0.5); }
       }
     }
 
     .task-list-empty {
-      padding: 30px 10px;
-      text-align: center;
-      color: rgba(240, 230, 210, 0.35);
-      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      color: rgba(240, 230, 210, 0.25);
+      gap: 8px;
+
+      p {
+        font-size: 12px;
+        margin: 0;
+      }
     }
   }
 
-  // Right: task preview — scrollable with sticky footer
-  .task-preview {
-    width: 300px;
-    flex-shrink: 0;
+  // ============================================================
+  // Right: Task Detail Panel
+  // ============================================================
+  .task-detail {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    max-height: calc(85vh - 60px);
     overflow: hidden;
+    background: rgba(0, 0, 0, 0.08);
 
-    .task-preview-scroll {
-      max-height: calc(85vh - 120px);
+    // Scrollable content — uses max-height + !important (required for Chub.ai)
+    .task-detail-scroll {
+      max-height: calc(92vh - 140px);
       overflow-y: scroll !important;
       overflow-x: hidden;
-      padding: 20px 18px 12px;
+      padding: 16px 18px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
       scrollbar-width: thin;
-      scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+      scrollbar-color: rgba(200, 170, 110, 0.15) transparent;
 
-      &::-webkit-scrollbar { width: 5px; }
+      &::-webkit-scrollbar { width: 4px; }
       &::-webkit-scrollbar-track { background: transparent; }
       &::-webkit-scrollbar-thumb {
-        background: rgba(200, 170, 110, 0.25);
-        border-radius: 3px;
-        &:hover { background: rgba(200, 170, 110, 0.4); }
+        background: rgba(200, 170, 110, 0.2);
+        border-radius: 2px;
       }
     }
 
-    .task-preview-icon {
-      font-size: 36px;
-      margin-bottom: 6px;
-      flex-shrink: 0;
-    }
-
-    .task-preview-name {
-      font-size: 15px;
-      font-weight: 700;
-      color: rgba(240, 230, 210, 0.95);
-      margin: 0 0 4px;
-      text-align: center;
-      line-height: 1.3;
-      flex-shrink: 0;
-    }
-
-    .task-preview-category {
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      color: rgba(200, 170, 110, 0.6);
+    // ── Header with icon aura ──
+    .task-detail-header {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 4px;
       margin-bottom: 10px;
-      flex-shrink: 0;
+      width: 100%;
+
+      .task-detail-icon-aura {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(200, 170, 110, 0.08) 0%, transparent 70%);
+        border: 1px solid rgba(200, 170, 110, 0.1);
+        color: var(--task-glow, rgba(200, 170, 110, 0.8));
+        margin-bottom: 6px;
+        position: relative;
+        box-shadow: 0 0 20px rgba(200, 170, 110, 0.06);
+
+        &::after {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          border: 1px solid rgba(200, 170, 110, 0.04);
+        }
+      }
+
+      .task-detail-name {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 3px;
+        text-align: center;
+        line-height: 1.25;
+        letter-spacing: 0.2px;
+      }
+
+      .task-detail-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(200, 170, 110, 0.5);
+        padding: 2px 10px;
+        border-radius: 10px;
+        background: rgba(200, 170, 110, 0.04);
+        border: 1px solid rgba(200, 170, 110, 0.06);
+      }
     }
 
-    .task-preview-desc {
-      font-size: 11px;
-      line-height: 1.5;
-      color: rgba(240, 230, 210, 0.55);
-      text-align: center;
-      margin: 0 0 14px;
-      padding: 0 4px;
-      flex-shrink: 0;
+    // ── Description panel ──
+    .task-detail-desc {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(200, 170, 110, 0.04);
+      margin-bottom: 12px;
+
+      p {
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.45;
+        color: rgba(240, 230, 210, 0.5);
+        text-align: center;
+        font-style: italic;
+      }
     }
 
-    .task-preview-meta {
+    // ── Info chips (duration / cost / role) ──
+    .task-detail-info {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-      flex-shrink: 0;
+      gap: 5px;
+      margin-bottom: 12px;
+      justify-content: center;
+      width: 100%;
 
-      .task-preview-meta-item {
+      .task-info-chip {
         display: flex;
         align-items: center;
         gap: 5px;
-        font-size: 11px;
+        font-size: 10px;
+        font-weight: 500;
         color: rgba(240, 230, 210, 0.6);
         padding: 4px 10px;
-        border-radius: 4px;
-        background: rgba(200, 170, 110, 0.06);
-        border: 1px solid rgba(200, 170, 110, 0.1);
+        border-radius: 5px;
+        background: rgba(200, 170, 110, 0.04);
+        border: 1px solid rgba(200, 170, 110, 0.08);
 
         &.mana {
           color: rgba(168, 136, 200, 0.8);
-          border-color: rgba(168, 136, 200, 0.15);
-          background: rgba(168, 136, 200, 0.06);
+          border-color: rgba(168, 136, 200, 0.12);
+          background: rgba(168, 136, 200, 0.04);
+        }
+
+        &.role-active {
+          color: rgba(130, 200, 170, 0.9);
+          border-color: rgba(130, 200, 170, 0.2);
+          background: rgba(130, 200, 170, 0.06);
+          font-weight: 600;
+        }
+
+        &.role-inactive {
+          color: rgba(240, 230, 210, 0.35);
+          border-style: dashed;
         }
       }
     }
 
-    // ── Sections ──
-    .task-preview-section {
+    // ══════════════════════════════════
+    // Quality Gauge — the centerpiece
+    // ══════════════════════════════════
+    .task-detail-gauge {
       width: 100%;
-      margin-bottom: 14px;
-      flex-shrink: 0;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(200, 170, 110, 0.06);
+
+      .task-gauge-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        .task-gauge-title {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 1.2px;
+          color: rgba(200, 170, 110, 0.45);
+          font-weight: 600;
+        }
+
+        .task-gauge-rating {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+
+          &.quality-masterful { color: rgba(230, 190, 60, 1); text-shadow: 0 0 6px rgba(230, 190, 60, 0.3); }
+          &.quality-excellent { color: rgba(212, 160, 64, 0.95); }
+          &.quality-good { color: rgba(100, 190, 155, 0.95); }
+          &.quality-decent { color: rgba(120, 155, 200, 0.9); }
+          &.quality-poor { color: rgba(180, 120, 100, 0.9); }
+          &.quality-terrible { color: rgba(160, 75, 75, 0.9); }
+        }
+      }
+
+      .task-gauge-track {
+        position: relative;
+        height: 8px;
+        border-radius: 4px;
+        overflow: visible;
+        display: flex;
+        margin-bottom: 6px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+
+        .task-gauge-zone {
+          height: 100%;
+          transition: opacity 0.2s;
+
+          &.zone-terrible {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(100, 40, 40, 0.6) 0%, rgba(120, 55, 55, 0.55) 100%);
+            border-radius: 4px 0 0 4px;
+          }
+
+          &.zone-poor {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(140, 70, 55, 0.5) 0%, rgba(155, 85, 65, 0.45) 100%);
+          }
+
+          &.zone-decent {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(90, 110, 145, 0.45) 0%, rgba(100, 125, 160, 0.45) 100%);
+          }
+
+          &.zone-good {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(70, 130, 110, 0.45) 0%, rgba(85, 150, 125, 0.45) 100%);
+          }
+
+          &.zone-excellent {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(160, 120, 40, 0.45) 0%, rgba(180, 140, 50, 0.5) 100%);
+          }
+
+          &.zone-masterful {
+            flex: 1;
+            background: linear-gradient(90deg, rgba(190, 155, 45, 0.5) 0%, rgba(210, 175, 55, 0.55) 100%);
+            border-radius: 0 4px 4px 0;
+          }
+        }
+
+        .task-gauge-marker {
+          position: absolute;
+          top: -3px;
+          width: 4px;
+          height: 14px;
+          border-radius: 2px;
+          transform: translateX(-2px);
+          transition: left 0.35s ease, background 0.3s, box-shadow 0.3s;
+          z-index: 1;
+
+          &.quality-masterful {
+            background: rgba(230, 190, 60, 1);
+            box-shadow: 0 0 10px rgba(230, 190, 60, 0.7), 0 0 3px rgba(230, 190, 60, 1);
+          }
+
+          &.quality-excellent {
+            background: rgba(212, 160, 64, 1);
+            box-shadow: 0 0 8px rgba(212, 160, 64, 0.6), 0 0 2px rgba(212, 160, 64, 0.9);
+          }
+
+          &.quality-good {
+            background: rgba(100, 190, 155, 1);
+            box-shadow: 0 0 6px rgba(100, 190, 155, 0.5), 0 0 2px rgba(100, 190, 155, 0.8);
+          }
+
+          &.quality-decent {
+            background: rgba(120, 155, 200, 1);
+            box-shadow: 0 0 6px rgba(120, 155, 200, 0.5), 0 0 2px rgba(120, 155, 200, 0.8);
+          }
+
+          &.quality-poor {
+            background: rgba(180, 110, 90, 1);
+            box-shadow: 0 0 6px rgba(180, 110, 90, 0.5), 0 0 2px rgba(180, 110, 90, 0.8);
+          }
+
+          &.quality-terrible {
+            background: rgba(160, 70, 70, 1);
+            box-shadow: 0 0 6px rgba(160, 70, 70, 0.5), 0 0 2px rgba(160, 70, 70, 0.8);
+          }
+        }
+      }
+
+      .task-gauge-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: rgba(240, 230, 210, 0.2);
+      }
+    }
+
+    // ── Sections (requirements, traits, rewards) ──
+    .task-detail-section {
+      width: 100%;
+      margin-bottom: 10px;
 
       h5 {
         font-size: 9px;
         text-transform: uppercase;
         letter-spacing: 1.2px;
-        color: rgba(200, 170, 110, 0.5);
+        color: rgba(200, 170, 110, 0.4);
         margin: 0 0 8px;
         padding-bottom: 4px;
-        border-bottom: 1px solid rgba(200, 170, 110, 0.06);
+        border-bottom: 1px solid rgba(200, 170, 110, 0.05);
+        font-weight: 600;
       }
+    }
 
-      // Requirements
-      .task-preview-req {
+    // ── Requirements as stat bars ──
+    .task-stat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      margin-bottom: 4px;
+
+      .task-stat-label {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 5px 8px;
-        font-size: 11px;
-        border-radius: 4px;
-        margin-bottom: 3px;
+        gap: 5px;
+        flex-shrink: 0;
+        white-space: nowrap;
 
-        .task-req-icon {
-          font-size: 12px;
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-
-        .task-req-stat {
-          flex: 1;
-          text-transform: capitalize;
-          color: rgba(240, 230, 210, 0.7);
-        }
-
-        .task-req-values {
+        .task-stat-check {
           font-size: 10px;
-          color: rgba(240, 230, 210, 0.5);
-          flex-shrink: 0;
-        }
-
-        &.met {
-          .task-req-icon { color: rgba(130, 200, 170, 0.9); }
-        }
-
-        &.unmet {
-          background: rgba(180, 80, 80, 0.06);
-          .task-req-icon { color: rgba(180, 80, 80, 0.9); }
-          .task-req-stat { color: rgba(180, 80, 80, 0.8); }
-        }
-      }
-
-      // Trait modifiers — stacked layout
-      .task-preview-trait-mod {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        padding: 6px 8px;
-        font-size: 11px;
-        border-radius: 5px;
-        margin-bottom: 4px;
-        border: 1px solid transparent;
-
-        .task-trait-header {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .task-trait-indicator {
-          font-size: 13px;
           font-weight: 700;
           width: 14px;
           text-align: center;
           flex-shrink: 0;
+
+          &.met { color: rgba(130, 200, 170, 0.9); }
+          &.unmet { color: rgba(180, 80, 80, 0.9); }
         }
 
-        .task-trait-name {
-          font-weight: 600;
-          text-transform: capitalize;
-          color: rgba(240, 230, 210, 0.7);
-        }
-
-        .task-trait-active-badge {
-          font-size: 7px;
-          text-transform: uppercase;
-          letter-spacing: 0.8px;
-          padding: 1px 6px;
-          border-radius: 6px;
-          flex-shrink: 0;
-          margin-left: auto;
-        }
-
-        .task-trait-desc {
+        .task-stat-name {
           font-size: 10px;
-          line-height: 1.4;
-          color: rgba(240, 230, 210, 0.35);
-          padding-left: 20px;
-        }
-
-        &.inactive {
-          opacity: 0.35;
-        }
-
-        &.active {
-          &.bonus {
-            background: rgba(130, 200, 170, 0.04);
-            border-color: rgba(130, 200, 170, 0.08);
-            .task-trait-indicator { color: rgba(130, 200, 170, 0.85); }
-            .task-trait-desc { color: rgba(130, 200, 170, 0.45); }
-            .task-trait-active-badge {
-              background: rgba(130, 200, 170, 0.12);
-              color: rgba(130, 200, 170, 0.85);
-              border: 1px solid rgba(130, 200, 170, 0.2);
-            }
-          }
-          &.penalty {
-            background: rgba(180, 80, 80, 0.04);
-            border-color: rgba(180, 80, 80, 0.08);
-            .task-trait-indicator { color: rgba(180, 80, 80, 0.85); }
-            .task-trait-desc { color: rgba(180, 80, 80, 0.45); }
-            .task-trait-active-badge {
-              background: rgba(180, 80, 80, 0.12);
-              color: rgba(180, 80, 80, 0.85);
-              border: 1px solid rgba(180, 80, 80, 0.2);
-            }
-          }
+          text-transform: capitalize;
+          color: rgba(240, 230, 210, 0.6);
+          font-weight: 500;
+          white-space: nowrap;
         }
       }
 
-      // Rewards
-      .task-preview-reward {
-        display: flex;
+      .task-stat-bar-track {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.25);
+        position: relative;
+        overflow: visible;
+
+        .task-stat-bar-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 0.35s ease;
+
+          &.met {
+            background: linear-gradient(90deg, rgba(130, 200, 170, 0.4) 0%, rgba(130, 200, 170, 0.6) 100%);
+          }
+
+          &.unmet {
+            background: linear-gradient(90deg, rgba(180, 80, 80, 0.35) 0%, rgba(180, 80, 80, 0.55) 100%);
+          }
+        }
+
+        .task-stat-threshold {
+          position: absolute;
+          top: -2px;
+          bottom: -2px;
+          width: 2px;
+          background: rgba(240, 230, 210, 0.5);
+          border-radius: 1px;
+          transform: translateX(-1px);
+          box-shadow: 0 0 4px rgba(240, 230, 210, 0.15);
+        }
+      }
+
+      .task-stat-values {
+        font-size: 10px;
+        color: rgba(240, 230, 210, 0.5);
+        flex-shrink: 0;
+        width: 52px;
+        text-align: right;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+
+        .val-met { color: rgba(130, 200, 170, 0.9); }
+        .val-unmet { color: rgba(180, 80, 80, 0.9); font-weight: 600; }
+        .task-stat-sep { color: rgba(240, 230, 210, 0.2); margin: 0 1px; }
+      }
+    }
+
+    // ── Trait effects — compact chip layout ──
+    .task-trait-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .task-trait-chip {
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 4px 0;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        position: relative;
 
-        .task-reward-icon {
-          color: rgba(200, 170, 110, 0.6);
-          flex-shrink: 0;
+        .task-trait-sign {
+          font-weight: 700;
+          font-size: 11px;
+          width: 10px;
+          text-align: center;
         }
 
-        .task-reward-text {
-          font-size: 12px;
+        .task-trait-label {
+          text-transform: capitalize;
+          font-weight: 500;
+        }
+
+        .task-trait-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          margin-left: 1px;
+        }
+
+        // Inactive traits (servant doesn't have them)
+        &.inactive {
+          opacity: 0.3;
+          .task-trait-sign { color: rgba(240, 230, 210, 0.4); }
+          .task-trait-label { color: rgba(240, 230, 210, 0.4); }
+        }
+
+        // Active bonus
+        &.active.bonus {
+          background: rgba(130, 200, 170, 0.08);
+          border-color: rgba(130, 200, 170, 0.15);
+          .task-trait-sign { color: rgba(130, 200, 170, 0.9); }
+          .task-trait-label { color: rgba(130, 200, 170, 0.85); }
+          .task-trait-dot { background: rgba(130, 200, 170, 0.8); box-shadow: 0 0 4px rgba(130, 200, 170, 0.4); }
+        }
+
+        // Active penalty
+        &.active.penalty {
+          background: rgba(180, 80, 80, 0.08);
+          border-color: rgba(180, 80, 80, 0.15);
+          .task-trait-sign { color: rgba(180, 80, 80, 0.9); }
+          .task-trait-label { color: rgba(180, 80, 80, 0.85); }
+          .task-trait-dot { background: rgba(180, 80, 80, 0.8); box-shadow: 0 0 4px rgba(180, 80, 80, 0.4); }
+        }
+      }
+    }
+
+    // ── Rewards — chip grid ──
+    .task-reward-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+
+      .task-reward-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 5px;
+        font-size: 11px;
+        border: 1px solid rgba(200, 170, 110, 0.08);
+        background: rgba(0, 0, 0, 0.1);
+
+        .task-reward-chip-icon {
+          color: rgba(200, 170, 110, 0.55);
+          display: flex;
+          align-items: center;
+        }
+
+        .task-reward-chip-text {
           color: rgba(130, 200, 170, 0.85);
+          font-weight: 500;
+        }
+
+        &.reward-gold {
+          .task-reward-chip-icon { color: rgba(212, 180, 80, 0.7); }
+          .task-reward-chip-text { color: rgba(212, 180, 80, 0.9); }
+        }
+
+        &.reward-mana {
+          .task-reward-chip-icon { color: rgba(168, 136, 200, 0.7); }
+          .task-reward-chip-text { color: rgba(168, 136, 200, 0.9); }
+        }
+
+        &.reward-item {
+          .task-reward-chip-icon { color: rgba(200, 170, 110, 0.6); }
+        }
+
+        &.reward-stat {
+          .task-reward-chip-icon { color: rgba(130, 200, 170, 0.6); }
+        }
+
+        &.reward-household {
+          .task-reward-chip-icon { color: rgba(200, 170, 110, 0.6); }
         }
       }
     }
 
-    .task-preview-quality {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 10px;
-      border-radius: 6px;
-      background: rgba(200, 170, 110, 0.04);
-      border: 1px solid rgba(200, 170, 110, 0.08);
-      margin-bottom: 10px;
-      flex-shrink: 0;
-
-      .task-quality-label {
-        font-size: 9px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: rgba(200, 170, 110, 0.5);
-      }
-    }
-
-    .task-preview-role-bonus {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: rgba(240, 230, 210, 0.5);
-      margin-bottom: 12px;
-      flex-shrink: 0;
-
-      .bonus-active {
-        color: rgba(130, 200, 170, 0.85);
-        font-weight: 600;
-      }
-
-      .bonus-inactive {
-        color: rgba(240, 230, 210, 0.4);
-        font-style: italic;
-      }
-    }
-
-    // Sticky footer with assign button
-    .task-preview-footer {
+    // ── Sticky footer with assign button ──
+    .task-detail-footer {
       flex: 0 0 auto;
-      padding: 10px 18px 14px;
-      border-top: 1px solid rgba(200, 170, 110, 0.08);
-      background: linear-gradient(0deg, rgba(28, 20, 36, 0.98) 0%, rgba(28, 20, 36, 0.85) 100%);
+      margin-top: auto;
+      padding: 10px 16px 14px;
+      border-top: 1px solid rgba(200, 170, 110, 0.06);
+      background: linear-gradient(0deg, rgba(22, 16, 30, 0.98) 0%, rgba(22, 16, 30, 0.8) 100%);
+
+      .task-detail-assign-btn {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 6px;
+        border: 1px solid rgba(200, 170, 110, 0.25);
+        background: linear-gradient(135deg, rgba(200, 170, 110, 0.14) 0%, rgba(200, 170, 110, 0.06) 100%);
+        color: rgba(200, 170, 110, 0.9);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+        font-family: inherit;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.12) 100%);
+          border-color: rgba(200, 170, 110, 0.45);
+          box-shadow: 0 0 12px rgba(200, 170, 110, 0.1);
+        }
+
+        &:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+          text-transform: none;
+          font-weight: 500;
+          font-size: 11px;
+        }
+      }
     }
 
-    .task-preview-assign-btn {
-      width: 100%;
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: 1px solid rgba(200, 170, 110, 0.3);
-      background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(200, 170, 110, 0.08) 100%);
-      color: rgba(200, 170, 110, 0.9);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-
-      &:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.15) 100%);
-        border-color: rgba(200, 170, 110, 0.5);
-      }
-
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-    }
-
-    .task-preview-empty {
+    // ── Empty state ──
+    .task-detail-empty {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: rgba(240, 230, 210, 0.35);
+      gap: 12px;
+      color: rgba(240, 230, 210, 0.25);
 
-      .task-preview-empty-icon {
-        font-size: 36px;
-        margin-bottom: 10px;
-        opacity: 0.5;
+      .task-detail-empty-aura {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(200, 170, 110, 0.04) 0%, transparent 70%);
+        border: 1px solid rgba(200, 170, 110, 0.05);
+        color: rgba(200, 170, 110, 0.2);
       }
 
       p {
-        font-size: 12px;
+        font-size: 11px;
         margin: 0;
+        color: rgba(240, 230, 210, 0.3);
       }
     }
   }
@@ -750,101 +1129,218 @@
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .task-outcome-panel {
-  width: min(420px, 90vw);
-  background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(28, 20, 36, 0.99) 100%);
-  border: 1px solid rgba(200, 170, 110, 0.25);
-  border-radius: 12px;
-  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.6), 0 0 32px rgba(200, 170, 110, 0.1);
-  padding: 24px;
+  --outcome-accent: #78a8d0;
+  --outcome-glow: rgba(120, 168, 208, 0.25);
+
+  position: relative;
+  width: min(440px, 92vw);
+  background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(24, 18, 32, 0.99) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  border-radius: 14px;
+  box-shadow:
+    0 20px 72px rgba(0, 0, 0, 0.65),
+    0 0 40px var(--outcome-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 0;
   animation: slideUp 0.3s ease;
-  text-align: center;
+  overflow: hidden;
 
+  // ── Top accent bar ──
+  .task-outcome-accent {
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--outcome-accent) 30%, var(--outcome-accent) 70%, transparent 100%);
+    opacity: 0.8;
+  }
+
+  // ── Header ──
   .task-outcome-header {
-    margin-bottom: 16px;
+    text-align: center;
+    padding: 22px 24px 6px;
 
-    h3 {
-      margin: 0 0 4px;
-      font-size: 18px;
+    .task-outcome-title {
+      font-size: 20px;
+      font-weight: 700;
       color: rgba(240, 230, 210, 0.95);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .task-outcome-servant {
-      font-size: 12px;
-      color: rgba(200, 170, 110, 0.65);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--outcome-accent);
+      opacity: 0.8;
     }
   }
 
+  // ── Quality badge ──
   .task-outcome-quality {
-    margin-bottom: 20px;
-  }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px auto 0;
+    padding: 6px 18px;
+    border-radius: 20px;
+    width: fit-content;
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    background: rgba(200, 170, 110, 0.06);
 
-  .task-outcome-rewards {
-    text-align: left;
-    margin-bottom: 20px;
-
-    h4 {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: rgba(200, 170, 110, 0.55);
-      margin: 0 0 10px;
+    .task-outcome-quality-stars {
+      font-size: 14px;
+      color: var(--outcome-accent);
     }
 
-    .task-outcome-reward-row {
+    .task-outcome-quality-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--outcome-accent);
+      letter-spacing: 0.3px;
+    }
+
+    &.quality-excellent {
+      border-color: rgba(212, 160, 64, 0.3);
+      background: rgba(212, 160, 64, 0.08);
+      box-shadow: 0 0 16px rgba(212, 160, 64, 0.12);
+
+      .task-outcome-quality-stars,
+      .task-outcome-quality-label {
+        color: rgba(212, 160, 64, 0.95);
+      }
+    }
+
+    &.quality-standard {
+      border-color: rgba(120, 168, 208, 0.3);
+      background: rgba(120, 168, 208, 0.08);
+
+      .task-outcome-quality-stars,
+      .task-outcome-quality-label {
+        color: rgba(120, 168, 208, 0.95);
+      }
+    }
+
+    &.quality-poor {
+      border-color: rgba(160, 96, 96, 0.3);
+      background: rgba(160, 96, 96, 0.08);
+
+      .task-outcome-quality-stars,
+      .task-outcome-quality-label {
+        color: rgba(160, 96, 96, 0.95);
+      }
+    }
+  }
+
+  // ── Divider ──
+  .task-outcome-divider {
+    height: 1px;
+    margin: 18px 24px 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(200, 170, 110, 0.15) 20%, rgba(200, 170, 110, 0.15) 80%, transparent 100%);
+  }
+
+  // ── Rewards section ──
+  .task-outcome-rewards {
+    padding: 16px 24px 8px;
+
+    .task-outcome-rewards-heading {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+      color: rgba(200, 170, 110, 0.5);
+      margin-bottom: 12px;
+    }
+
+    .task-outcome-rewards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-outcome-reward-card {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      padding: 6px 8px;
-      border-radius: 4px;
-      margin-bottom: 4px;
-      background: rgba(130, 200, 170, 0.03);
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(130, 200, 170, 0.04);
+      border: 1px solid rgba(130, 200, 170, 0.08);
+      transition: background 0.15s;
 
-      .task-outcome-reward-icon {
-        color: rgba(200, 170, 110, 0.6);
+      &:hover {
+        background: rgba(130, 200, 170, 0.07);
+      }
+
+      .task-outcome-reward-icon-box {
         flex-shrink: 0;
-        margin-top: 1px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(200, 170, 110, 0.08);
+        border: 1px solid rgba(200, 170, 110, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(200, 170, 110, 0.7);
       }
 
-      .task-outcome-reward-text {
-        font-size: 13px;
-        font-weight: 600;
-        color: rgba(130, 200, 170, 0.9);
-      }
+      .task-outcome-reward-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding-top: 2px;
 
-      .task-outcome-reward-narrative {
-        font-size: 10px;
-        color: rgba(240, 230, 210, 0.4);
-        font-style: italic;
-        margin-left: auto;
+        .task-outcome-reward-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: rgba(130, 200, 170, 0.92);
+          line-height: 1.3;
+        }
+
+        .task-outcome-reward-narrative {
+          font-size: 11px;
+          color: rgba(240, 230, 210, 0.4);
+          font-style: italic;
+          line-height: 1.4;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
       }
     }
   }
 
+  // ── Dismiss button ──
   .task-outcome-dismiss {
-    width: 100%;
+    display: block;
+    width: calc(100% - 48px);
+    margin: 12px 24px 22px;
     padding: 12px 20px;
     border-radius: 8px;
-    border: 1px solid rgba(200, 170, 110, 0.3);
-    background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(200, 170, 110, 0.08) 100%);
+    border: 1px solid rgba(200, 170, 110, 0.25);
+    background: linear-gradient(135deg, rgba(200, 170, 110, 0.12) 0%, rgba(200, 170, 110, 0.06) 100%);
     color: rgba(200, 170, 110, 0.9);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     font-family: inherit;
+    text-align: center;
+    letter-spacing: 0.3px;
 
     &:hover {
-      background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.15) 100%);
-      border-color: rgba(200, 170, 110, 0.5);
+      background: linear-gradient(135deg, rgba(200, 170, 110, 0.22) 0%, rgba(200, 170, 110, 0.12) 100%);
+      border-color: rgba(200, 170, 110, 0.45);
+      box-shadow: 0 0 16px rgba(200, 170, 110, 0.1);
     }
   }
 }

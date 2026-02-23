@@ -9,6 +9,7 @@ import { GameIcon } from './GameIcon';
 interface WorldMapScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
+    startExplore: (location: Location) => void;
 }
 
 interface MapLocation {
@@ -20,7 +21,7 @@ interface MapLocation {
     description: string;
 }
 
-export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }) => {
+export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType, startExplore }) => {
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
     const mapRef = useRef<HTMLDivElement>(null);
 
@@ -111,8 +112,14 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType }
     };
 
     const handleExplore = (location: MapLocation) => {
-        stage().currentState.location = location.id;
-        setScreenType(ScreenType.MENU);
+        if (location.id === 'Manor') {
+            // Manor goes directly to menu
+            stage().currentState.location = location.id;
+            setScreenType(ScreenType.MENU);
+        } else {
+            // Other locations open the explore screen
+            startExplore(location.id);
+        }
     };
 
     // Marker position — follows the active location with smooth CSS transition

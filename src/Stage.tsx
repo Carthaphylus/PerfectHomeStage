@@ -39,6 +39,8 @@ import {
     CONDITIONING_STRATEGIES, CONDITIONING_ACTIONS,
     // Events
     rollSkillCheck, EVENT_BRAINWASHING,
+    // Exploration
+    EXPLORE_EVENTS, EXPLORE_DATA, LocationActivity, LocationExploreData,
     // Tasks
     TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
@@ -64,6 +66,7 @@ export type {
     ItemRarity, ItemType, ItemDefinition, InventoryItem,
     ConversionArchetype,
     ConditioningTier, ConditioningStrategy,
+    LocationActivity, LocationExploreData,
 };
 
 // Re-export values for backward compatibility
@@ -81,6 +84,7 @@ export {
     getConditioningMilestoneDirections, getObedienceMilestoneDirections, getLoveMilestoneDirections,
     CONDITIONING_STRATEGIES, CONDITIONING_ACTIONS,
     rollSkillCheck, EVENT_BRAINWASHING,
+    EXPLORE_EVENTS, EXPLORE_DATA,
     TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
     getApplicableTraitModifiers,
@@ -133,6 +137,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             achievements: [],
             manorSlots: undefined, // Will use defaults on first load
         };
+
+        // Register explore events
+        for (const evt of EXPLORE_EVENTS) {
+            this._eventRegistry[evt.id] = evt;
+        }
     }
 
     private getDefaultMessageState(): MessageStateType {
@@ -1735,7 +1744,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     break;
                 }
                 case 'custom':
-                    // Handled externally
+                    // Handle known custom effect targets
+                    if (fx.target === 'mana' && fx.value) {
+                        this.currentState.stats.mana = Math.min(
+                            this.currentState.stats.mana + fx.value,
+                            this.currentState.stats.maxMana
+                        );
+                    }
                     break;
             }
             event.appliedEffects.push(fx);
