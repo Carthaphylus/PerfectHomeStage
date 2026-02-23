@@ -14,6 +14,9 @@ import {
     EventEffect, EventSkillCheck, EventChatPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
     ConditioningCategory, ConditioningAction, ActionResult,
+    // Tasks
+    TaskCategory, TaskOutcomeQuality, TaskTraitModifier, TaskRequirement,
+    TaskReward, TaskDefinition, ActiveTask, TaskOutcome,
     // Stats
     StatName, StatDefinition, STAT_DEFINITIONS, GRADE_TIERS,
     StatGrade, numberToGrade, gradeToNumber, getGradeColor, getStatColor,
@@ -36,6 +39,10 @@ import {
     CONDITIONING_STRATEGIES, CONDITIONING_ACTIONS,
     // Events
     rollSkillCheck, EVENT_BRAINWASHING,
+    // Tasks
+    TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
+    getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
+    getApplicableTraitModifiers,
 } from './data';
 
 // Re-export types for backward compatibility with screen components
@@ -48,6 +55,8 @@ export type {
     EventEffect, EventSkillCheck, EventChatPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
     ConditioningCategory, ConditioningAction, ActionResult,
+    TaskCategory, TaskOutcomeQuality, TaskTraitModifier, TaskRequirement,
+    TaskReward, TaskDefinition, ActiveTask, TaskOutcome,
     StatName, StatDefinition,
     StatGrade,
     TraitScope, TraitDefinition,
@@ -72,6 +81,9 @@ export {
     getConditioningMilestoneDirections, getObedienceMilestoneDirections, getLoveMilestoneDirections,
     CONDITIONING_STRATEGIES, CONDITIONING_ACTIONS,
     rollSkillCheck, EVENT_BRAINWASHING,
+    TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
+    getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
+    getApplicableTraitModifiers,
 };
 
 /***
@@ -221,7 +233,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     obedience: 75,
                     servantTitle: 'Handmaiden',
                     servantTitleColor: '#e85d9a',
-                    assignedTask: undefined,
+                    activeTask: undefined,
                 },
                 'Locke': {
                     name: 'Locke',
@@ -236,7 +248,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     obedience: 85,
                     servantTitle: 'Butler',
                     servantTitleColor: '#6a8caf',
-                    assignedTask: undefined,
+                    activeTask: undefined,
                 },
             },
             inventory: {
@@ -304,6 +316,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         servant.description = cd.description;
                         servant.traits = cd.traits;
                         servant.details = cd.details;
+                    }
+                }
+                // Backward compat: migrate old assignedTask string → activeTask
+                if ('assignedTask' in servant && typeof (servant as any).assignedTask === 'string') {
+                    delete (servant as any).assignedTask;
+                    if (!servant.activeTask) {
+                        servant.activeTask = undefined;
                     }
                 }
             }
@@ -646,6 +665,258 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** Get all servants assigned to a role (for non-unique roles) */
     getRoleHolders(roleId: string): Servant[] {
         return Object.values(this.currentState.servants).filter(s => s.assignedRole === roleId);
+    }
+
+    // ============================
+    // Task Methods
+    // ============================
+
+    /** Get all tasks available for a servant, filtered by built rooms and discovered locations */
+    getAvailableTasksForServantByName(servantName: string): TaskDefinition[] {
+        const servant = this.currentState.servants[servantName];
+        if (!servant) return [];
+        return getAvailableTasksForServant(
+            servant,
+            this.getBuiltRoomTypes(),
+            this.chatState.discoveredLocations || [],
+        );
+    }
+
+    /** Assign a task to a servant. Returns true on success. */
+    assignTask(servantName: string, taskId: string): { success: boolean; error?: string } {
+        const servant = this.currentState.servants[servantName];
+        if (!servant) return { success: false, error: 'Servant not found' };
+
+        const task = getTaskById(taskId);
+        if (!task) return { success: false, error: 'Task not found' };
+
+        // Check if servant already has an active task
+        if (servant.activeTask) {
+            return { success: false, error: 'Servant already has an active task' };
+        }
+
+        // Check stat requirements
+        const reqCheck = checkTaskRequirements(servant, task);
+        if (!reqCheck.met) {
+            const failNames = reqCheck.failing.map(f => `${f.stat} (${f.current}/${f.required})`).join(', ');
+            return { success: false, error: `Requirements not met: ${failNames}` };
+        }
+
+        // Check room availability for room tasks
+        if (task.roomType && !this.getBuiltRoomTypes().includes(task.roomType)) {
+            return { success: false, error: `Requires ${getRoomTypeLabel(task.roomType)}` };
+        }
+
+        // Check location discovery for exploration tasks
+        if (task.location && !(this.chatState.discoveredLocations || []).includes(task.location)) {
+            return { success: false, error: `${task.location} not yet discovered` };
+        }
+
+        // Deduct mana cost if applicable
+        if (task.manaCost && task.manaCost > 0) {
+            if (this.currentState.stats.mana < task.manaCost) {
+                return { success: false, error: `Not enough mana (${this.currentState.stats.mana}/${task.manaCost})` };
+            }
+            this.currentState.stats.mana -= task.manaCost;
+        }
+
+        // Create active task
+        servant.activeTask = {
+            definitionId: taskId,
+            turnsRemaining: task.duration,
+            totalDuration: task.duration,
+            assignedDay: this.currentState.stats.day,
+        };
+
+        return { success: true };
+    }
+
+    /** Cancel a servant's active task (no rewards) */
+    cancelTask(servantName: string): boolean {
+        const servant = this.currentState.servants[servantName];
+        if (!servant || !servant.activeTask) return false;
+
+        // Refund mana cost if cancelled on the same turn it was assigned
+        const task = getTaskById(servant.activeTask.definitionId);
+        if (task?.manaCost && servant.activeTask.turnsRemaining === task.duration) {
+            this.currentState.stats.mana = Math.min(
+                this.currentState.stats.maxMana,
+                this.currentState.stats.mana + task.manaCost,
+            );
+        }
+
+        servant.activeTask = undefined;
+        return true;
+    }
+
+    /**
+     * Calculate task outcome quality based on servant stats, traits, and role bonuses.
+     * Score breakdown:
+     *   Base: primary stat value (0-100)
+     *   + trait modifiers (positive/negative magnitude)
+     *   + role bonus (+15 if servant's role matches task.roleBonus)
+     *   + obedience factor (obedience/10, so 0-10 bonus)
+     * Quality thresholds: 0-49 = poor, 50-74 = standard, 75+ = excellent
+     */
+    calculateTaskQuality(servant: Servant, task: TaskDefinition): TaskOutcomeQuality {
+        let score = 0;
+
+        // Primary stat contribution
+        if (task.primaryStat) {
+            score += servant.stats[task.primaryStat] ?? 0;
+        } else {
+            // Average all stats if no primary stat
+            const statValues = Object.values(servant.stats);
+            score += statValues.reduce((sum, v) => sum + v, 0) / statValues.length;
+        }
+
+        // Trait modifiers
+        const applicable = getApplicableTraitModifiers(servant, task);
+        for (const { modifier } of applicable) {
+            if (modifier.effect === 'bonus') {
+                score += modifier.magnitude;
+            } else {
+                score -= modifier.magnitude;
+            }
+        }
+
+        // Role bonus
+        if (task.roleBonus && servant.assignedRole === task.roleBonus) {
+            score += 15;
+        }
+
+        // Obedience factor
+        score += (servant.obedience || 0) / 10;
+
+        // Clamp and determine quality
+        score = Math.max(0, Math.min(120, score));
+        if (score >= 75) return 'excellent';
+        if (score >= 50) return 'standard';
+        return 'poor';
+    }
+
+    /**
+     * Complete a servant's active task — calculate outcome and apply rewards.
+     * Returns the TaskOutcome or null if no active task.
+     */
+    completeTask(servantName: string): TaskOutcome | null {
+        const servant = this.currentState.servants[servantName];
+        if (!servant || !servant.activeTask) return null;
+
+        const task = getTaskById(servant.activeTask.definitionId);
+        if (!task) {
+            servant.activeTask = undefined;
+            return null;
+        }
+
+        const quality = this.calculateTaskQuality(servant, task);
+
+        // Quality multipliers for rewards
+        const qualityMultiplier = quality === 'excellent' ? 1.5 : quality === 'standard' ? 1.0 : 0.6;
+
+        // Process rewards
+        const earnedRewards: TaskReward[] = [];
+        for (const reward of task.rewards) {
+            const scaledAmount = Math.max(1, Math.round((reward.amount || 0) * qualityMultiplier));
+            const earnedReward = { ...reward, amount: scaledAmount };
+
+            switch (reward.type) {
+                case 'gold':
+                    this.currentState.stats.gold += scaledAmount;
+                    break;
+                case 'mana':
+                    this.currentState.stats.mana = Math.min(
+                        this.currentState.stats.maxMana,
+                        this.currentState.stats.mana + scaledAmount,
+                    );
+                    break;
+                case 'item':
+                    if (reward.itemName) {
+                        const inv = this.currentState.inventory;
+                        if (inv[reward.itemName]) {
+                            inv[reward.itemName].quantity += scaledAmount;
+                        } else {
+                            const def = getItemDefinition(reward.itemName);
+                            inv[reward.itemName] = {
+                                name: reward.itemName,
+                                quantity: scaledAmount,
+                                type: def.type,
+                            };
+                        }
+                    }
+                    break;
+                case 'stat':
+                    if (reward.stat) {
+                        // Handle special "love" and "obedience" servant stats
+                        if (reward.stat === 'love') {
+                            servant.love = Math.min(100, servant.love + scaledAmount);
+                        } else if (reward.stat === 'obedience') {
+                            servant.obedience = Math.min(100, servant.obedience + scaledAmount);
+                        } else {
+                            // Character stat (prowess, expertise, etc.)
+                            const statKey = reward.stat as StatName;
+                            if (servant.stats[statKey] !== undefined) {
+                                servant.stats[statKey] = Math.min(100, servant.stats[statKey] + scaledAmount);
+                            }
+                        }
+                    }
+                    break;
+                case 'household':
+                    if (reward.stat === 'comfort') {
+                        this.currentState.stats.household.comfort += scaledAmount;
+                    } else if (reward.stat === 'obedience') {
+                        this.currentState.stats.household.obedience += scaledAmount;
+                    }
+                    break;
+            }
+
+            earnedRewards.push(earnedReward);
+        }
+
+        // Build the outcome
+        const outcome: TaskOutcome = {
+            success: quality !== 'poor',
+            quality,
+            rewards: earnedRewards,
+        };
+
+        // Store outcome on the task before clearing
+        servant.activeTask.outcome = outcome;
+        const result = outcome;
+
+        // Clear active task
+        servant.activeTask = undefined;
+
+        return result;
+    }
+
+    /** Debug: immediately complete a task regardless of turns remaining */
+    debugCompleteTask(servantName: string): TaskOutcome | null {
+        const servant = this.currentState.servants[servantName];
+        if (!servant || !servant.activeTask) return null;
+        servant.activeTask.turnsRemaining = 0;
+        return this.completeTask(servantName);
+    }
+
+    /**
+     * Tick all active tasks — decrement turnsRemaining for every servant with an active task.
+     * Auto-completes tasks that reach 0. Returns outcomes for completed tasks.
+     * (Called by the future turn system's end-of-turn handler)
+     */
+    tickTasks(): { servantName: string; outcome: TaskOutcome }[] {
+        const completed: { servantName: string; outcome: TaskOutcome }[] = [];
+        for (const [name, servant] of Object.entries(this.currentState.servants)) {
+            if (servant.activeTask && servant.activeTask.turnsRemaining > 0) {
+                servant.activeTask.turnsRemaining--;
+                if (servant.activeTask.turnsRemaining <= 0) {
+                    const outcome = this.completeTask(name);
+                    if (outcome) {
+                        completed.push({ servantName: name, outcome });
+                    }
+                }
+            }
+        }
+        return completed;
     }
 
     // ============================

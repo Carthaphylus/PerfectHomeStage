@@ -1,0 +1,795 @@
+// ==========================================
+// Task System Styles
+// ==========================================
+
+// ── Task Card in Profile ──
+.service-task-card {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(200, 170, 110, 0.04);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  position: relative;
+
+  .service-task-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .service-task-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .service-task-icon {
+        font-size: 20px;
+        color: var(--task-color, rgba(200, 170, 110, 0.8));
+      }
+
+      .service-task-title {
+        display: flex;
+        flex-direction: column;
+
+        .service-task-label {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: rgba(200, 170, 110, 0.5);
+        }
+
+        .service-task-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--task-color, rgba(240, 230, 210, 0.9));
+        }
+      }
+    }
+
+    .service-task-cancel {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid rgba(180, 80, 80, 0.2);
+      background: rgba(180, 80, 80, 0.06);
+      color: rgba(180, 80, 80, 0.6);
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(180, 80, 80, 0.15);
+        color: rgba(180, 80, 80, 0.9);
+        border-color: rgba(180, 80, 80, 0.4);
+      }
+    }
+  }
+
+  .service-task-progress {
+    margin-bottom: 8px;
+
+    .service-task-progress-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(200, 170, 110, 0.08);
+      overflow: hidden;
+      margin-bottom: 4px;
+
+      .service-task-progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, var(--task-color, rgba(200, 170, 110, 0.6)) 0%, rgba(200, 170, 110, 0.4) 100%);
+        transition: width 0.4s ease;
+      }
+    }
+
+    .service-task-progress-label {
+      font-size: 10px;
+      color: rgba(240, 230, 210, 0.5);
+    }
+  }
+
+  .service-task-debug-btn {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px dashed rgba(200, 170, 110, 0.25);
+    background: rgba(200, 170, 110, 0.04);
+    color: rgba(200, 170, 110, 0.55);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    &:hover {
+      background: rgba(200, 170, 110, 0.12);
+      color: rgba(200, 170, 110, 0.85);
+      border-color: rgba(200, 170, 110, 0.4);
+    }
+  }
+}
+
+.service-task-assign-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: rgba(200, 170, 110, 0.06);
+  color: rgba(200, 170, 110, 0.75);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    background: rgba(200, 170, 110, 0.14);
+    border-color: rgba(200, 170, 110, 0.35);
+    color: rgba(200, 170, 110, 0.95);
+  }
+}
+
+
+// ==========================================
+// Task Assignment Modal
+// ==========================================
+.task-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.task-modal {
+  width: min(820px, 94vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(28, 20, 36, 0.99) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(200, 170, 110, 0.08);
+  animation: slideUp 0.25s ease;
+
+  .task-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.12);
+
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      color: rgba(240, 230, 210, 0.95);
+      flex-shrink: 0;
+    }
+
+    .task-modal-search {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(200, 170, 110, 0.12);
+      background: rgba(200, 170, 110, 0.04);
+      color: rgba(240, 230, 210, 0.4);
+
+      input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: rgba(240, 230, 210, 0.85);
+        font-size: 12px;
+        font-family: inherit;
+        outline: none;
+
+        &::placeholder {
+          color: rgba(240, 230, 210, 0.3);
+        }
+      }
+    }
+
+    .task-modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(200, 170, 110, 0.15);
+      background: transparent;
+      color: rgba(240, 230, 210, 0.6);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+
+      &:hover {
+        background: rgba(200, 170, 110, 0.1);
+        color: rgba(240, 230, 210, 0.9);
+      }
+    }
+  }
+
+  .task-modal-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  // Left: scrollable task list
+  .task-list {
+    flex: 1;
+    overflow-y: scroll !important;
+    padding: 10px;
+    padding-right: 6px;
+    border-right: 1px solid rgba(200, 170, 110, 0.08);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 170, 110, 0.3) rgba(200, 170, 110, 0.04);
+
+    &::-webkit-scrollbar { width: 6px !important; }
+    &::-webkit-scrollbar-track { background: rgba(200, 170, 110, 0.04) !important; border-radius: 3px; }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.3) !important;
+      border-radius: 3px;
+      &:hover { background: rgba(200, 170, 110, 0.4) !important; }
+    }
+
+    .task-group {
+      margin-bottom: 8px;
+
+      .task-group-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: rgba(200, 170, 110, 0.55);
+        padding: 6px 8px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.15s;
+        user-select: none;
+
+        &:hover {
+          background: rgba(200, 170, 110, 0.06);
+        }
+
+        .task-group-count {
+          margin-left: auto;
+          font-size: 9px;
+          color: rgba(200, 170, 110, 0.35);
+          font-weight: 400;
+        }
+
+        .task-group-chevron {
+          color: rgba(200, 170, 110, 0.3);
+        }
+      }
+    }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(200, 170, 110, 0.08);
+      }
+
+      &.previewing {
+        background: rgba(200, 170, 110, 0.12);
+        border-left: 2px solid rgba(200, 170, 110, 0.5);
+      }
+
+      &.disabled {
+        opacity: 0.45;
+
+        .task-row-assign-btn {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+      }
+
+      .task-row-icon {
+        font-size: 18px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .task-row-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .task-row-name {
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(240, 230, 210, 0.9);
+        }
+
+        .task-row-meta {
+          font-size: 10px;
+          color: rgba(240, 230, 210, 0.4);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+      }
+
+      .task-row-assign-btn {
+        flex-shrink: 0;
+        padding: 4px 10px;
+        font-size: 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(200, 170, 110, 0.2);
+        background: rgba(200, 170, 110, 0.08);
+        color: rgba(200, 170, 110, 0.8);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+
+        &:hover:not(:disabled) {
+          background: rgba(200, 170, 110, 0.2);
+          border-color: rgba(200, 170, 110, 0.4);
+        }
+      }
+    }
+
+    .task-list-empty {
+      padding: 30px 10px;
+      text-align: center;
+      color: rgba(240, 230, 210, 0.35);
+      font-size: 12px;
+    }
+  }
+
+  // Right: task preview
+  .task-preview {
+    width: 280px;
+    flex-shrink: 0;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+
+    .task-preview-icon {
+      font-size: 42px;
+      margin-bottom: 6px;
+    }
+
+    .task-preview-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(240, 230, 210, 0.95);
+      margin: 0 0 4px;
+      text-align: center;
+    }
+
+    .task-preview-category {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: rgba(200, 170, 110, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .task-preview-desc {
+      font-size: 11px;
+      line-height: 1.5;
+      color: rgba(240, 230, 210, 0.6);
+      text-align: center;
+      margin: 0 0 14px;
+    }
+
+    .task-preview-meta {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+
+      .task-preview-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: rgba(240, 230, 210, 0.6);
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: rgba(200, 170, 110, 0.06);
+        border: 1px solid rgba(200, 170, 110, 0.1);
+
+        &.mana {
+          color: rgba(168, 136, 200, 0.8);
+          border-color: rgba(168, 136, 200, 0.15);
+          background: rgba(168, 136, 200, 0.06);
+        }
+      }
+    }
+
+    .task-preview-section {
+      width: 100%;
+      margin-bottom: 12px;
+
+      h5 {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(200, 170, 110, 0.55);
+        margin: 0 0 6px;
+      }
+
+      // Requirements
+      .task-preview-req {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        font-size: 11px;
+        border-radius: 4px;
+
+        .task-req-icon {
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .task-req-stat {
+          flex: 1;
+          text-transform: capitalize;
+          color: rgba(240, 230, 210, 0.7);
+        }
+
+        .task-req-values {
+          font-size: 10px;
+          color: rgba(240, 230, 210, 0.5);
+        }
+
+        &.met {
+          .task-req-icon { color: rgba(130, 200, 170, 0.9); }
+        }
+
+        &.unmet {
+          background: rgba(180, 80, 80, 0.06);
+          .task-req-icon { color: rgba(180, 80, 80, 0.9); }
+          .task-req-stat { color: rgba(180, 80, 80, 0.8); }
+        }
+      }
+
+      // Trait modifiers
+      .task-preview-trait-mod {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 6px;
+        font-size: 11px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+
+        .task-trait-indicator {
+          font-size: 13px;
+          font-weight: 700;
+          width: 14px;
+          text-align: center;
+        }
+
+        .task-trait-name {
+          font-weight: 600;
+          text-transform: capitalize;
+          color: rgba(240, 230, 210, 0.7);
+          min-width: 70px;
+        }
+
+        .task-trait-desc {
+          flex: 1;
+          font-size: 10px;
+          color: rgba(240, 230, 210, 0.4);
+        }
+
+        .task-trait-active-badge {
+          font-size: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding: 1px 5px;
+          border-radius: 6px;
+          flex-shrink: 0;
+        }
+
+        &.inactive {
+          opacity: 0.4;
+        }
+
+        &.active {
+          &.bonus {
+            background: rgba(130, 200, 170, 0.06);
+            .task-trait-indicator { color: rgba(130, 200, 170, 0.85); }
+            .task-trait-active-badge {
+              background: rgba(130, 200, 170, 0.12);
+              color: rgba(130, 200, 170, 0.85);
+              border: 1px solid rgba(130, 200, 170, 0.2);
+            }
+          }
+          &.penalty {
+            background: rgba(180, 80, 80, 0.06);
+            .task-trait-indicator { color: rgba(180, 80, 80, 0.85); }
+            .task-trait-active-badge {
+              background: rgba(180, 80, 80, 0.12);
+              color: rgba(180, 80, 80, 0.85);
+              border: 1px solid rgba(180, 80, 80, 0.2);
+            }
+          }
+        }
+      }
+
+      // Rewards
+      .task-preview-reward {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 0;
+
+        .task-reward-icon {
+          color: rgba(200, 170, 110, 0.6);
+          flex-shrink: 0;
+        }
+
+        .task-reward-text {
+          font-size: 12px;
+          color: rgba(130, 200, 170, 0.85);
+        }
+      }
+    }
+
+    .task-preview-quality {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(200, 170, 110, 0.04);
+      border: 1px solid rgba(200, 170, 110, 0.08);
+      margin-bottom: 10px;
+
+      .task-quality-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(200, 170, 110, 0.5);
+      }
+    }
+
+    .task-preview-role-bonus {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(240, 230, 210, 0.5);
+      margin-bottom: 12px;
+
+      .bonus-active {
+        color: rgba(130, 200, 170, 0.85);
+        font-weight: 600;
+      }
+
+      .bonus-inactive {
+        color: rgba(240, 230, 210, 0.4);
+        font-style: italic;
+      }
+    }
+
+    .task-preview-assign-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(200, 170, 110, 0.3);
+      background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(200, 170, 110, 0.08) 100%);
+      color: rgba(200, 170, 110, 0.9);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.15) 100%);
+        border-color: rgba(200, 170, 110, 0.5);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+
+    .task-preview-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(240, 230, 210, 0.35);
+
+      .task-preview-empty-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+        opacity: 0.5;
+      }
+
+      p {
+        font-size: 12px;
+        margin: 0;
+      }
+    }
+  }
+}
+
+
+// ==========================================
+// Quality Badges (shared)
+// ==========================================
+.task-quality-badge, .task-outcome-quality-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 8px;
+
+  &.quality-excellent {
+    color: rgba(212, 160, 64, 0.95);
+    background: rgba(212, 160, 64, 0.1);
+    border: 1px solid rgba(212, 160, 64, 0.2);
+  }
+
+  &.quality-standard {
+    color: rgba(120, 168, 208, 0.95);
+    background: rgba(120, 168, 208, 0.1);
+    border: 1px solid rgba(120, 168, 208, 0.2);
+  }
+
+  &.quality-poor {
+    color: rgba(160, 96, 96, 0.95);
+    background: rgba(160, 96, 96, 0.1);
+    border: 1px solid rgba(160, 96, 96, 0.2);
+  }
+}
+
+
+// ==========================================
+// Task Outcome Overlay
+// ==========================================
+.task-outcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.task-outcome-panel {
+  width: min(420px, 90vw);
+  background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(28, 20, 36, 0.99) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.6), 0 0 32px rgba(200, 170, 110, 0.1);
+  padding: 24px;
+  animation: slideUp 0.3s ease;
+  text-align: center;
+
+  .task-outcome-header {
+    margin-bottom: 16px;
+
+    h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      color: rgba(240, 230, 210, 0.95);
+    }
+
+    .task-outcome-servant {
+      font-size: 12px;
+      color: rgba(200, 170, 110, 0.65);
+    }
+  }
+
+  .task-outcome-quality {
+    margin-bottom: 20px;
+  }
+
+  .task-outcome-rewards {
+    text-align: left;
+    margin-bottom: 20px;
+
+    h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(200, 170, 110, 0.55);
+      margin: 0 0 10px;
+    }
+
+    .task-outcome-reward-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      background: rgba(130, 200, 170, 0.03);
+
+      .task-outcome-reward-icon {
+        color: rgba(200, 170, 110, 0.6);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      .task-outcome-reward-text {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(130, 200, 170, 0.9);
+      }
+
+      .task-outcome-reward-narrative {
+        font-size: 10px;
+        color: rgba(240, 230, 210, 0.4);
+        font-style: italic;
+        margin-left: auto;
+      }
+    }
+  }
+
+  .task-outcome-dismiss {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(200, 170, 110, 0.3);
+    background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(200, 170, 110, 0.08) 100%);
+    color: rgba(200, 170, 110, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(200, 170, 110, 0.15) 100%);
+      border-color: rgba(200, 170, 110, 0.5);
+    }
+  }
+}

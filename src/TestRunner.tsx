@@ -129,7 +129,12 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     obedience: 75,
                     servantTitle: 'Handmaiden',
                     servantTitleColor: '#e85d9a',
-                    assignedTask: 'Brewing potions',
+                    activeTask: {
+                        definitionId: 'brew_potions',
+                        turnsRemaining: 2,
+                        totalDuration: 3,
+                        assignedDay: 1,
+                    },
                 },
                 'Locke': {
                     name: 'Locke',
@@ -144,7 +149,12 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     obedience: 85,
                     servantTitle: 'Butler',
                     servantTitleColor: '#6a8caf',
-                    assignedTask: 'Guard duty',
+                    activeTask: {
+                        definitionId: 'patrol_grounds',
+                        turnsRemaining: 1,
+                        totalDuration: 1,
+                        assignedDay: 1,
+                    },
                 },
             },
             inventory: {

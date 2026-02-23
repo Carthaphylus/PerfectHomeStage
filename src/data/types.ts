@@ -26,6 +26,71 @@ export interface Hero {
     backstory?: string;
 }
 
+// ── Task System ──
+
+export type TaskCategory = 'room' | 'exploration' | 'training' | 'upkeep' | 'personal';
+export type TaskOutcomeQuality = 'poor' | 'standard' | 'excellent';
+
+/** How a trait modifies task outcome */
+export interface TaskTraitModifier {
+    traitKey: string;
+    effect: 'bonus' | 'penalty';
+    magnitude: number; // added/subtracted from quality score
+    description: string;
+}
+
+/** Stat requirement to unlock a task */
+export interface TaskRequirement {
+    stat: StatName;
+    minimum: number; // 0-100 value
+}
+
+/** A single reward entry from a completed task */
+export interface TaskReward {
+    type: 'gold' | 'item' | 'stat' | 'household' | 'mana';
+    amount?: number;
+    itemName?: string;
+    stat?: string; // stat key for 'stat' or 'household' reward types
+    narrative?: string; // flavor text for this reward
+}
+
+/** A task definition in the registry */
+export interface TaskDefinition {
+    id: string;
+    name: string;
+    description: string;
+    category: TaskCategory;
+    icon: string;
+    color: string;
+    duration: number; // turns to complete
+    requirements: TaskRequirement[];
+    traitModifiers: TaskTraitModifier[];
+    rewards: TaskReward[];
+    roomType?: string; // required room type for room-based tasks
+    location?: Location; // required location for exploration tasks
+    roleBonus?: string; // role id that gives a quality bonus
+    manaCost?: number;
+    primaryStat?: StatName; // main stat used for quality calculation
+}
+
+/** Runtime state of an active task on a servant */
+export interface ActiveTask {
+    definitionId: string;
+    turnsRemaining: number;
+    totalDuration: number;
+    assignedDay: number;
+    outcome?: TaskOutcome;
+}
+
+/** Result after a task is completed */
+export interface TaskOutcome {
+    success: boolean;
+    quality: TaskOutcomeQuality;
+    rewards: TaskReward[];
+    narrative?: string;
+    statModifiers?: Record<string, number>;
+}
+
 // ── Servant ──
 export interface Servant {
     name: string;
@@ -41,7 +106,7 @@ export interface Servant {
     obedience: number; // 0-100
     servantTitle?: string;     // conversion archetype title e.g. "Handmaiden", "Loyal Pet"
     servantTitleColor?: string;  // hex color for the title badge
-    assignedTask?: string;
+    activeTask?: ActiveTask;
     assignedRole?: string; // role id from ROLE_REGISTRY
     personalHistory?: string;
     backstory?: string;

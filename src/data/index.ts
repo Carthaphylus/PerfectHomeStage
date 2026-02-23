@@ -28,3 +28,6 @@ export * from './conditioning';
 
 // Event system
 export * from './events';
+
+// Task system
+export * from './tasks';
