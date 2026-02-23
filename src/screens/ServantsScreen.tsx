@@ -104,34 +104,76 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         </>
                     }
                     extraSections={
-                        <div className="char-bio-section">
+                        <div className="char-bio-section service-panel">
                             <h4>Service</h4>
-                            <div className="char-detail-row">
-                                <span className="char-detail-label">Love</span>
-                                <span className="char-detail-value">{s.love}%</span>
-                            </div>
-                            <div className="char-detail-row">
-                                <span className="char-detail-label">Obedience</span>
-                                <span className="char-detail-value">{s.obedience}%</span>
-                            </div>
-                            {currentRole && (
-                                <div className="char-detail-row">
-                                    <span className="char-detail-label">Role</span>
-                                    <span className="char-detail-value"><GameIcon icon={currentRole.icon} size={12} /> {currentRole.name}</span>
+
+                            {/* ── Stat gauges ── */}
+                            <div className="service-gauges">
+                                <div className="service-gauge love-gauge">
+                                    <div className="service-gauge-header">
+                                        <span className="service-gauge-icon">♥</span>
+                                        <span className="service-gauge-label">Love</span>
+                                        <span className="service-gauge-value">{s.love}<small>%</small></span>
+                                    </div>
+                                    <div className="service-gauge-track">
+                                        <div className="service-gauge-fill" style={{ width: `${s.love}%` }} />
+                                        <div className="service-gauge-glow" style={{ width: `${s.love}%` }} />
+                                    </div>
                                 </div>
-                            )}
+                                <div className="service-gauge obedience-gauge">
+                                    <div className="service-gauge-header">
+                                        <span className="service-gauge-icon">⛓</span>
+                                        <span className="service-gauge-label">Obedience</span>
+                                        <span className="service-gauge-value">{s.obedience}<small>%</small></span>
+                                    </div>
+                                    <div className="service-gauge-track">
+                                        <div className="service-gauge-fill" style={{ width: `${s.obedience}%` }} />
+                                        <div className="service-gauge-glow" style={{ width: `${s.obedience}%` }} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ── Conditioning seal ── */}
+                            <div className="service-conditioned-seal">
+                                <span className="seal-ornament left">◆</span>
+                                <GameIcon icon="orbit" size={14} className="seal-icon" />
+                                <span className="seal-text">Fully Conditioned</span>
+                                <span className="seal-ornament right">◆</span>
+                            </div>
+
+                            {/* ── Role card ── */}
                             {currentRole && (
-                                <div className="role-buffs-section">
-                                    <h4>Role Buffs</h4>
-                                    {currentRole.buffs.map((buff, i) => (
-                                        <div key={i} className="role-buff-row">
-                                            <span className="role-buff-label">{buff.label}</span>
+                                <div className="service-role-card" style={{ '--role-color': currentRole.color } as React.CSSProperties}>
+                                    <div className="service-role-header">
+                                        <div className="service-role-identity">
+                                            <span className="service-role-icon"><GameIcon icon={currentRole.icon} size={18} /></span>
+                                            <div className="service-role-title">
+                                                <span className="service-role-label">Assigned Role</span>
+                                                <span className="service-role-name">{currentRole.name}</span>
+                                            </div>
                                         </div>
-                                    ))}
+                                        <button
+                                            className="service-role-remove"
+                                            onClick={() => handleUnassignRole(s)}
+                                            title="Remove Role"
+                                        >✕</button>
+                                    </div>
+
+                                    {currentRole.buffs.length > 0 && (
+                                        <div className="service-role-buffs">
+                                            <span className="service-role-buffs-label">Buffs</span>
+                                            <div className="service-role-buff-list">
+                                                {currentRole.buffs.map((buff, i) => (
+                                                    <div key={i} className="service-role-buff">{buff.label}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {currentRole.traits.length > 0 && (
-                                        <div className="role-trait-row">
-                                            <span className="char-detail-label">Granted Traits</span>
-                                            <div className="role-trait-chip-row">
+                                        <div className="service-role-traits">
+                                            <span className="service-role-traits-label">Granted Traits</span>
+                                            <div className="service-role-traits-list">
                                                 {currentRole.traits.map((trait, index) => (
                                                     <TraitChip
                                                         key={`${trait}-${index}`}
@@ -144,37 +186,18 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                             </div>
                                         </div>
                                     )}
-                                    <button
-                                        className="role-unassign-btn"
-                                        onClick={() => handleUnassignRole(s)}
-                                    >
-                                        Remove Role
-                                    </button>
                                 </div>
                             )}
+
+                            {/* ── Assigned task ── */}
                             {s.assignedTask && (
-                                <div className="char-detail-row">
-                                    <span className="char-detail-label">Task</span>
-                                    <span className="char-detail-value">{s.assignedTask}</span>
+                                <div className="service-task-row">
+                                    <span className="service-task-icon">⚑</span>
+                                    <span className="service-task-label">Task</span>
+                                    <span className="service-task-value">{s.assignedTask}</span>
                                 </div>
                             )}
-                            <div className="servant-stat-bars">
-                                <div className="servant-stat-bar love-bar">
-                                    <span className="servant-stat-bar-label">Love</span>
-                                    <div className="servant-stat-bar-track">
-                                        <div className="servant-stat-bar-fill" style={{ width: `${s.love}%` }} />
-                                    </div>
-                                    <span className="servant-stat-bar-value">{s.love}%</span>
-                                </div>
-                                <div className="servant-stat-bar obedience-bar">
-                                    <span className="servant-stat-bar-label">Obedience</span>
-                                    <div className="servant-stat-bar-track">
-                                        <div className="servant-stat-bar-fill" style={{ width: `${s.obedience}%` }} />
-                                    </div>
-                                    <span className="servant-stat-bar-value">{s.obedience}%</span>
-                                </div>
-                            </div>
-                            <div className="conditioned-badge"><GameIcon icon="orbit" size={12} className="icon-purple" /> Fully Conditioned</div>
+
                             <CharacterEditor stage={stage} characterName={s.name} style={{ marginTop: '8px' }} onChange={() => forceUpdate(n => n + 1)} />
                         </div>
                     }

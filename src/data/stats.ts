@@ -109,25 +109,25 @@ export function gradeToNumber(grade: StatGrade): number {
 export function getGradeColor(grade: StatGrade): string {
     const tier = grade.charAt(0);
     const colorMap: Record<string, string> = {
-        'F': '#e63946',
-        'E': '#77669b',
-        'D': '#4e659e',
-        'C': '#298f7f',
-        'B': '#228417',
-        'A': '#ff9100',
-        'S': '#ffdd00',
+        'F': '#b04050',       // muted crimson
+        'E': '#8c7a9e',       // dusty lavender
+        'D': '#7b8db8',       // slate periwinkle
+        'C': '#5aab9a',       // sage teal
+        'B': '#7cc468',       // soft lime
+        'A': '#e8a840',       // warm amber
+        'S': '#f0d060',       // rich gold
     };
     return colorMap[tier] || '#888';
 }
 
 export function getStatColor(statName: StatName): string {
     const colorMap: Record<StatName, string> = {
-        'prowess': '#c74e4e',
-        'expertise': '#d87833',
-        'attunement': '#9971bf',
-        'presence': '#cebe7d',
-        'discipline': '#4fba83',
-        'insight': '#6ca0db',
+        'prowess': '#d4807a',     // warm rose
+        'expertise': '#d8a060',   // burnished gold
+        'attunement': '#a888c8',  // soft amethyst
+        'presence': '#c8b878',    // antique brass
+        'discipline': '#60b890',  // jade green
+        'insight': '#78a8d0',     // sky steel
     };
     return colorMap[statName] || '#888';
 }

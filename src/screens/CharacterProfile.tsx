@@ -143,8 +143,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                     const totalBlocks = 20;
                                     const filledBlocks = Math.round((value / 100) * totalBlocks);
                                     return (
-                                        <div key={statDef.name} className="stat-row">
-                                            <div className="stat-row-left">
+                                        <div key={statDef.name} className="stat-row" style={{ '--stat-color': statColor } as React.CSSProperties}>
+                                            <div className="stat-row-header">
                                                 <span 
                                                     className="stat-grade-letter" 
                                                     style={{ color: gradeColor }}
@@ -154,8 +154,9 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                                 <span className="stat-name" style={{ color: statColor }}>
                                                     {statDef.label}
                                                 </span>
+                                                <span className="stat-value-num" style={{ color: statColor }}>{value}</span>
                                             </div>
-                                            <div className="stat-row-right">
+                                            <div className="stat-bar-row">
                                                 <div className="stat-blocks-container">
                                                     {Array.from({ length: totalBlocks }).map((_, i) => {
                                                         const isFilled = i < filledBlocks;
@@ -163,11 +164,9 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                                                             <div
                                                                 key={i}
                                                                 className={`stat-block ${isFilled ? 'filled' : ''}`}
-                                                                style={isFilled ? {
+                                                                style={{
                                                                     ['--stat-fill-color' as any]: statColor,
-                                                                    borderColor: statColor,
-                                                                } : {
-                                                                    borderColor: statColor,
+                                                                    borderColor: isFilled ? statColor : `color-mix(in srgb, ${statColor} 25%, transparent)`,
                                                                 }}
                                                             />
                                                         );
