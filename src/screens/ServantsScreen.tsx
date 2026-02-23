@@ -770,128 +770,135 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                     <div className="task-preview">
                         {previewTask ? (
                             <>
-                                <div className="task-preview-icon" style={{ color: previewTask.color }}>
-                                    <GameIcon icon={previewTask.icon} size={28} />
-                                </div>
-                                <h4 className="task-preview-name" style={{ color: previewTask.color }}>
-                                    {previewTask.name}
-                                </h4>
-                                <span className="task-preview-category">
-                                    <GameIcon icon={getTaskCategoryIcon(previewTask.category)} size={11} />
-                                    {getTaskCategoryLabel(previewTask.category)}
-                                    {previewTask.roomType && <> · {getRoomTypeLabel(previewTask.roomType)}</>}
-                                    {previewTask.location && <> · {previewTask.location}</>}
-                                </span>
-                                <p className="task-preview-desc">{previewTask.description}</p>
-
-                                {/* Duration & cost */}
-                                <div className="task-preview-meta">
-                                    <div className="task-preview-meta-item">
-                                        <GameIcon icon="clock" size={12} />
-                                        <span>{previewTask.duration} turn{previewTask.duration !== 1 ? 's' : ''}</span>
+                                <div className="task-preview-scroll">
+                                    <div className="task-preview-icon" style={{ color: previewTask.color }}>
+                                        <GameIcon icon={previewTask.icon} size={28} />
                                     </div>
-                                    {previewTask.manaCost ? (
-                                        <div className="task-preview-meta-item mana">
-                                            <GameIcon icon="sparkles" size={12} />
-                                            <span>{previewTask.manaCost} mana</span>
-                                        </div>
-                                    ) : null}
-                                </div>
-
-                                {/* Requirements */}
-                                {previewTask.requirements.length > 0 && (
-                                    <div className="task-preview-section">
-                                        <h5>Requirements</h5>
-                                        {previewTask.requirements.map((req, i) => {
-                                            const current = target.stats[req.stat] ?? 0;
-                                            const met = current >= req.minimum;
-                                            return (
-                                                <div key={i} className={`task-preview-req ${met ? 'met' : 'unmet'}`}>
-                                                    <span className="task-req-icon">{met ? '✓' : '✗'}</span>
-                                                    <span className="task-req-stat">{req.stat}</span>
-                                                    <span className="task-req-values">{current} / {req.minimum}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Trait modifiers on this servant */}
-                                {previewTask.traitModifiers.length > 0 && (
-                                    <div className="task-preview-section">
-                                        <h5>Trait Effects</h5>
-                                        {previewTask.traitModifiers.map((mod, i) => {
-                                            const isActive = previewTraitMods.some(a => a.modifier.traitKey === mod.traitKey);
-                                            return (
-                                                <div key={i} className={`task-preview-trait-mod ${isActive ? 'active' : 'inactive'} ${mod.effect}`}>
-                                                    <span className="task-trait-indicator">{mod.effect === 'bonus' ? '+' : '−'}</span>
-                                                    <span className="task-trait-name">{mod.traitKey}</span>
-                                                    <span className="task-trait-desc">{mod.description}</span>
-                                                    {isActive && <span className="task-trait-active-badge">Active</span>}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Expected rewards */}
-                                <div className="task-preview-section">
-                                    <h5>Rewards</h5>
-                                    {previewTask.rewards.map((reward, i) => (
-                                        <div key={i} className="task-preview-reward">
-                                            <span className="task-reward-icon">
-                                                {reward.type === 'gold' && <GameIcon icon="coins" size={12} />}
-                                                {reward.type === 'mana' && <GameIcon icon="sparkles" size={12} />}
-                                                {reward.type === 'item' && <GameIcon icon="package" size={12} />}
-                                                {reward.type === 'stat' && <GameIcon icon="trending-up" size={12} />}
-                                                {reward.type === 'household' && <GameIcon icon="building" size={12} />}
-                                            </span>
-                                            <span className="task-reward-text">
-                                                {reward.type === 'gold' && `${reward.amount} Gold`}
-                                                {reward.type === 'mana' && `${reward.amount} Mana`}
-                                                {reward.type === 'item' && `${reward.amount}× ${reward.itemName}`}
-                                                {reward.type === 'stat' && `+${reward.amount} ${reward.stat}`}
-                                                {reward.type === 'household' && `+${reward.amount} ${reward.stat}`}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Expected quality */}
-                                <div className="task-preview-quality">
-                                    <span className="task-quality-label">Expected Quality</span>
-                                    <span className={`task-quality-badge quality-${previewQuality}`}>
-                                        {previewQuality === 'excellent' ? '★★★ Excellent' : previewQuality === 'standard' ? '★★ Standard' : '★ Poor'}
+                                    <h4 className="task-preview-name" style={{ color: previewTask.color }}>
+                                        {previewTask.name}
+                                    </h4>
+                                    <span className="task-preview-category">
+                                        <GameIcon icon={getTaskCategoryIcon(previewTask.category)} size={11} />
+                                        {previewTask.roomType
+                                            ? getRoomTypeLabel(previewTask.roomType)
+                                            : getTaskCategoryLabel(previewTask.category)}
+                                        {previewTask.location && <> · {previewTask.location}</>}
                                     </span>
-                                </div>
+                                    <p className="task-preview-desc">{previewTask.description}</p>
 
-                                {/* Role bonus */}
-                                {previewTask.roleBonus && (
-                                    <div className="task-preview-role-bonus">
-                                        <GameIcon icon="shield-plus" size={12} />
-                                        <span>
-                                            Role bonus: {(() => {
-                                                const role = getRoleById(previewTask.roleBonus!);
-                                                const hasBonus = target.assignedRole === previewTask.roleBonus;
-                                                return role ? (
-                                                    <span className={hasBonus ? 'bonus-active' : 'bonus-inactive'}>
-                                                        {role.name} {hasBonus ? '(active)' : '(not assigned)'}
-                                                    </span>
-                                                ) : null;
-                                            })()}
+                                    {/* Duration & cost */}
+                                    <div className="task-preview-meta">
+                                        <div className="task-preview-meta-item">
+                                            <GameIcon icon="clock" size={12} />
+                                            <span>{previewTask.duration} turn{previewTask.duration !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        {previewTask.manaCost ? (
+                                            <div className="task-preview-meta-item mana">
+                                                <GameIcon icon="sparkles" size={12} />
+                                                <span>{previewTask.manaCost} mana</span>
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    {/* Requirements */}
+                                    {previewTask.requirements.length > 0 && (
+                                        <div className="task-preview-section">
+                                            <h5>Requirements</h5>
+                                            {previewTask.requirements.map((req, i) => {
+                                                const current = target.stats[req.stat] ?? 0;
+                                                const met = current >= req.minimum;
+                                                return (
+                                                    <div key={i} className={`task-preview-req ${met ? 'met' : 'unmet'}`}>
+                                                        <span className="task-req-icon">{met ? '✓' : '✗'}</span>
+                                                        <span className="task-req-stat">{req.stat}</span>
+                                                        <span className="task-req-values">{current} / {req.minimum}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Trait modifiers on this servant */}
+                                    {previewTask.traitModifiers.length > 0 && (
+                                        <div className="task-preview-section">
+                                            <h5>Trait Effects</h5>
+                                            {previewTask.traitModifiers.map((mod, i) => {
+                                                const isActive = previewTraitMods.some(a => a.modifier.traitKey === mod.traitKey);
+                                                return (
+                                                    <div key={i} className={`task-preview-trait-mod ${isActive ? 'active' : 'inactive'} ${mod.effect}`}>
+                                                        <div className="task-trait-header">
+                                                            <span className="task-trait-indicator">{mod.effect === 'bonus' ? '+' : '−'}</span>
+                                                            <span className="task-trait-name">{mod.traitKey}</span>
+                                                            {isActive && <span className="task-trait-active-badge">Active</span>}
+                                                        </div>
+                                                        <span className="task-trait-desc">{mod.description}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Expected rewards */}
+                                    <div className="task-preview-section">
+                                        <h5>Rewards</h5>
+                                        {previewTask.rewards.map((reward, i) => (
+                                            <div key={i} className="task-preview-reward">
+                                                <span className="task-reward-icon">
+                                                    {reward.type === 'gold' && <GameIcon icon="coins" size={12} />}
+                                                    {reward.type === 'mana' && <GameIcon icon="sparkles" size={12} />}
+                                                    {reward.type === 'item' && <GameIcon icon="package" size={12} />}
+                                                    {reward.type === 'stat' && <GameIcon icon="trending-up" size={12} />}
+                                                    {reward.type === 'household' && <GameIcon icon="building" size={12} />}
+                                                </span>
+                                                <span className="task-reward-text">
+                                                    {reward.type === 'gold' && `${reward.amount} Gold`}
+                                                    {reward.type === 'mana' && `${reward.amount} Mana`}
+                                                    {reward.type === 'item' && `${reward.amount}× ${reward.itemName}`}
+                                                    {reward.type === 'stat' && `+${reward.amount} ${reward.stat}`}
+                                                    {reward.type === 'household' && `+${reward.amount} ${reward.stat}`}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Expected quality */}
+                                    <div className="task-preview-quality">
+                                        <span className="task-quality-label">Expected Quality</span>
+                                        <span className={`task-quality-badge quality-${previewQuality}`}>
+                                            {previewQuality === 'excellent' ? '★★★ Excellent' : previewQuality === 'standard' ? '★★ Standard' : '★ Poor'}
                                         </span>
                                     </div>
-                                )}
 
-                                <button
-                                    className="task-preview-assign-btn"
-                                    disabled={!previewReqCheck?.met || !!target.activeTask}
-                                    onClick={() => onAssign(previewTask.id)}
-                                >
-                                    {target.activeTask ? 'Already on a Task' :
-                                     !previewReqCheck?.met ? 'Requirements Not Met' :
-                                     `Assign ${previewTask.name} to ${target.name}`}
-                                </button>
+                                    {/* Role bonus */}
+                                    {previewTask.roleBonus && (
+                                        <div className="task-preview-role-bonus">
+                                            <GameIcon icon="shield-plus" size={12} />
+                                            <span>
+                                                Role bonus: {(() => {
+                                                    const role = getRoleById(previewTask.roleBonus!);
+                                                    const hasBonus = target.assignedRole === previewTask.roleBonus;
+                                                    return role ? (
+                                                        <span className={hasBonus ? 'bonus-active' : 'bonus-inactive'}>
+                                                            {role.name} {hasBonus ? '(active)' : '(not assigned)'}
+                                                        </span>
+                                                    ) : null;
+                                                })()}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="task-preview-footer">
+                                    <button
+                                        className="task-preview-assign-btn"
+                                        disabled={!previewReqCheck?.met || !!target.activeTask}
+                                        onClick={() => onAssign(previewTask.id)}
+                                    >
+                                        {target.activeTask ? 'Already on a Task' :
+                                         !previewReqCheck?.met ? 'Requirements Not Met' :
+                                         `Assign ${previewTask.name} to ${target.name}`}
+                                    </button>
+                                </div>
                             </>
                         ) : (
                             <div className="task-preview-empty">

@@ -22,6 +22,10 @@ import {
     List, ScrollText, Shield, ScanEye, Ghost,
     // Extra spell icons
     Music, Cloud, Waves, Hand, Droplets, Sun, Feather,
+    // Task icons
+    Utensils, PawPrint, Wine, ShoppingBag, Trees, Compass,
+    Drama, Building, ListTodo, Clock, ChevronDown, ChevronRight,
+    TrendingUp, ShieldPlus,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -128,6 +132,24 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     droplets: Droplets,
     sun: Sun,
     feather: Feather,
+
+    // ── Task Icons ──
+    utensils: Utensils,
+    'flask-conical': FlaskConical,
+    'scroll-text': ScrollText,
+    'paw-print': PawPrint,
+    wine: Wine,
+    'shopping-bag': ShoppingBag,
+    trees: Trees,
+    compass: Compass,
+    drama: Drama,
+    building: Building,
+    'list-todo': ListTodo,
+    clock: Clock,
+    'chevron-down': ChevronDown,
+    'chevron-right': ChevronRight,
+    'trending-up': TrendingUp,
+    'shield-plus': ShieldPlus,
 };
 
 export interface GameIconProps {

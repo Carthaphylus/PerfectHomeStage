@@ -160,7 +160,7 @@
 
 .task-modal {
   width: min(820px, 94vw);
-  max-height: 85vh;
+  height: 85vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(42, 32, 52, 0.98) 0%, rgba(28, 20, 36, 0.99) 100%);
@@ -233,27 +233,28 @@
 
   .task-modal-body {
     display: flex;
-    flex: 1;
-    min-height: 0;
     overflow: hidden;
+    max-height: calc(85vh - 60px);
   }
 
   // Left: scrollable task list
   .task-list {
     flex: 1;
+    max-height: calc(85vh - 60px);
     overflow-y: scroll !important;
+    overflow-x: hidden;
     padding: 10px;
     padding-right: 6px;
     border-right: 1px solid rgba(200, 170, 110, 0.08);
     scrollbar-width: thin;
     scrollbar-color: rgba(200, 170, 110, 0.3) rgba(200, 170, 110, 0.04);
 
-    &::-webkit-scrollbar { width: 6px !important; }
-    &::-webkit-scrollbar-track { background: rgba(200, 170, 110, 0.04) !important; border-radius: 3px; }
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: rgba(200, 170, 110, 0.04); border-radius: 3px; }
     &::-webkit-scrollbar-thumb {
-      background: rgba(200, 170, 110, 0.3) !important;
+      background: rgba(200, 170, 110, 0.3);
       border-radius: 3px;
-      &:hover { background: rgba(200, 170, 110, 0.4) !important; }
+      &:hover { background: rgba(200, 170, 110, 0.4); }
     }
 
     .task-group {
@@ -373,30 +374,49 @@
     }
   }
 
-  // Right: task preview
+  // Right: task preview — scrollable with sticky footer
   .task-preview {
-    width: 280px;
+    width: 300px;
     flex-shrink: 0;
-    padding: 16px;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    max-height: calc(85vh - 60px);
+    overflow: hidden;
 
-    scrollbar-width: thin;
-    scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+    .task-preview-scroll {
+      max-height: calc(85vh - 120px);
+      overflow-y: scroll !important;
+      overflow-x: hidden;
+      padding: 20px 18px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(200, 170, 110, 0.2) transparent;
+
+      &::-webkit-scrollbar { width: 5px; }
+      &::-webkit-scrollbar-track { background: transparent; }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(200, 170, 110, 0.25);
+        border-radius: 3px;
+        &:hover { background: rgba(200, 170, 110, 0.4); }
+      }
+    }
 
     .task-preview-icon {
-      font-size: 42px;
+      font-size: 36px;
       margin-bottom: 6px;
+      flex-shrink: 0;
     }
 
     .task-preview-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: rgba(240, 230, 210, 0.95);
       margin: 0 0 4px;
       text-align: center;
+      line-height: 1.3;
+      flex-shrink: 0;
     }
 
     .task-preview-category {
@@ -406,29 +426,34 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
     }
 
     .task-preview-desc {
       font-size: 11px;
       line-height: 1.5;
-      color: rgba(240, 230, 210, 0.6);
+      color: rgba(240, 230, 210, 0.55);
       text-align: center;
       margin: 0 0 14px;
+      padding: 0 4px;
+      flex-shrink: 0;
     }
 
     .task-preview-meta {
       display: flex;
-      gap: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 14px;
+      flex-shrink: 0;
 
       .task-preview-meta-item {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
         font-size: 11px;
         color: rgba(240, 230, 210, 0.6);
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 4px;
         background: rgba(200, 170, 110, 0.06);
         border: 1px solid rgba(200, 170, 110, 0.1);
@@ -441,16 +466,20 @@
       }
     }
 
+    // ── Sections ──
     .task-preview-section {
       width: 100%;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      flex-shrink: 0;
 
       h5 {
-        font-size: 10px;
+        font-size: 9px;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        color: rgba(200, 170, 110, 0.55);
-        margin: 0 0 6px;
+        letter-spacing: 1.2px;
+        color: rgba(200, 170, 110, 0.5);
+        margin: 0 0 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(200, 170, 110, 0.06);
       }
 
       // Requirements
@@ -458,13 +487,15 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 4px 6px;
+        padding: 5px 8px;
         font-size: 11px;
         border-radius: 4px;
+        margin-bottom: 3px;
 
         .task-req-icon {
           font-size: 12px;
           font-weight: 700;
+          flex-shrink: 0;
         }
 
         .task-req-stat {
@@ -476,6 +507,7 @@
         .task-req-values {
           font-size: 10px;
           color: rgba(240, 230, 210, 0.5);
+          flex-shrink: 0;
         }
 
         &.met {
@@ -489,53 +521,64 @@
         }
       }
 
-      // Trait modifiers
+      // Trait modifiers — stacked layout
       .task-preview-trait-mod {
         display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 6px;
+        flex-direction: column;
+        gap: 2px;
+        padding: 6px 8px;
         font-size: 11px;
-        border-radius: 4px;
-        margin-bottom: 2px;
+        border-radius: 5px;
+        margin-bottom: 4px;
+        border: 1px solid transparent;
+
+        .task-trait-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
 
         .task-trait-indicator {
           font-size: 13px;
           font-weight: 700;
           width: 14px;
           text-align: center;
+          flex-shrink: 0;
         }
 
         .task-trait-name {
           font-weight: 600;
           text-transform: capitalize;
           color: rgba(240, 230, 210, 0.7);
-          min-width: 70px;
-        }
-
-        .task-trait-desc {
-          flex: 1;
-          font-size: 10px;
-          color: rgba(240, 230, 210, 0.4);
         }
 
         .task-trait-active-badge {
-          font-size: 8px;
+          font-size: 7px;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
-          padding: 1px 5px;
+          letter-spacing: 0.8px;
+          padding: 1px 6px;
           border-radius: 6px;
           flex-shrink: 0;
+          margin-left: auto;
+        }
+
+        .task-trait-desc {
+          font-size: 10px;
+          line-height: 1.4;
+          color: rgba(240, 230, 210, 0.35);
+          padding-left: 20px;
         }
 
         &.inactive {
-          opacity: 0.4;
+          opacity: 0.35;
         }
 
         &.active {
           &.bonus {
-            background: rgba(130, 200, 170, 0.06);
+            background: rgba(130, 200, 170, 0.04);
+            border-color: rgba(130, 200, 170, 0.08);
             .task-trait-indicator { color: rgba(130, 200, 170, 0.85); }
+            .task-trait-desc { color: rgba(130, 200, 170, 0.45); }
             .task-trait-active-badge {
               background: rgba(130, 200, 170, 0.12);
               color: rgba(130, 200, 170, 0.85);
@@ -543,8 +586,10 @@
             }
           }
           &.penalty {
-            background: rgba(180, 80, 80, 0.06);
+            background: rgba(180, 80, 80, 0.04);
+            border-color: rgba(180, 80, 80, 0.08);
             .task-trait-indicator { color: rgba(180, 80, 80, 0.85); }
+            .task-trait-desc { color: rgba(180, 80, 80, 0.45); }
             .task-trait-active-badge {
               background: rgba(180, 80, 80, 0.12);
               color: rgba(180, 80, 80, 0.85);
@@ -558,8 +603,8 @@
       .task-preview-reward {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 3px 0;
+        gap: 8px;
+        padding: 4px 0;
 
         .task-reward-icon {
           color: rgba(200, 170, 110, 0.6);
@@ -583,11 +628,12 @@
       background: rgba(200, 170, 110, 0.04);
       border: 1px solid rgba(200, 170, 110, 0.08);
       margin-bottom: 10px;
+      flex-shrink: 0;
 
       .task-quality-label {
-        font-size: 10px;
+        font-size: 9px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
         color: rgba(200, 170, 110, 0.5);
       }
     }
@@ -600,6 +646,7 @@
       font-size: 11px;
       color: rgba(240, 230, 210, 0.5);
       margin-bottom: 12px;
+      flex-shrink: 0;
 
       .bonus-active {
         color: rgba(130, 200, 170, 0.85);
@@ -610,6 +657,14 @@
         color: rgba(240, 230, 210, 0.4);
         font-style: italic;
       }
+    }
+
+    // Sticky footer with assign button
+    .task-preview-footer {
+      flex: 0 0 auto;
+      padding: 10px 18px 14px;
+      border-top: 1px solid rgba(200, 170, 110, 0.08);
+      background: linear-gradient(0deg, rgba(28, 20, 36, 0.98) 0%, rgba(28, 20, 36, 0.85) 100%);
     }
 
     .task-preview-assign-btn {
