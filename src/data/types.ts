@@ -70,6 +70,7 @@ export interface TaskDefinition {
     location?: Location; // required location for exploration tasks
     roleBonus?: string; // role id that gives a quality bonus
     manaCost?: number;
+    staminaCost?: number; // stamina cost deducted from the servant
     primaryStat?: StatName; // main stat used for quality calculation
 }
 
@@ -104,6 +105,8 @@ export interface Servant {
     stats: Record<StatName, number>; // 0-100 values
     love: number; // 0-100
     obedience: number; // 0-100
+    stamina: number; // 0-100 — current stamina
+    maxStamina: number; // maximum stamina (default 100)
     servantTitle?: string;     // conversion archetype title e.g. "Handmaiden", "Loyal Pet"
     servantTitleColor?: string;  // hex color for the title badge
     activeTask?: ActiveTask;

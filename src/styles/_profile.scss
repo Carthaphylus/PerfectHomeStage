@@ -614,6 +614,19 @@
             background: linear-gradient(90deg, #2a3a6b, #7898e8);
           }
         }
+
+        // Stamina gauge
+        &.stamina-gauge {
+          .service-gauge-icon { color: #e8c84a; }
+          .service-gauge-value { color: #e8c84a; }
+          .service-gauge-fill {
+            background: linear-gradient(90deg, #6b5a2a, #c4a636, #e8c84a);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+          }
+          .service-gauge-glow {
+            background: linear-gradient(90deg, #6b5a2a, #e8c84a);
+          }
+        }
       }
 
       // ── Conditioning Seal ──

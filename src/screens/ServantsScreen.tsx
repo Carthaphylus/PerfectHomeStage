@@ -215,6 +215,17 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                         <div className="service-gauge-glow" style={{ width: `${s.obedience}%` }} />
                                     </div>
                                 </div>
+                                <div className="service-gauge stamina-gauge">
+                                    <div className="service-gauge-header">
+                                        <span className="service-gauge-icon">⚡</span>
+                                        <span className="service-gauge-label">Stamina</span>
+                                        <span className="service-gauge-value">{s.stamina ?? 100}<small>/{s.maxStamina ?? 100}</small></span>
+                                    </div>
+                                    <div className="service-gauge-track">
+                                        <div className="service-gauge-fill" style={{ width: `${((s.stamina ?? 100) / (s.maxStamina ?? 100)) * 100}%` }} />
+                                        <div className="service-gauge-glow" style={{ width: `${((s.stamina ?? 100) / (s.maxStamina ?? 100)) * 100}%` }} />
+                                    </div>
+                                </div>
                             </div>
 
                             {/* ── Conditioning seal ── */}
@@ -458,6 +469,12 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                             <span className="servant-mini-bar-label"><GameIcon icon="link" size={10} className="icon-purple" /></span>
                                             <div className="servant-mini-bar-track">
                                                 <div className="servant-mini-bar-fill" style={{ width: `${servant.obedience}%` }} />
+                                            </div>
+                                        </div>
+                                        <div className="servant-mini-bar stamina-bar">
+                                            <span className="servant-mini-bar-label"><GameIcon icon="zap" size={10} className="icon-yellow" /></span>
+                                            <div className="servant-mini-bar-track">
+                                                <div className="servant-mini-bar-fill" style={{ width: `${((servant.stamina ?? 100) / (servant.maxStamina ?? 100)) * 100}%` }} />
                                             </div>
                                         </div>
                                     </div>
@@ -805,6 +822,9 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                         {task.manaCost ? (
                             <span className="task-card-mana"><GameIcon icon="sparkles" size={9} /> {task.manaCost}</span>
                         ) : null}
+                        {task.staminaCost ? (
+                            <span className="task-card-stamina"><GameIcon icon="zap" size={9} /> {task.staminaCost}</span>
+                        ) : null}
                     </span>
                 </div>
                 <div className={`task-card-suitability suitability-${isLocked ? 'locked' : quality}`}>
@@ -919,6 +939,12 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                                             <div className="task-info-chip mana">
                                                 <GameIcon icon="sparkles" size={12} />
                                                 <span>{previewTask.manaCost} mana</span>
+                                            </div>
+                                        ) : null}
+                                        {previewTask.staminaCost ? (
+                                            <div className={`task-info-chip stamina ${(target.stamina ?? 100) < previewTask.staminaCost ? 'insufficient' : ''}`}>
+                                                <GameIcon icon="zap" size={12} />
+                                                <span>{previewTask.staminaCost} stamina</span>
                                             </div>
                                         ) : null}
                                         {previewTask.roleBonus && (() => {
@@ -1047,11 +1073,12 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                                 <div className="task-detail-footer">
                                     <button
                                         className="task-detail-assign-btn"
-                                        disabled={!previewReqCheck?.met || !!target.activeTask}
+                                        disabled={!previewReqCheck?.met || !!target.activeTask || (previewTask.staminaCost ? (target.stamina ?? 100) < previewTask.staminaCost : false)}
                                         onClick={() => onAssign(previewTask.id)}
                                     >
                                         {target.activeTask ? 'Already on a Task' :
                                          !previewReqCheck?.met ? 'Requirements Not Met' :
+                                         (previewTask.staminaCost && (target.stamina ?? 100) < previewTask.staminaCost) ? 'Not Enough Stamina' :
                                          'Assign Task'}
                                     </button>
                                 </div>

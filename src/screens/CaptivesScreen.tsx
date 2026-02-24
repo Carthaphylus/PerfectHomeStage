@@ -55,6 +55,8 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                 stats: hero.stats,
                 love: 50,
                 obedience: 100,
+                stamina: 100,
+                maxStamina: 100,
             };
             delete stage().currentState.heroes[heroName];
             setSelectedCaptive(null);

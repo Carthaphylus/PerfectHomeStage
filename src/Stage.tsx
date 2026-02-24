@@ -240,6 +240,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     stats: CHARACTER_DATA.Felicity.stats,
                     love: 80,
                     obedience: 75,
+                    stamina: 100,
+                    maxStamina: 100,
                     servantTitle: 'Handmaiden',
                     servantTitleColor: '#e85d9a',
                     activeTask: undefined,
@@ -255,6 +257,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     stats: CHARACTER_DATA.Locke.stats,
                     love: 60,
                     obedience: 85,
+                    stamina: 100,
+                    maxStamina: 100,
                     servantTitle: 'Butler',
                     servantTitleColor: '#6a8caf',
                     activeTask: undefined,
@@ -531,6 +535,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         stats: charData.stats,
                         love: 100,
                         obedience: 100,
+                        stamina: 100,
+                        maxStamina: 100,
                     };
                     delete this.currentState.heroes[heroName];
                     this.chatState.totalServantsConverted++;
@@ -729,6 +735,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             this.currentState.stats.mana -= task.manaCost;
         }
 
+        // Deduct stamina cost if applicable
+        if (task.staminaCost && task.staminaCost > 0) {
+            const currentStamina = servant.stamina ?? 100;
+            if (currentStamina < task.staminaCost) {
+                return { success: false, error: `Not enough stamina (${currentStamina}/${task.staminaCost})` };
+            }
+            servant.stamina = currentStamina - task.staminaCost;
+        }
+
         // Create active task
         servant.activeTask = {
             definitionId: taskId,
@@ -751,6 +766,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             this.currentState.stats.mana = Math.min(
                 this.currentState.stats.maxMana,
                 this.currentState.stats.mana + task.manaCost,
+            );
+        }
+
+        // Refund stamina cost if cancelled on the same turn it was assigned
+        if (task?.staminaCost && servant.activeTask.turnsRemaining === task.duration) {
+            servant.stamina = Math.min(
+                servant.maxStamina ?? 100,
+                (servant.stamina ?? 0) + task.staminaCost,
             );
         }
 
@@ -1636,6 +1659,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             stats: hero.stats,
             love: 50,
             obedience: 100,
+            stamina: 100,
+            maxStamina: 100,
             servantTitle: servantTitle || archetype.name,
             servantTitleColor: servantTitleColor || archetype.color,
             personalHistory: hero.personalHistory,
@@ -1674,6 +1699,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             stats: hero.stats,
             love: 50,
             obedience: 100,
+            stamina: 100,
+            maxStamina: 100,
             servantTitle: servantTitle,
             servantTitleColor: servantTitleColor,
             personalHistory: hero.personalHistory,
@@ -2036,6 +2063,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                             stats: hero.stats,
                             love: 50,
                             obedience: 100,
+                            stamina: 100,
+                            maxStamina: 100,
                         };
                         delete this.currentState.heroes[effectTarget];
                         this.currentState.stats.servants += 1;
