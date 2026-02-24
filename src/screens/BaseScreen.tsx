@@ -103,6 +103,16 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         }
     }, [stage]);
 
+    /** Start a multi-servant chat via the event system */
+    const startMultiServantChat = useCallback((servantNames: string[], location: string) => {
+        const eventData = stage().startMultiServantChat(servantNames, location);
+        if (eventData) {
+            setActiveEvent(eventData);
+            setReturnScreen(ScreenType.SERVANTS);
+            setScreenType(ScreenType.EVENT);
+        }
+    }, [stage]);
+
     /** Start exploring a location */
     const startExplore = useCallback((location: Location) => {
         setExploreLocation(location);
@@ -131,7 +141,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                 <CaptivesScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} startConversion={startConversion} />
             )}
             {screenType === ScreenType.SERVANTS && (
-                <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} startServantChat={startServantChat} />
+                <ServantsScreen stage={stage} setScreenType={setScreenType} startScene={startScene} startServantChat={startServantChat} startMultiServantChat={startMultiServantChat} />
             )}
             {screenType === ScreenType.PC_PROFILE && (
                 <PCProfileScreen stage={stage} setScreenType={setScreenType} />

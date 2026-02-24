@@ -16,9 +16,10 @@ interface ServantsScreenProps {
     setScreenType: (type: ScreenType) => void;
     startScene: (participants: string[], location: string) => void;
     startServantChat: (servantName: string, location: string) => void;
+    startMultiServantChat: (servantNames: string[], location: string) => void;
 }
 
-export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene, startServantChat }) => {
+export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, startScene, startServantChat, startMultiServantChat }) => {
     const servants = Object.values(stage().currentState.servants);
     const [selectedServant, setSelectedServant] = useState<Servant | null>(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
@@ -28,9 +29,37 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
     const [lastTaskOutcome, setLastTaskOutcome] = useState<{ servantName: string; outcome: TaskOutcome } | null>(null);
     const [, forceUpdate] = useState(0);
 
+    // Multi-chat selection state
+    const [multiSelectMode, setMultiSelectMode] = useState(false);
+    const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+
     const handleStartChat = (servant: Servant) => {
         const location = stage().currentState.location;
         startServantChat(servant.name, location);
+    };
+
+    const toggleMultiSelect = (servantName: string) => {
+        setMultiSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(servantName)) {
+                next.delete(servantName);
+            } else {
+                next.add(servantName);
+            }
+            return next;
+        });
+    };
+
+    const handleStartMultiChat = () => {
+        if (multiSelected.size < 2) return;
+        startMultiServantChat(Array.from(multiSelected), 'Manor');
+        setMultiSelectMode(false);
+        setMultiSelected(new Set());
+    };
+
+    const cancelMultiSelect = () => {
+        setMultiSelectMode(false);
+        setMultiSelected(new Set());
     };
 
     const openRoleModal = (servant: Servant) => {
@@ -336,10 +365,42 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                     &lt; Menu
                 </button>
                 <h2>Servants</h2>
-                <div className="header-spacer"></div>
+                <div className="header-spacer header-spacer-wide">
+                    {servants.length >= 2 && !multiSelectMode && (
+                        <button
+                            className="multi-chat-toggle-btn"
+                            onClick={() => setMultiSelectMode(true)}
+                            title="Start a group chat with multiple servants"
+                        >
+                            <GameIcon icon="users" size={12} /> Group Chat
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="servants-content">
+                {/* Multi-select bar */}
+                {multiSelectMode && (
+                    <div className="multi-select-bar">
+                        <span className="multi-select-info">
+                            <GameIcon icon="users" size={12} />
+                            Select servants for group chat ({multiSelected.size} selected)
+                        </span>
+                        <div className="multi-select-actions">
+                            <button
+                                className="multi-select-start-btn"
+                                disabled={multiSelected.size < 2}
+                                onClick={handleStartMultiChat}
+                            >
+                                <GameIcon icon="message-circle" size={12} />
+                                Start Chat ({multiSelected.size})
+                            </button>
+                            <button className="multi-select-cancel-btn" onClick={cancelMultiSelect}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <div className="servants-grid">
                     {servants.length === 0 ? (
                         <div className="empty-message">No servants yet...</div>
@@ -351,10 +412,15 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                             return (
                                 <div 
                                     key={servant.name} 
-                                    className="servant-card"
+                                    className={`servant-card ${multiSelectMode ? 'multi-select-mode' : ''} ${multiSelected.has(servant.name) ? 'multi-selected' : ''}`}
                                     style={{ '--char-color': servant.color } as React.CSSProperties}
-                                    onClick={() => setSelectedServant(servant)}
+                                    onClick={() => multiSelectMode ? toggleMultiSelect(servant.name) : setSelectedServant(servant)}
                                 >
+                                    {multiSelectMode && (
+                                        <div className={`multi-select-check ${multiSelected.has(servant.name) ? 'checked' : ''}`}>
+                                            {multiSelected.has(servant.name) ? '✓' : ''}
+                                        </div>
+                                    )}
                                     <div className="servant-card-avatar">
                                         <img src={servant.avatar} alt={servant.name} />
                                     </div>
@@ -396,9 +462,10 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                                         </div>
                                     </div>
                                     <button
-                                        className="servant-chat-btn"
+                                        className={`servant-chat-btn ${multiSelectMode ? 'hidden' : ''}`}
                                         onClick={(e) => { e.stopPropagation(); handleStartChat(servant); }}
                                         title={`Chat with ${servant.name}`}
+                                        disabled={multiSelectMode}
                                     >
                                         <GameIcon icon="message-circle" size={12} />
                                     </button>

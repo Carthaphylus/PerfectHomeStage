@@ -1304,6 +1304,305 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return this.startEvent(eventId, servantName);
     }
 
+    /**
+     * Start a multi-servant chat as an event.
+     * Creates a dynamic event definition with multiple participants.
+     * Uses vars.participants to store the full list.
+     * Uses vars.activeSpeaker to track who the LLM should respond as.
+     */
+    startMultiServantChat(servantNames: string[], location: string): ActiveEvent | null {
+        if (servantNames.length === 0) return null;
+        const eventId = 'multi_servant_chat';
+        const participantList = servantNames.join(', ');
+        const chatEvent: EventDefinition = {
+            id: eventId,
+            name: `Group Chat`,
+            description: `A group conversation with ${participantList}.`,
+            icon: 'users',
+            category: 'social',
+            startStep: 'session',
+            steps: {
+                session: {
+                    id: 'session',
+                    text: `*You gather ${participantList} at the ${location} for a conversation.*`,
+                    chatPhase: {
+                        context: `Group conversation with servants ${participantList} at the ${location}`,
+                        speaker: servantNames[0],
+                        location: location,
+                        skippable: true,
+                        minMessages: 0,
+                    },
+                    isEnding: true,
+                    onEnter: (ctx: EventContext) => {
+                        ctx.vars.participants = [...servantNames];
+                        ctx.vars.activeSpeaker = servantNames[0];
+                        ctx.stage.startEventChat();
+                    },
+                },
+            },
+        };
+
+        this.registerEvent(chatEvent);
+        const result = this.startEvent(eventId, servantNames[0]);
+        // Ensure vars are set even if onEnter ran already
+        if (this._activeEvent) {
+            this._activeEvent.vars.participants = [...servantNames];
+            this._activeEvent.vars.activeSpeaker = servantNames[0];
+        }
+        return result ? { ...this._activeEvent! } : null;
+    }
+
+    /** Set the active speaker for a multi-servant chat */
+    setMultiChatSpeaker(speakerName: string): void {
+        if (this._activeEvent) {
+            this._activeEvent.vars.activeSpeaker = speakerName;
+        }
+    }
+
+    /** Get multi-chat participants list */
+    getMultiChatParticipants(): string[] {
+        return this._activeEvent?.vars.participants || [];
+    }
+
+    /** Get the currently active speaker for multi-chat */
+    getMultiChatActiveSpeaker(): string {
+        return this._activeEvent?.vars.activeSpeaker || '';
+    }
+
+    /** Check if the current event is a multi-servant chat */
+    isMultiServantChat(): boolean {
+        return this._activeEvent?.definitionId === 'multi_servant_chat';
+    }
+
+    /**
+     * Send a message in a multi-servant chat.
+     * The response comes from the currently active speaker.
+     */
+    async sendMultiEventMessage(text: string, speakerOverride?: string): Promise<SceneMessage | null> {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive || !text.trim()) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const speakerName = speakerOverride || event.vars.activeSpeaker || this.getEventChatSpeaker();
+        this._eventMessages.push({ sender: pcName, text: text.trim() });
+
+        try {
+            this._textGenActive = true;
+            const prompt = this.generateMultiChatPrompt(text.trim(), speakerName);
+            this._lastGeneratedPrompt = prompt;
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 600,
+                stop: [`${pcName}:`, `\n${pcName} `],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+            this._textGenActive = false;
+
+            if (response?.result) {
+                const replyText = response.result.trim();
+                const reply: SceneMessage = { sender: speakerName, text: replyText, _debugContext: prompt };
+                this._eventMessages.push(reply);
+                event.chatMessageCount += 1;
+                return { ...reply };
+            }
+            return null;
+        } catch (e) {
+            this._textGenActive = false;
+            console.error('[Multi Chat] Send failed:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate a reply from a specific speaker in multi-chat WITHOUT adding a new player message.
+     * Used when clicking a portrait to get that character's response to the existing conversation.
+     */
+    async generateMultiChatReply(speakerName: string): Promise<SceneMessage | null> {
+        const event = this._activeEvent;
+        if (!event?.chatPhaseActive) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+
+        try {
+            this._textGenActive = true;
+            // Use last player message or empty string for prompt context
+            const lastPlayerMsg = [...this._eventMessages].reverse().find(m => m.sender === pcName);
+            const prompt = this.generateMultiChatPrompt(lastPlayerMsg?.text || '', speakerName);
+            this._lastGeneratedPrompt = prompt;
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 600,
+                stop: [`${pcName}:`, `\n${pcName} `],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+            this._textGenActive = false;
+
+            if (response?.result) {
+                const replyText = response.result.trim();
+                const reply: SceneMessage = { sender: speakerName, text: replyText, _debugContext: prompt };
+                this._eventMessages.push(reply);
+                event.chatMessageCount += 1;
+                return { ...reply };
+            }
+            return null;
+        } catch (e) {
+            this._textGenActive = false;
+            console.error('[Multi Chat] Reply generation failed:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate a prompt for multi-servant chat.
+     * Each character has their own personality/history but shares scene context.
+     */
+    private generateMultiChatPrompt(_userText: string, activeSpeaker: string): string {
+        const event = this._activeEvent;
+        if (!event) return '';
+
+        const def = this._eventRegistry[event.definitionId];
+        if (!def) return '';
+
+        const step = def.steps[event.currentStepId];
+        if (!step?.chatPhase) return '';
+
+        const chatPhase = step.chatPhase;
+        const pcName = this.currentState.playerCharacter.name;
+        const participants: string[] = event.vars.participants || [activeSpeaker];
+
+        const lines: string[] = [];
+
+        // ── ROLE LOCK ──
+        lines.push(`[SYSTEM INSTRUCTIONS]`);
+        lines.push(`You are roleplaying as ${activeSpeaker}. You are ONLY ${activeSpeaker}.`);
+        lines.push(`NEVER speak as ${pcName}, narrate ${pcName}'s actions, thoughts, or dialogue.`);
+        lines.push(`NEVER speak as any character other than ${activeSpeaker}.`);
+        lines.push(`Other characters present in this scene: ${participants.filter(p => p !== activeSpeaker).join(', ')}. Do NOT speak for them — they will respond on their own.`);
+        lines.push(`NEVER reference events or conversations not described below.`);
+        lines.push(`Stay in character at all times. Do not break the fourth wall.`);
+
+        // ── CHARACTER IDENTITY for the active speaker ──
+        const charData = CHARACTER_DATA[activeSpeaker];
+        const servant = this.currentState.servants[activeSpeaker];
+
+        lines.push(`\n[CHARACTER: ${activeSpeaker}]`);
+
+        const backstory = servant?.backstory;
+        if (backstory && backstory.trim()) {
+            lines.push(`Backstory: ${backstory.trim()}`);
+        } else if (charData) {
+            lines.push(`Personality: ${charData.description}`);
+        }
+
+        if (charData) {
+            lines.push(`Traits: ${charData.traits.join(', ')}`);
+            if (charData.details) {
+                const detailParts = Object.entries(charData.details).map(([k, v]) => `${k}: ${v}`);
+                lines.push(`Details: ${detailParts.join(', ')}`);
+            }
+        }
+
+        lines.push(`\nPlay ${activeSpeaker} as a real person, not a flat archetype. Show inner conflict, hesitation, humor, or vulnerability when appropriate. React to the situation naturally — not every response needs to be dramatic or defiant. Small gestures, pauses, and mixed feelings make the character feel alive.`);
+
+        // ── PERSONAL HISTORY ──
+        const history = servant?.personalHistory;
+        if (history && history.trim()) {
+            lines.push(`\n[${activeSpeaker.toUpperCase()}'S HISTORY]`);
+            lines.push(history.trim());
+        }
+
+        // ── SERVANT STATE ──
+        if (servant) {
+            lines.push(`\n[SERVANT STATE]`);
+            lines.push(`${activeSpeaker} is a converted servant (former ${servant.formerClass}).`);
+            if (servant.description) {
+                lines.push(`Current Persona: ${servant.description}`);
+            }
+            if (servant.archetypeTraits && servant.archetypeTraits.length > 0) {
+                lines.push(`Conversion Traits: ${servant.archetypeTraits.join(', ')}`);
+            }
+            lines.push(`Love: ${servant.love}/100. Obedience: ${servant.obedience}/100.`);
+            const obLines = getObedienceMilestoneDirections(servant.obedience, activeSpeaker, pcName);
+            for (const ol of obLines) lines.push(ol);
+            const loveLines = getLoveMilestoneDirections(servant.love, activeSpeaker, pcName);
+            for (const ll of loveLines) lines.push(ll);
+
+            lines.push(`\n[CONVERSATION GUIDANCE]`);
+            lines.push(`This is a casual group conversation — NOT a conditioning or training session.`);
+            lines.push(`${activeSpeaker} should behave according to their love (${servant.love}/100) and obedience (${servant.obedience}/100) levels.`);
+            lines.push(`Low love → cold, formal, resentful. High love → warm, affectionate, eager to please.`);
+            lines.push(`Low obedience → willful, pushes back, tests boundaries. High obedience → compliant, deferential, anticipates commands.`);
+            lines.push(`Show personality depth: opinions on manor life, memories of their past, reactions to ${pcName}, relationships with the other servants present.`);
+            lines.push(`React naturally to ${pcName}'s words. Do NOT be a blank drone — even obedient servants have personality.`);
+        }
+
+        // ── OTHER CHARACTERS PRESENT (brief info for awareness) ──
+        const otherParticipants = participants.filter(p => p !== activeSpeaker);
+        if (otherParticipants.length > 0) {
+            lines.push(`\n[OTHER CHARACTERS PRESENT]`);
+            for (const name of otherParticipants) {
+                const otherServant = this.currentState.servants[name];
+                const otherData = CHARACTER_DATA[name];
+                if (otherServant) {
+                    lines.push(`- ${name}: ${otherServant.servantTitle || otherServant.formerClass}. Love ${otherServant.love}/100, Obedience ${otherServant.obedience}/100.${otherData ? ` (${otherData.traits.slice(0, 3).join(', ')})` : ''}`);
+                }
+            }
+            lines.push(`${activeSpeaker} may react to or reference the other servants' presence, body language, or previous remarks in the conversation.`);
+        }
+
+        // ── SCENE CONTEXT ──
+        const interpolatedText = step.text
+            .replace(/\{target\}/g, event.target || '')
+            .replace(/\{pc\}/g, pcName);
+        lines.push(`\n[CURRENT SCENE]`);
+        lines.push(interpolatedText);
+
+        // ── CONVERSATION (this session only) ──
+        if (this._eventMessages.length > 0) {
+            const msgs = this._eventMessages.filter(m => m.sender !== '\u00a7system');
+            if (msgs.length > 0) {
+                lines.push(`\n[CONVERSATION SO FAR]`);
+                for (const msg of msgs) {
+                    lines.push(`${msg.sender}: ${msg.text}`);
+                }
+            }
+        }
+
+        // ── NSFW MODE ──
+        if (this.currentState.nsfwMode) {
+            lines.push(`\n[EXPLICIT CONTENT MODE — ACTIVE]`);
+            lines.push(`You will write sexually explicit, graphic, and sensual descriptions.
+                Include detailed physical sensations, arousal, bodily reactions, and intimate acts when contextually appropriate.
+                Use explicit language — but always with a tone that fits the character.
+                Lean into the erotic tension of the power dynamic between ${pcName} and ${activeSpeaker}.`);
+        }
+
+        // ── RESPONSE INSTRUCTIONS ──
+        lines.push(`\n[RESPONSE INSTRUCTIONS]`);
+        lines.push(`Respond in character as ${activeSpeaker}. Use first person.`);
+        lines.push(`React based on your personality and current servant state.`);
+        lines.push(`You may reference the other characters present (${otherParticipants.join(', ')}) but do NOT speak for them.`);
+        lines.push(`Keep responses conversational — 1 to 3 paragraphs.`);
+
+        // ── TEXT FORMATTING RULES ──
+        lines.push(`\n[TEXT FORMATTING RULES]`);
+        lines.push(`- Wrap physical actions in single asterisks: *sighs heavily*`);
+        lines.push(`- Wrap spoken dialogue in double quotes: "I can't resist..."`);
+        lines.push(`- Narration is plain text without markers.`);
+        lines.push(`- Do NOT use ** (double asterisks). Only single * for actions.`);
+        lines.push(`- Do NOT output stat changes, system information, or break character.`);
+
+        lines.push(`\n${activeSpeaker}:`);
+
+        return lines.join('\n');
+    }
+
     // ============================
     // Conversion System
     // ============================
@@ -1964,6 +2263,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** Replace all event messages (for edit/regenerate support) */
     setEventMessages(messages: SceneMessage[]): void {
         this._eventMessages = [...messages];
+    }
+
+    /** Push a player message to event messages without generating a reply */
+    pushPlayerEventMessage(text: string): void {
+        const pcName = this.currentState.playerCharacter.name;
+        this._eventMessages.push({ sender: pcName, text: text.trim() });
     }
 
     /**

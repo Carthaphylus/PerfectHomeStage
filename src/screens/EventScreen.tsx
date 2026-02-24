@@ -529,9 +529,17 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
         setChatSending(true);
         try {
-            const reply = await stage().sendEventMessage(messageText);
-            if (reply) {
-                setChatMessages(prev => [...prev, reply]);
+            const isMulti = stage().isMultiServantChat();
+            if (isMulti) {
+                // Multi-chat: just add the player message, don't auto-generate a reply.
+                // The player clicks a portrait to generate a character's response.
+                // We still need to push the message to the stage's event messages.
+                stage().pushPlayerEventMessage(messageText);
+            } else {
+                const reply = await stage().sendEventMessage(messageText);
+                if (reply) {
+                    setChatMessages(prev => [...prev, reply]);
+                }
             }
             onEventUpdate(stage().getActiveEvent());
         } finally {
@@ -678,18 +686,33 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const handleEndChat = async () => {
         // Save messages before ending (endEventChat clears them)
         const messagesSnapshot = [...chatMessages];
+        const isMulti = stage().isMultiServantChat();
+        const multiParticipantNames = isMulti ? stage().getMultiChatParticipants() : [];
         const speakerName = chatPhase?.speaker
             ? interpolate(chatPhase.speaker, event.target, pcName)
             : null;
 
-        // Generate scene summary if there are messages and we know the speaker
-        if (messagesSnapshot.length > 0 && speakerName) {
+        // Generate scene summary
+        if (messagesSnapshot.length > 0) {
             setGeneratingSummary(true);
             try {
-                const summary = await stage().generateSceneSummary(speakerName, messagesSnapshot);
-                if (summary) {
-                    setSceneSummary(summary);
-                    setSummaryText(summary);
+                if (isMulti && multiParticipantNames.length > 0) {
+                    // For multi-chat: generate one summary and save it to all participants
+                    const primaryName = multiParticipantNames[0];
+                    const summary = await stage().generateSceneSummary(primaryName, messagesSnapshot);
+                    if (summary) {
+                        // Append a note about who was in the group chat
+                        const groupNote = `(Group chat with ${multiParticipantNames.join(', ')})`;
+                        const fullSummary = `${groupNote} ${summary}`;
+                        setSceneSummary(fullSummary);
+                        setSummaryText(fullSummary);
+                    }
+                } else if (speakerName) {
+                    const summary = await stage().generateSceneSummary(speakerName, messagesSnapshot);
+                    if (summary) {
+                        setSceneSummary(summary);
+                        setSummaryText(summary);
+                    }
                 }
             } catch (e) {
                 console.error('[EventScreen] Summary generation failed:', e);
@@ -706,11 +729,21 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
     /** Accept the scene summary and save to character history */
     const handleAcceptSummary = () => {
+        const isMulti = event.definitionId === 'multi_servant_chat';
+        const multiParticipantNames: string[] = event.vars.participants || [];
         const speakerName = chatPhase?.speaker
             ? interpolate(chatPhase.speaker, event.target, pcName)
             : null;
-        if (speakerName && summaryText.trim()) {
-            stage().updateCharacterHistory(speakerName, summaryText.trim());
+
+        if (summaryText.trim()) {
+            if (isMulti && multiParticipantNames.length > 0) {
+                // Save summary to ALL participants
+                for (const name of multiParticipantNames) {
+                    stage().updateCharacterHistory(name, summaryText.trim());
+                }
+            } else if (speakerName) {
+                stage().updateCharacterHistory(speakerName, summaryText.trim());
+            }
         }
         setSceneSummary(null);
         setSummaryEditing(false);
@@ -785,7 +818,10 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     // CHAT MODE — Skit-style AI chat within event
     // ═══════════════════════════════════════════
     if (isChatActive && chatPhase) {
-        const chatSpeaker = interpolate(chatPhase.speaker, event.target, pcName);
+        const isMultiChat = stage().isMultiServantChat();
+        const multiParticipants = isMultiChat ? stage().getMultiChatParticipants() : [];
+        const activeSpeaker = isMultiChat ? stage().getMultiChatActiveSpeaker() : '';
+        const chatSpeaker = isMultiChat ? activeSpeaker : interpolate(chatPhase.speaker, event.target, pcName);
         const chatCharAvatar = stage().getCharacterAvatar(chatSpeaker);
         const chatPcAvatar = stage().currentState.playerCharacter.avatar;
         const chatCharData = stage().getCharacterData(chatSpeaker);
@@ -801,7 +837,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
             setChatMessages(prev => [...prev, playerMsg]);
             setChatSending(true);
             try {
-                const reply = await stage().sendEventMessage(text);
+                const reply = isMultiChat
+                    ? await stage().sendMultiEventMessage(text, activeSpeaker)
+                    : await stage().sendEventMessage(text);
                 if (reply) {
                     setChatMessages(prev => [...prev, reply]);
                 }
@@ -884,11 +922,19 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         <span className="skit-location-badge">{chatPhase.location || 'Dungeon'}</span>
                     </div>
                     <div className="skit-header-center">
-                        <img className="skit-header-avatar" src={chatCharAvatar} alt={chatSpeaker} />
-                        <span className="skit-header-name">{chatSpeaker}</span>
+                        {isMultiChat ? (
+                            <>
+                                <span className="skit-header-name">Group Chat</span>
+                            </>
+                        ) : (
+                            <>
+                                <img className="skit-header-avatar" src={chatCharAvatar} alt={chatSpeaker} />
+                                <span className="skit-header-name">{chatSpeaker}</span>
+                            </>
+                        )}
                     </div>
                     <div className="skit-header-right">
-                        {isSocialEvent && (
+                        {isSocialEvent && !isMultiChat && (
                             <button
                                 className="skit-view-toggle"
                                 onClick={() => setChatViewMode('vn')}
@@ -916,6 +962,46 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         )}
                     </div>
                 </div>
+
+                {/* Multi-chat portrait selector */}
+                {isMultiChat && (
+                    <div className="multi-chat-portraits">
+                        <span className="multi-chat-label">Click to respond:</span>
+                        {multiParticipants.map(name => {
+                            const avatar = stage().getCharacterAvatar(name);
+                            const charData = stage().getCharacterData(name);
+                            return (
+                                <button
+                                    key={name}
+                                    className="multi-chat-portrait"
+                                    style={{ '--portrait-color': charData?.color || '#c8aa6e' } as React.CSSProperties}
+                                    disabled={chatSending}
+                                    onClick={async () => {
+                                        if (chatSending) return;
+                                        stage().setMultiChatSpeaker(name);
+                                        setChatSending(true);
+                                        setNpcAlternatives([]);
+                                        setCurrentAltIndex(0);
+                                        try {
+                                            const reply = await stage().generateMultiChatReply(name);
+                                            if (reply) {
+                                                setChatMessages(prev => [...prev, reply]);
+                                            }
+                                            onEventUpdate(stage().getActiveEvent());
+                                        } finally {
+                                            setChatSending(false);
+                                            setTimeout(() => chatInputRef.current?.focus(), 50);
+                                        }
+                                    }}
+                                    title={`Click to have ${name} respond`}
+                                >
+                                    <img src={avatar} alt={name} />
+                                    <span className="multi-chat-portrait-name">{name}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Conditioning progress bar (only for conditioning sessions) */}
                 {isConditioning && (
@@ -958,7 +1044,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                     {chatItems.length === 0 && !chatSending && (
                         <div className="skit-empty-hint">
                             <div className="skit-empty-icon"><GameIcon icon="message-circle" size={24} className="icon-gold" /></div>
-                            <p>Begin speaking with {chatSpeaker}...</p>
+                            <p>{isMultiChat ? 'Speak, then click a portrait to get a response...' : `Begin speaking with ${chatSpeaker}...`}</p>
                         </div>
                     )}
 
@@ -1003,7 +1089,8 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             displayText = displayText.replace(/^\*uses [^*]+\*\s*/, '').replace(/^\*attempts [^*]+, but fails\*\s*/, '');
                             if (!displayText.trim()) return null; // pure action message with no text
                         }
-                        const msgAvatar = isPlayer ? chatPcAvatar : chatCharAvatar;
+                        const msgAvatar = isPlayer ? chatPcAvatar : (isMultiChat ? stage().getCharacterAvatar(msg.sender) : chatCharAvatar);
+                        const msgCharColor = isMultiChat && !isPlayer ? stage().getCharacterData(msg.sender)?.color : null;
                         const isLatestNpc = !isPlayer && idx === chatItems.length - 1;
                         const isEditing = editingMsgIndex === item.index;
                         const isLastNpcMsg = !isPlayer && item.index === chatMessages.length - 1;
@@ -1015,6 +1102,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             <div
                                 key={`msg-${item.index}`}
                                 className={`skit-message ${isPlayer ? 'skit-msg-player' : 'skit-msg-char'} ${isEditing ? 'skit-msg-editing' : ''}`}
+                                style={msgCharColor ? { '--char-color': msgCharColor } as React.CSSProperties : undefined}
                             >
                                 <img className="skit-msg-avatar" src={msgAvatar} alt={msg.sender} />
                                 <div className="skit-msg-body">
