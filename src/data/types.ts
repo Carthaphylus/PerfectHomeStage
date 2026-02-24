@@ -218,6 +218,26 @@ export interface EventChatPhase {
     maxMessages?: number;
 }
 
+/** A single item in a shop's inventory */
+export interface ShopItem {
+    itemName: string;
+    price: number;
+    quantity?: number;   // quantity given per purchase (default 1)
+    stock?: number;      // limited stock per visit (undefined = unlimited)
+    category: string;    // for tab grouping
+}
+
+/** Shop phase config — opens a trading UI within an event step */
+export interface EventShopPhase {
+    shopName: string;
+    shopkeeperName: string;
+    shopkeeperGreeting: string;
+    shopkeeperPortrait?: string;
+    categories: string[];   // ordered list of tab labels
+    items: ShopItem[];
+    exitStep: string;       // step to go to when leaving the shop
+}
+
 /** A player choice within a step */
 export interface EventChoice {
     id: string;
@@ -242,6 +262,7 @@ export interface EventStep {
     nextStep?: string;
     isEnding?: boolean;
     chatPhase?: EventChatPhase;
+    shopPhase?: EventShopPhase;
     onEnter?: (ctx: EventContext) => void;
 }
 

@@ -1,0 +1,428 @@
+// ──────────────────────────────────────────
+// ITEM LIBRARY  (arcane parchment theme)
+// ──────────────────────────────────────────
+
+.item-library-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: radial-gradient(ellipse at center, rgba(40, 30, 50, 0.97) 0%, rgba(18, 12, 24, 0.99) 100%) !important;
+  color: var(--text-primary);
+
+  /* ── Filters bar ── */
+  .ilib-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+    background: rgba(30, 22, 38, 0.5) !important;
+
+    .ilib-type-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .ilib-filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.3px;
+      border: 1px solid rgba(200, 170, 110, 0.15);
+      background: rgba(200, 170, 110, 0.05) !important;
+      color: rgba(200, 170, 110, 0.5);
+
+      &:hover {
+        background: rgba(200, 170, 110, 0.12) !important;
+        color: rgba(200, 170, 110, 0.8);
+      }
+
+      &.active {
+        background: rgba(200, 170, 110, 0.15) !important;
+        border-color: rgba(200, 170, 110, 0.4);
+        color: #c8aa6e;
+      }
+    }
+
+    .ilib-sort {
+      select {
+        padding: 5px 8px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 7px;
+        background: rgba(200, 170, 110, 0.05) !important;
+        color: rgba(200, 170, 110, 0.7);
+        border: 1px solid rgba(200, 170, 110, 0.15);
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:hover { border-color: rgba(200, 170, 110, 0.35); }
+        &:focus { outline: none; border-color: rgba(200, 170, 110, 0.5); }
+      }
+    }
+  }
+
+  /* ── Body (grid + detail) ── */
+  .ilib-body {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── Item grid column ── */
+  .ilib-grid-area {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto !important;
+    padding-right: 6px;
+
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.2);
+      border-radius: 3px;
+      &:hover { background: rgba(200, 170, 110, 0.35); }
+    }
+  }
+
+  .ilib-type-group {
+    margin-bottom: 20px;
+  }
+
+  .ilib-type-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(200, 170, 110, 0.6);
+    border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+    margin-bottom: 10px;
+
+    .ilib-type-count {
+      margin-left: auto;
+      font-size: 6px;
+      color: rgba(200, 170, 110, 0.35);
+    }
+  }
+
+  .ilib-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  /* ── Item card ── */
+  .ilib-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 10px;
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg, rgba(45, 35, 50, 0.95) 0%, rgba(38, 28, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(200, 170, 110, 0.12);
+    border-left: 3px solid var(--rarity-color, #c8aa6e);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+
+    &:hover {
+      border-color: rgba(200, 170, 110, 0.25);
+      border-left-color: var(--rarity-color, #c8aa6e);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                  0 0 8px color-mix(in srgb, var(--rarity-color, #c8aa6e) 20%, transparent);
+    }
+
+    &.selected {
+      border-color: var(--rarity-color, #c8aa6e);
+      border-left-color: var(--rarity-color, #c8aa6e);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-color, #c8aa6e) 25%, transparent);
+      background: rgba(200, 170, 110, 0.06) !important;
+    }
+
+    .ilib-card-icon {
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 2px;
+      color: var(--rarity-color, #c8aa6e);
+      opacity: 0.85;
+    }
+
+    .ilib-card-name {
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1.5;
+      font-weight: bold;
+    }
+
+    .ilib-card-rarity {
+      font-size: 6px;
+      font-family: 'Press Start 2P', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 2px 6px;
+      border-radius: 8px;
+
+      &.rarity-common   { color: #aaa;     background: rgba(170, 170, 170, 0.1); }
+      &.rarity-uncommon  { color: #5dba5d;  background: rgba(93, 186, 93, 0.1);  }
+      &.rarity-rare      { color: #5b9bd5;  background: rgba(91, 155, 213, 0.1); }
+      &.rarity-epic      { color: #b882ff;  background: rgba(184, 130, 255, 0.1);}
+      &.rarity-legendary { color: #f0a830;  background: rgba(240, 168, 48, 0.12);}
+    }
+
+    .ilib-card-owned {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      color: #f0d060;
+      font-weight: bold;
+    }
+  }
+
+  /* ── Detail panel ── */
+  .ilib-detail-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background:
+      linear-gradient(135deg, rgba(240, 230, 210, 0.03) 25%, transparent 25%),
+      linear-gradient(180deg, rgba(45, 35, 50, 0.95) 0%, rgba(38, 28, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    border-top: 3px solid var(--rarity-color, #c8aa6e);
+    border-radius: 6px;
+    padding: 20px;
+    align-self: flex-start;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar { width: 5px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(200, 170, 110, 0.2);
+      border-radius: 3px;
+    }
+  }
+
+  .ilib-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+
+    .ilib-detail-icon {
+      font-size: 36px;
+      line-height: 1;
+      color: var(--rarity-color, #c8aa6e);
+    }
+
+    .ilib-detail-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .ilib-detail-name {
+        font-size: 9px;
+        font-family: 'Press Start 2P', monospace;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+
+      .ilib-detail-rarity {
+        font-size: 7px;
+        font-family: 'Press Start 2P', monospace;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+
+        &.rarity-common   { color: #aaa; }
+        &.rarity-uncommon  { color: #5dba5d; }
+        &.rarity-rare      { color: #5b9bd5; }
+        &.rarity-epic      { color: #b882ff; }
+        &.rarity-legendary { color: #f0a830; }
+      }
+    }
+  }
+
+  .ilib-detail-type {
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba(200, 170, 110, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+  }
+
+  .ilib-detail-desc {
+    font-size: 9px;
+    font-family: 'Press Start 2P', monospace;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin: 0 0 16px 0;
+  }
+
+  .ilib-detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(200, 170, 110, 0.1);
+    margin-bottom: 16px;
+
+    .ilib-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .ilib-detail-label {
+        font-size: 7px;
+        font-family: 'Press Start 2P', monospace;
+        color: rgba(200, 170, 110, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .ilib-detail-value {
+        font-size: 8px;
+        font-family: 'Press Start 2P', monospace;
+        color: var(--text-primary);
+        font-weight: bold;
+      }
+    }
+  }
+
+  /* ── Crafting recipe ── */
+  .ilib-recipe {
+    background: rgba(200, 170, 110, 0.04);
+    border: 1px solid rgba(200, 170, 110, 0.1);
+    border-left: 3px solid rgba(200, 170, 110, 0.4);
+    border-radius: 4px;
+    padding: 12px;
+
+    .ilib-recipe-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      color: #c8aa6e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+
+      .ilib-recipe-badge {
+        margin-left: auto;
+        font-size: 6px;
+        padding: 2px 6px;
+        border-radius: 6px;
+
+        &.can-craft {
+          color: #5dba5d;
+          background: rgba(93, 186, 93, 0.12);
+        }
+        &.no-craft {
+          color: #d55b5b;
+          background: rgba(213, 91, 91, 0.12);
+        }
+      }
+    }
+
+    .ilib-recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .ilib-recipe-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(200, 170, 110, 0.07);
+
+      &:last-child { border-bottom: none; }
+
+      &.unsatisfied { opacity: 0.65; }
+
+      .ilib-recipe-name {
+        flex: 1;
+        font-size: 7px;
+        font-family: 'Press Start 2P', monospace;
+        color: var(--text-secondary);
+      }
+
+      .ilib-recipe-qty {
+        font-size: 8px;
+        font-family: 'Press Start 2P', monospace;
+        font-weight: bold;
+
+        &.qty-ok { color: #5dba5d; }
+        &.qty-no { color: #d55b5b; }
+      }
+    }
+  }
+
+  .ilib-no-recipe {
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba(200, 170, 110, 0.3);
+    font-style: italic;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .ilib-empty-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    gap: 14px;
+
+    p {
+      font-size: 8px;
+      font-family: 'Press Start 2P', monospace;
+      color: rgba(200, 170, 110, 0.3);
+      margin: 0;
+    }
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .item-library-screen {
+    .ilib-body {
+      flex-direction: column;
+    }
+
+    .ilib-detail-panel {
+      width: 100%;
+      max-height: 260px;
+    }
+  }
+}

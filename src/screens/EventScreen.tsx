@@ -8,6 +8,8 @@ import {
     EventStep,
     EventChoice,
     EventChatPhase,
+    EventShopPhase,
+    ShopItem,
     SceneMessage,
     SceneData,
     Location,
@@ -28,6 +30,7 @@ import {
     Brain, Ghost, Skull, Shield, Star, Zap, Wind, CircleDot,
     ScanEye, TestTubes, Moon, Hand, MessageCircle,
     Pencil, RotateCcw, Check, X, ChevronLeft, ChevronRight, FileText,
+    Coins, ShoppingBag, ArrowLeft, Package, Minus, Plus,
 } from 'lucide-react';
 
 // ── Spell Icon Component ──
@@ -397,6 +400,12 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
     // ── VN view toggle (for social events like servant chats) ──
     const [chatViewMode, setChatViewMode] = useState<'chat' | 'vn'>('chat');
+
+    // ── Shop UI State ──
+    const [shopCategory, setShopCategory] = useState<string>('');
+    const [shopStock, setShopStock] = useState<Record<string, number>>({});
+    const [shopInitialized, setShopInitialized] = useState(false);
+    const [buyFeedback, setBuyFeedback] = useState<{ item: string; success: boolean } | null>(null);
 
     const def: EventDefinition | null = stage().getEventDefinition(event.definitionId);
     if (!def) {
@@ -1401,6 +1410,181 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             </button>
                         </>
                     )}
+                </div>
+            </div>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // SHOP MODE — Video-game-style trading UI
+    // ═══════════════════════════════════════════
+    const shopPhase = currentStep?.shopPhase;
+    if (shopPhase) {
+        // Initialize stock tracking on first render
+        if (!shopInitialized) {
+            const initialStock: Record<string, number> = {};
+            shopPhase.items.forEach(item => {
+                if (item.stock !== undefined) {
+                    initialStock[item.itemName] = item.stock;
+                }
+            });
+            setShopStock(initialStock);
+            setShopCategory(shopPhase.categories[0] || '');
+            setShopInitialized(true);
+        }
+
+        const gold = stage().currentState.stats.gold;
+        const activeCategory = shopCategory || shopPhase.categories[0];
+        const categoryItems = shopPhase.items.filter(si => si.category === activeCategory);
+
+        const handleBuy = (shopItem: ShopItem) => {
+            const cost = shopItem.price;
+            if (gold < cost) return;
+            // Check stock
+            if (shopItem.stock !== undefined) {
+                const remaining = shopStock[shopItem.itemName] ?? 0;
+                if (remaining <= 0) return;
+                setShopStock(prev => ({ ...prev, [shopItem.itemName]: (prev[shopItem.itemName] ?? 0) - 1 }));
+            }
+            // Deduct gold
+            stage().currentState.stats.gold -= cost;
+            // Add items
+            const qty = shopItem.quantity || 1;
+            const existing = stage().currentState.inventory[shopItem.itemName];
+            if (existing) {
+                existing.quantity += qty;
+            } else {
+                stage().currentState.inventory[shopItem.itemName] = {
+                    name: shopItem.itemName,
+                    quantity: qty,
+                    type: getItemDefinition(shopItem.itemName).type,
+                };
+            }
+            // Purchase feedback
+            setBuyFeedback({ item: shopItem.itemName, success: true });
+            setTimeout(() => setBuyFeedback(null), 1200);
+            // Force re-render
+            onEventUpdate(stage().getActiveEvent());
+        };
+
+        const handleLeaveShop = () => {
+            setFadeState('out');
+            setTimeout(() => {
+                const exitStepId = shopPhase.exitStep;
+                const exitDef = def!;
+                const exitStep = exitDef.steps[exitStepId];
+                if (exitStep) {
+                    const ev = stage().getActiveEvent();
+                    if (ev) {
+                        (ev as any).currentStepId = exitStepId;
+                        (ev as any).log = [...ev.log, exitStepId];
+                        // Update the stage's internal event too
+                        (stage() as any)._activeEvent.currentStepId = exitStepId;
+                        (stage() as any)._activeEvent.log.push(exitStepId);
+                        onEventUpdate({ ...ev, currentStepId: exitStepId, log: [...ev.log] });
+                    }
+                }
+                setFadeState('in');
+            }, 300);
+        };
+
+        return (
+            <div className="event-screen shop-mode">
+                {/* Shop Header */}
+                <div className="shop-header">
+                    <div className="shop-header-left">
+                        <ShoppingBag size={16} className="shop-header-icon" />
+                        <span className="shop-header-title">{shopPhase.shopName}</span>
+                    </div>
+                    <div className="shop-header-gold">
+                        <Coins size={14} className="gold-icon" />
+                        <span className="gold-amount">{gold}</span>
+                        <span className="gold-label">Gold</span>
+                    </div>
+                </div>
+
+                {/* Shopkeeper greeting / narrative */}
+                <div className="shop-greeting">
+                    <div className="shop-greeting-text">
+                        {renderNarrative(interpolatedText)}
+                    </div>
+                </div>
+
+                {/* Category tabs */}
+                <div className="shop-categories">
+                    {shopPhase.categories.map(cat => (
+                        <button
+                            key={cat}
+                            className={`shop-tab ${activeCategory === cat ? 'active' : ''}`}
+                            onClick={() => setShopCategory(cat)}
+                        >
+                            {cat === 'Supplies' && <Package size={12} />}
+                            {cat === 'Arcane' && <Sparkles size={12} />}
+                            {cat === 'Special' && <Star size={12} />}
+                            <span>{cat}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Items grid */}
+                <div className="shop-items-scroll">
+                    <div className="shop-items-grid">
+                        {categoryItems.map(shopItem => {
+                            const itemDef = getItemDefinition(shopItem.itemName);
+                            const rarityColor = getRarityColor(itemDef.rarity);
+                            const canAfford = gold >= shopItem.price;
+                            const qty = shopItem.quantity || 1;
+                            const hasStock = shopItem.stock === undefined || (shopStock[shopItem.itemName] ?? 0) > 0;
+                            const remaining = shopItem.stock !== undefined ? (shopStock[shopItem.itemName] ?? 0) : undefined;
+                            const justBought = buyFeedback?.item === shopItem.itemName && buyFeedback?.success;
+                            const owned = stage().currentState.inventory[shopItem.itemName]?.quantity || 0;
+
+                            return (
+                                <div
+                                    key={shopItem.itemName}
+                                    className={`shop-item-card ${!canAfford || !hasStock ? 'disabled' : ''} ${justBought ? 'bought' : ''}`}
+                                    style={{ '--rarity-color': rarityColor } as React.CSSProperties}
+                                >
+                                    <div className="shop-item-icon" style={{ color: rarityColor }}>
+                                        <GameIcon icon={itemDef.icon} size={22} />
+                                    </div>
+                                    <div className="shop-item-info">
+                                        <div className="shop-item-name" style={{ color: rarityColor }}>{itemDef.name}</div>
+                                        <div className="shop-item-desc">{itemDef.description}</div>
+                                        <div className="shop-item-meta">
+                                            <span className={`shop-item-rarity rarity-${itemDef.rarity}`}>{itemDef.rarity}</span>
+                                            {qty > 1 && <span className="shop-item-qty">×{qty}</span>}
+                                            {owned > 0 && <span className="shop-item-owned">Owned: {owned}</span>}
+                                            {remaining !== undefined && <span className="shop-item-stock">Stock: {remaining}</span>}
+                                        </div>
+                                    </div>
+                                    <div className="shop-item-buy">
+                                        <div className="shop-item-price" style={{ color: canAfford ? '#c8aa6e' : '#e06060' }}>
+                                            <Coins size={10} />
+                                            <span>{shopItem.price}</span>
+                                        </div>
+                                        <button
+                                            className={`shop-buy-btn ${justBought ? 'bought' : ''}`}
+                                            disabled={!canAfford || !hasStock}
+                                            onClick={() => handleBuy(shopItem)}
+                                        >
+                                            {justBought ? <><Check size={12} /> Got it!</> : 'Buy'}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Shopkeeper quip + Leave button */}
+                <div className="shop-footer">
+                    <div className="shop-keeper-quip">
+                        <FormattedText text={shopPhase.shopkeeperGreeting} />
+                    </div>
+                    <button className="shop-leave-btn" onClick={handleLeaveShop}>
+                        <ArrowLeft size={12} /> Leave Shop
+                    </button>
                 </div>
             </div>
         );

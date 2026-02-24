@@ -9,6 +9,7 @@ import { CaptivesScreen } from './CaptivesScreen';
 import { ServantsScreen } from './ServantsScreen';
 import { PCProfileScreen } from './PCProfileScreen';
 import { InventoryScreen } from './InventoryScreen';
+import { ItemLibrary } from './ItemLibrary';
 import { EventScreen } from './EventScreen';
 import { ConversionScreen } from './ConversionScreen';
 import { ExploreScreen } from './ExploreScreen';
@@ -22,6 +23,7 @@ export enum ScreenType {
     CAPTIVES = 'captives',
     SERVANTS = 'servants',
     INVENTORY = 'inventory',
+    ITEM_LIBRARY = 'item_library',
     EVENT = 'event',
     SCENE = 'scene',
     PC_PROFILE = 'pc_profile',
@@ -148,6 +150,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             )}
             {screenType === ScreenType.INVENTORY && (
                 <InventoryScreen stage={stage} setScreenType={setScreenType} />
+            )}
+            {screenType === ScreenType.ITEM_LIBRARY && (
+                <ItemLibrary stage={stage} onClose={() => setScreenType(ScreenType.INVENTORY)} />
             )}
 
             {/* Explore screen */}

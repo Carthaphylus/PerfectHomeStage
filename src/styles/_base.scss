@@ -167,6 +167,28 @@
       color: rgba(200, 170, 110, 1);
     }
   }
+
+  .library-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(200, 170, 110, 0.08) !important;
+    color: rgba(200, 170, 110, 0.7);
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.25s;
+    
+    &:hover {
+      background: rgba(200, 170, 110, 0.15) !important;
+      border-color: rgba(200, 170, 110, 0.45);
+      color: rgba(200, 170, 110, 1);
+    }
+  }
   
   .header-spacer {
     width: 80px;

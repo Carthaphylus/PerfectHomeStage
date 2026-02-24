@@ -11,7 +11,7 @@ import {
     SkillStats, HouseholdStats, WitchStats,
     MessageStateType, ConfigType, InitStateType, ChatStateType,
     SavedSlotData, SaveFileSlot, MAX_SAVE_SLOTS,
-    EventEffect, EventSkillCheck, EventChatPhase,
+    EventEffect, EventSkillCheck, EventChatPhase, ShopItem, EventShopPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
     ConditioningCategory, ConditioningAction, ActionResult,
     // Tasks
@@ -54,7 +54,7 @@ export type {
     SkillStats, HouseholdStats, WitchStats,
     MessageStateType, ConfigType, InitStateType, ChatStateType,
     SavedSlotData, SaveFileSlot,
-    EventEffect, EventSkillCheck, EventChatPhase,
+    EventEffect, EventSkillCheck, EventChatPhase, ShopItem, EventShopPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
     ConditioningCategory, ConditioningAction, ActionResult,
     TaskCategory, TaskOutcomeQuality, TaskTraitModifier, TaskRequirement,

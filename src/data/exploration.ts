@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition } from './types';
+import type { Location, EventDefinition, EventShopPhase } from './types';
 
 // ── Location Explore Data ──
 
@@ -28,13 +28,13 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
     Town: {
         location: 'Town',
         name: 'Town',
-        intro: '*You arrive at the bustling town square. Merchants hawk their wares, townsfolk hurry about their errands, and the scent of fresh bread mingles with wood-smoke in the air. A perfect place to gather supplies — or information.*',
+        intro: '*You arrive at the bustling town square. Merchants hawk their wares, townsfolk hurry about their errands, and the scent of fresh bread mingles with wood-smoke in the air. Somewhere amid the stalls, you can hear a bright, squeaky voice advertising "Pip\'s Emporium of Wonders and Sundries!" — a familiar haunt for anyone with gold to spend and discretion to spare.*',
         activities: [
             {
                 id: 'town_market',
-                label: 'Visit the Market',
+                label: 'Visit Pip\'s Emporium',
                 icon: 'shopping-bag',
-                tooltip: 'Browse the stalls for useful goods.',
+                tooltip: 'Browse the mouse merchant\'s stall for goods and gossip.',
                 eventId: 'explore_town_market',
             },
             {
@@ -145,43 +145,71 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
 
 // ── TOWN EVENTS ──
 
+// ── Shop inventory for Pip's Emporium ──
+const PIP_SHOP: EventShopPhase = {
+    shopName: "Pip's Emporium",
+    shopkeeperName: 'Pip',
+    shopkeeperGreeting: '"Find what you need? I\'ve got more where that came from — just say the word! Squeak!"',
+    categories: ['Supplies', 'Arcane', 'Special'],
+    exitStep: 'depart',
+    items: [
+        // ─ Supplies ─
+        { itemName: 'Traveler\'s Rations',    price: 5,   quantity: 2, category: 'Supplies' },
+        { itemName: 'Dreamcatcher Herb',      price: 8,   quantity: 3, category: 'Supplies' },
+        { itemName: 'Mousefolk Cheese Wheel',  price: 3,   quantity: 1, category: 'Supplies' },
+        { itemName: 'Honeysuckle Blossoms',   price: 6,   quantity: 3, category: 'Supplies' },
+        { itemName: 'Healing Salve',          price: 8,   quantity: 1, category: 'Supplies' },
+        { itemName: 'Moonflower Petals',      price: 10,  quantity: 2, category: 'Supplies' },
+        { itemName: 'Frostwhisper Moss',      price: 9,   quantity: 2, category: 'Supplies' },
+        // ─ Arcane ─
+        { itemName: 'Mana Crystal',           price: 15,  quantity: 1, category: 'Arcane' },
+        { itemName: 'Spiral Incense',         price: 12,  quantity: 2, category: 'Arcane' },
+        { itemName: 'Enchanted Candle',       price: 10,  quantity: 1, category: 'Arcane' },
+        { itemName: 'Silver Pocket Mirror',   price: 20,  quantity: 1, category: 'Arcane', stock: 1 },
+        { itemName: 'Moonstone Splinter',     price: 12,  quantity: 1, category: 'Arcane' },
+        { itemName: 'Amethyst Shard',         price: 14,  quantity: 1, category: 'Arcane' },
+        { itemName: 'Rose Quartz Dust',       price: 6,   quantity: 3, category: 'Arcane' },
+        // ─ Special ─
+        { itemName: 'Obedience Elixir',       price: 30,  quantity: 1, category: 'Special', stock: 2 },
+        { itemName: 'Whispering Vial',        price: 25,  quantity: 1, category: 'Special', stock: 2 },
+        { itemName: 'Suggestive Perfume',     price: 15,  quantity: 1, category: 'Special' },
+        { itemName: 'Binding Tincture',       price: 18,  quantity: 1, category: 'Special' },
+        { itemName: 'Bottled Starlight',      price: 22,  quantity: 1, category: 'Special', stock: 3 },
+        { itemName: 'Sweetness Tonic',        price: 16,  quantity: 1, category: 'Special' },
+        { itemName: 'Map Fragment',           price: 12,  quantity: 1, category: 'Special', stock: 1 },
+    ],
+};
+
 const EXPLORE_TOWN_MARKET: EventDefinition = {
     id: 'explore_town_market',
-    name: 'The Market',
-    description: 'Browse the town market for useful goods.',
+    name: 'Pip\'s Emporium',
+    description: 'Visit Pip the mouse merchant\'s bustling market stall.',
     icon: 'shopping-bag',
     category: 'exploration',
     startStep: 'arrive',
     steps: {
+        // ── STEP 1: Arrival & Introduction ──
         arrive: {
             id: 'arrive',
-            text: '*The market is alive with activity. Stalls line both sides of the cobblestone path, and a hundred different scents compete for your attention. A merchant with a crooked grin catches your eye, gesturing at a table covered in glinting trinkets.*\n\n"Fine goods, fine goods! Something for the discerning buyer, perhaps?"',
-            choices: [
-                {
-                    id: 'haggle',
-                    label: 'Haggle for a Deal',
-                    tooltip: 'Try to negotiate a better price. Costs 15 gold.',
-                    nextStep: 'haggle_result',
-                    effects: [{ type: 'modify_gold', value: -15 }],
-                },
-                {
-                    id: 'browse',
-                    label: 'Just Browse',
-                    tooltip: 'Look around without buying anything.',
-                    nextStep: 'browse_result',
-                },
-            ],
+            text: '*The market square is a riot of color and noise — barkers competing for attention, the clatter of coins, the sizzle of street food. You weave through the crowd, scanning the stalls for anything useful.*\n\n*A high, bright voice cuts through the din like a bell.*\n\n"Over here, over here! Yes, you — the one with the very impressive aura! Don\'t pretend you can\'t hear me, I\'ve got *excellent* projection for someone my size!"',
+            nextStep: 'pip_intro',
         },
-        haggle_result: {
-            id: 'haggle_result',
-            text: '*After some spirited back-and-forth, the merchant relents with a theatrical sigh.*\n\n"You drive a hard bargain! Fine, fine — take it. But remember old Bertram when you need more supplies, yes?"\n\n*You pocket the goods, satisfied with the deal. A vial of Spiral Incense, quite useful for your particular line of work.*',
-            effects: [{ type: 'add_item', target: 'Spiral Incense', value: 2 }],
-            isEnding: true,
+        // ── STEP 2: Pip's Introduction ──
+        pip_intro: {
+            id: 'pip_intro',
+            text: '*You turn to find the source: a small stall draped in bright patchwork cloth, overflowing with goods of every description. Behind the counter — balanced on a tall stool with her legs dangling — sits a mousefolk girl no taller than your elbow. She has round, expressive ears that twitch with each new customer who passes, warm brown eyes, and a long pink tail that curls around the leg of a nearby shelf for balance.*\n\n*She\'s dressed in a patchwork vest covered in tiny pockets, each one bulging with trinkets and coin. A pair of oversized brass goggles sits perched atop her head, pushing back a wild mane of chestnut-brown hair.*\n\n"Welcome, welcome to Pip\'s Emporium of Wonders and Sundries! I\'m Pip — purveyor of fine goods, rare curiosities, and..." *she glances left and right conspiratorially* "...items of a more *specialized* nature, if you catch my meaning. Squeak squeak."',
+            nextStep: 'shop_hub',
         },
-        browse_result: {
-            id: 'browse_result',
-            text: '*You stroll through the market at a leisurely pace, taking in the sights without opening your purse. Near the fountain, a careless merchant drops a few coins — easy pickings.*\n\n*A productive enough outing, even without buying anything.*',
-            effects: [{ type: 'modify_gold', value: 10 }],
+        // ── STEP 3: Shop UI ──
+        shop_hub: {
+            id: 'shop_hub',
+            text: '*Pip hops down from her stool and scurries along the counter with surprising agility, her tail trailing behind her like a rudder. She gestures grandly at her wares with both tiny hands.*\n\n"So! What catches your eye? Take your time — Pip doesn\'t rush a customer. Well, unless it\'s raining. Then Pip rushes everyone."',
+            shopPhase: PIP_SHOP,
+        },
+        // ── STEP 4: Departure ──
+        depart: {
+            id: 'depart',
+            text: '*You step away from the stall, your new purchases safely stowed. Behind you, Pip\'s voice rises above the market noise once again, already hawking at the next passerby.*\n\n"You there! The tall one! Yes, you look like someone who could use a good cheese! And possibly a potion of mind control! Pip has BOTH!"\n\n*You hear a distant, scandalized gasp from someone in the crowd, followed by Pip\'s cheerful damage control: "Kidding! Obviously kidding! ...Unless you\'re interested?"*\n\n*You shake your head and smile. That mouse is going to get herself arrested one of these days. But she does sell quality goods.*',
             isEnding: true,
         },
     },

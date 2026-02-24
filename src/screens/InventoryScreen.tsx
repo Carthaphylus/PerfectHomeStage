@@ -38,7 +38,9 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                     &lt; Menu
                 </button>
                 <h2>Inventory</h2>
-                <div className="header-spacer"></div>
+                <button className="library-button" onClick={() => setScreenType(ScreenType.ITEM_LIBRARY)}>
+                    <GameIcon icon="book" /> Item Library
+                </button>
             </div>
 
             <div className="inventory-filters">
