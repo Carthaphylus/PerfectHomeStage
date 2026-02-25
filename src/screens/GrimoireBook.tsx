@@ -1,5 +1,7 @@
 import React, { FC, useState, useMemo, useCallback } from 'react';
-import { Stage, CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES, ConditioningAction } from '../Stage';
+import type { Stage } from '../Stage';
+import { CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES } from '../data';
+import type { ConditioningAction } from '../data';
 import { GameIcon } from './GameIcon';
 
 // ── Category metadata ──

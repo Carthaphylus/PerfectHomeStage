@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
 import { CharacterProfile } from './CharacterProfile';
 import { CharacterEditor } from './CharacterEditor';
 import { GameIcon } from './GameIcon';

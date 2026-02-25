@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 import { Pencil, Check, X, Sparkles, RotateCcw } from 'lucide-react';
-import { Stage } from '../Stage';
+import type { Stage } from '../Stage';
 
 /**
  * Shared backstory & history editor used by CaptivesScreen, HeroesScreen,

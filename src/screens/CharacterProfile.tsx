@@ -1,5 +1,7 @@
 import React, { FC, ReactNode } from 'react';
-import { Stage, StatName, STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../Stage';
+import type { Stage } from '../Stage';
+import { STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../data';
+import type { StatName } from '../data';
 import { CharacterGallery } from './CharacterGallery';
 import { TraitChip } from './TraitChip';
 import { GameIcon } from './GameIcon';

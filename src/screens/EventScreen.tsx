@@ -1,27 +1,18 @@
 import React, { FC, useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { ScreenType } from './BaseScreen';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
 import {
-    Stage,
-    ActiveEvent,
-    EventDefinition,
-    EventStep,
-    EventChoice,
-    EventChatPhase,
-    EventShopPhase,
-    ShopItem,
-    SceneMessage,
-    SceneData,
-    Location,
-    getItemDefinition,
-    getRarityColor,
-    ConditioningAction,
-    CONDITIONING_ACTIONS,
-    CONDITIONING_STRATEGIES,
-    ActionResult,
+    getItemDefinition, getRarityColor,
+    CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES,
     getConditioningTier,
-    ConditioningTier,
-} from '../Stage';
+} from '../data';
+import type {
+    ActiveEvent, EventDefinition, EventStep, EventChoice,
+    EventChatPhase, EventShopPhase, ShopItem,
+    SceneMessage, SceneData, Location,
+    ConditioningAction, ActionResult, ConditioningTier,
+} from '../data';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { GameIcon } from './GameIcon';
 import {

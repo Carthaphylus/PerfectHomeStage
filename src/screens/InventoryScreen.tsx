@@ -1,6 +1,8 @@
 import React, { FC, useState } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage, InventoryItem, getItemDefinition, getRarityColor, ItemType } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import { getItemDefinition, getRarityColor } from '../data';
+import type { InventoryItem, ItemType } from '../data';
 import { GameIcon } from './GameIcon';
 
 interface InventoryScreenProps {

@@ -1,5 +1,6 @@
 import React, { FC, useState, useRef, useEffect, useCallback } from 'react';
-import { Stage, SceneData, SceneMessage } from '../Stage';
+import type { Stage } from '../Stage';
+import type { SceneData, SceneMessage } from '../data';
 import { FormattedText, TypewriterText } from './SkitText';
 import { GameIcon } from './GameIcon';
 

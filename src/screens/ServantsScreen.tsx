@@ -1,11 +1,12 @@
 import React, { FC, useState } from 'react';
-import { ScreenType } from './BaseScreen';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
 import {
-    Stage, Servant, Role, getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor,
-    TaskDefinition, TaskOutcome, TaskCategory, TaskReward,
+    getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor,
     getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, checkTaskRequirements, getApplicableTraitModifiers,
-} from '../Stage';
+} from '../data';
+import type { Servant, Role, TaskDefinition, TaskOutcome, TaskCategory, TaskReward } from '../data';
 import { CharacterProfile } from './CharacterProfile';
 import { TraitChip } from './TraitChip';
 import { GameIcon } from './GameIcon';

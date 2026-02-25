@@ -1,5 +1,5 @@
 import React, { FC, useState } from 'react';
-import { Stage } from '../Stage';
+import type { Stage } from '../Stage';
 import { GameIcon } from './GameIcon';
 
 // Generation slot types

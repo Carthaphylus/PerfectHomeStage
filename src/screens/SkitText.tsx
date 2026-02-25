@@ -13,7 +13,7 @@ interface TextSegment {
 }
 
 /** Parse raw text into formatted segments */
-export function parseSkitText(raw: string): TextSegment[] {
+function parseSkitText(raw: string): TextSegment[] {
     const segments: TextSegment[] = [];
     // Regex: **bold/action** first, then *action*, then "dialogue"
     const pattern = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")/g;
@@ -85,7 +85,7 @@ export const FormattedText: FC<FormattedTextProps> = ({ text }) => {
 // ============================================================
 
 /** Hook that reveals text word-by-word at the given speed (ms per word). */
-export function useTypewriter(fullText: string, speed: number = 40, enabled: boolean = true): {
+function useTypewriter(fullText: string, speed: number = 40, enabled: boolean = true): {
     displayText: string;
     isTyping: boolean;
 } {

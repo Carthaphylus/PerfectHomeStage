@@ -1,5 +1,6 @@
 import React, { FC, useState, useMemo } from 'react';
-import { Stage, MessageStateType } from '../Stage';
+import type { Stage } from '../Stage';
+import type { MessageStateType } from '../data';
 import { GameIcon } from './GameIcon';
 import {
     ItemType,

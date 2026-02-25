@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect, useCallback, useRef } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage } from '../Stage';
-import { Location } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import type { Location } from '../data';
 import MapImage from '../assets/Images/Skits/Map.png';
 import MarkerImg from '../assets/Images/UI/Marker1.png';
 import { GameIcon } from './GameIcon';

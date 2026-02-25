@@ -1,13 +1,8 @@
 import React, { FC, useState, useRef, useEffect, useMemo } from 'react';
-import { ScreenType } from './BaseScreen';
-import {
-    Stage,
-    SceneMessage,
-    CONVERSION_ARCHETYPES,
-    ConversionArchetype,
-    getConversionArchetype,
-    Hero,
-} from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import { CONVERSION_ARCHETYPES, getConversionArchetype } from '../data';
+import type { SceneMessage, ConversionArchetype, Hero } from '../data';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { GameIcon } from './GameIcon';
 import { Pencil, Check, X, ChevronLeft, ChevronRight, RotateCcw, Flame, FileText } from 'lucide-react';

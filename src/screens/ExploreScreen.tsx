@@ -1,6 +1,7 @@
 import React, { FC, useState, useEffect, useCallback } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage, Location } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import type { Location } from '../data';
 import { EXPLORE_DATA, LocationExploreData, LocationActivity } from '../data/exploration';
 import { FormattedText, TypewriterText } from './SkitText';
 import { GameIcon } from './GameIcon';

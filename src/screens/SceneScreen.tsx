@@ -1,6 +1,7 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage, SceneData, SceneMessage } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import type { SceneData, SceneMessage } from '../data';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { SceneVNView } from './SceneVNView';
 import { GameIcon } from './GameIcon';

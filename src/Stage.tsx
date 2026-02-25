@@ -47,48 +47,7 @@ import {
     getApplicableTraitModifiers,
 } from './data';
 
-// Re-export types for backward compatibility with screen components
-export type {
-    HeroStatus, Location, Hero, Servant, PlayerCharacter,
-    ManorUpgrade, DungeonProgress, SceneMessage, SceneData,
-    SkillStats, HouseholdStats, WitchStats,
-    MessageStateType, ConfigType, InitStateType, ChatStateType,
-    SavedSlotData, SaveFileSlot,
-    EventEffect, EventSkillCheck, EventChatPhase, ShopItem, EventShopPhase,
-    EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
-    ConditioningCategory, ConditioningAction, ActionResult,
-    TaskCategory, TaskOutcomeQuality, TaskTraitModifier, TaskRequirement,
-    TaskReward, TaskDefinition, ActiveTask, TaskOutcome,
-    StatName, StatDefinition,
-    StatGrade,
-    TraitScope, TraitDefinition,
-    Role, RoleBuff,
-    ItemRarity, ItemType, ItemDefinition, InventoryItem,
-    ConversionArchetype,
-    ConditioningTier, ConditioningStrategy,
-    LocationActivity, LocationExploreData,
-};
 
-// Re-export values for backward compatibility
-export {
-    MAX_SAVE_SLOTS,
-    STAT_DEFINITIONS, GRADE_TIERS,
-    numberToGrade, gradeToNumber, getGradeColor, getStatColor,
-    TRAIT_REGISTRY, getTraitDefinition,
-    UNIVERSAL_ROLES, ROOM_ROLES, ROLE_REGISTRY,
-    getRoleById, getAvailableRoles, DEFAULT_BUILT_ROOM_TYPES,
-    CHUB_USER, CHUB_CHARACTER_IDS, getChubAvatarUrl, CHUB_AVATARS, CHARACTER_DATA,
-    ITEM_REGISTRY, getItemDefinition, getRarityColor,
-    CONVERSION_ARCHETYPES, getConversionArchetype,
-    getConditioningTier, getTierBehaviorDescription,
-    getConditioningMilestoneDirections, getObedienceMilestoneDirections, getLoveMilestoneDirections,
-    CONDITIONING_STRATEGIES, CONDITIONING_ACTIONS,
-    rollSkillCheck, EVENT_BRAINWASHING,
-    EXPLORE_EVENTS, EXPLORE_DATA,
-    TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
-    getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
-    getApplicableTraitModifiers,
-};
 
 /***
  Perfect Home Stage Implementation

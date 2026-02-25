@@ -1,5 +1,6 @@
 import React, { FC, useState, useCallback } from 'react';
-import { Stage, SceneData, ActiveEvent, Location } from '../Stage';
+import type { Stage } from '../Stage';
+import type { SceneData, ActiveEvent, Location } from '../data';
 import { MenuScreen } from './MenuScreen';
 import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
@@ -14,22 +15,7 @@ import { EventScreen } from './EventScreen';
 import { ConversionScreen } from './ConversionScreen';
 import { ExploreScreen } from './ExploreScreen';
 import { StatBar } from './StatBar';
-
-export enum ScreenType {
-    MENU = 'menu',
-    MANOR = 'manor',
-    WORLD_MAP = 'world_map',
-    HEROES = 'heroes',
-    CAPTIVES = 'captives',
-    SERVANTS = 'servants',
-    INVENTORY = 'inventory',
-    ITEM_LIBRARY = 'item_library',
-    EVENT = 'event',
-    SCENE = 'scene',
-    PC_PROFILE = 'pc_profile',
-    CONVERSION = 'conversion',
-    EXPLORE = 'explore',
-}
+import { ScreenType } from './screenTypes';
 
 interface BaseScreenProps {
     stage: () => Stage;

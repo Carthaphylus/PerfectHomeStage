@@ -1,0 +1,15 @@
+export enum ScreenType {
+    MENU = 'menu',
+    MANOR = 'manor',
+    WORLD_MAP = 'world_map',
+    HEROES = 'heroes',
+    CAPTIVES = 'captives',
+    SERVANTS = 'servants',
+    INVENTORY = 'inventory',
+    ITEM_LIBRARY = 'item_library',
+    EVENT = 'event',
+    SCENE = 'scene',
+    PC_PROFILE = 'pc_profile',
+    CONVERSION = 'conversion',
+    EXPLORE = 'explore',
+}

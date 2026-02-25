@@ -1,6 +1,8 @@
 import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
-import { ScreenType } from './BaseScreen';
-import { Stage, Role, ROOM_ROLES } from '../Stage';
+import { ScreenType } from './screenTypes';
+import type { Stage } from '../Stage';
+import { ROOM_ROLES } from '../data';
+import type { Role } from '../data';
 import { GameIcon } from './GameIcon';
 
 
@@ -70,14 +72,14 @@ import IconChat from '../assets/Images/Icons/chat.png';
 type FloorType = 'basement' | '1st' | '2nd' | 'outside';
 
 // Effect and action descriptors for the room system
-export interface RoomEffect {
+interface RoomEffect {
     icon: string;
     text: string;
     stat?: string;     // Which stat this affects (for future mechanical use)
     value?: number;    // Numeric value (for future calculation)
 }
 
-export interface RoomAction {
+interface RoomAction {
     icon: string;
     label: string;
     key: string;       // Identifier for action handling
@@ -85,7 +87,7 @@ export interface RoomAction {
 
 // Base Room class - all rooms extend from this
 // Only contains room-specific properties, not slot/position data
-export abstract class BaseRoom {
+abstract class BaseRoom {
     name: string;
     type: string;
     image: string;
@@ -580,7 +582,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         
         // 2nd Floor slots
         { slotId: '2nd_slot_1', floor: '2nd', x: 45,  y: 23, width: 50, height: 20, roomType: 'classroom', level: 1 },
-        { slotId: '2nd_slot_2', floor: '2nd', x: 75,  y: 1,  width: 20, height: 20, roomType: 'storage',   level: 1 },
+        { slotId: '2nd_slot_2', floor: '2nd', x: 65,  y: 1,  width: 30, height: 20, roomType: 'storage',   level: 1 },
         { slotId: '2nd_slot_3', floor: '2nd', x: 67,  y: 66, width: 30, height: 30, roomType: 'kitchen',   level: 1 },
         { slotId: '2nd_slot_4', floor: '2nd', x: 2,   y: 66, width: 60, height: 30, roomType: 'lounge',    level: 1 },
         { slotId: '2nd_slot_5', floor: '2nd', x: 31,  y: 1,  width: 35, height: 20, roomType: null },
@@ -647,10 +649,18 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
 
     // Convert slots to SlotWithRoom (combines slot position with room instance)
+    // Always read positions from getDefaultSlots() so coordinate changes apply
+    // immediately (including during HMR), while room data comes from state.
     const getSlotsWithRooms = (): SlotWithRoom[] => {
-        return slotData.map((slot) => {
-            const room = createRoom(slot.roomType, slot.level || 1, slot.occupant);
-            return { ...slot, room };
+        const defaults = getDefaultSlots();
+        const slotDataMap = new Map(slotData.map(s => [s.slotId, s]));
+        return defaults.map((defSlot) => {
+            const stateSlot = slotDataMap.get(defSlot.slotId);
+            const roomType = stateSlot?.roomType ?? defSlot.roomType;
+            const level = stateSlot?.level ?? defSlot.level ?? 1;
+            const occupant = stateSlot?.occupant ?? defSlot.occupant;
+            const room = createRoom(roomType, level, occupant);
+            return { ...defSlot, roomType, level, occupant, room };
         });
     };
 
