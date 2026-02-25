@@ -513,9 +513,24 @@ class LibraryClass extends BaseRoom {
         this.name = 'Library';
         this.type = 'library';
         this.image = ClassroomImg;
-        this.description = 'Towering shelves of tomes, scrolls, and arcane manuscripts. Purely for scholarly ambiance.';
+        this.description = 'Towering shelves of forbidden tomes, arcane scrolls, and manuscripts of forgotten lore. Knowledge is power — and danger.';
         this.buildable = false;
         this.location = 'indoors';
+    }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'book-open', text: '+Research speed (manor-wide)', stat: 'research_speed', value: this.level },
+            { icon: 'scroll', text: 'Unlocks spell research', stat: 'spell_research', value: 1 },
+            { icon: 'book-lock', text: 'Forbidden knowledge discovery', stat: 'forbidden_knowledge', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'book-open', label: 'Study Tomes', key: 'study_tomes' },
+            { icon: 'scroll', label: 'Research Spells', key: 'research_spells' },
+        ];
     }
 }
 
@@ -615,10 +630,474 @@ class TerraceClass extends BaseRoom {
     }
 }
 
+// ============================================================================
+// BUILDABLE ROOMS — Player-constructible, zone-restricted
+// ============================================================================
+
+class InfirmaryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Infirmary';
+        this.type = 'infirmary';
+        this.image = QuartersImg;
+        this.description = 'A clean, well-lit room lined with cots and healing supplies. Servants recover here after injury or exhaustion.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'heart-pulse', text: 'Servant healing & recovery', stat: 'healing', value: this.level },
+            { icon: 'dumbbell', text: `+${this.level * 15}% Stamina restoration rate`, stat: 'stamina_restore', value: this.level * 15 },
+            { icon: 'shield-plus', text: 'Reduces injury downtime', stat: 'injury_recovery', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'heart-pulse', label: 'Heal', key: 'heal' },
+            { icon: 'pill', label: 'Administer Medicine', key: 'medicine' },
+        ];
+    }
+}
+
+class LaboratoryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Laboratory';
+        this.type = 'laboratory';
+        this.image = BrewingImg;
+        this.description = 'A dim, bubbling laboratory crammed with arcane instruments, specimen jars, and crackling tesla coils.';
+        this.buildable = true;
+        this.buildZone = 'basement';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 8; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'microscope', text: 'Unlocks experimentation', stat: 'experimentation', value: 1 },
+            { icon: 'dna', text: 'Creature modification research', stat: 'creature_mod', value: this.level },
+            { icon: 'brain', text: 'Dark science breakthroughs', stat: 'dark_science', value: this.level },
+            { icon: 'heart-crack', text: 'Assigned servant: ++Corruption', stat: 'corruption', value: 2 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'microscope', label: 'Experiment', key: 'experiment' },
+            { icon: 'dna', label: 'Modify Creature', key: 'modify_creature' },
+        ];
+    }
+}
+
+class CryptClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Crypt';
+        this.type = 'crypt';
+        this.image = DungeonImg;
+        this.description = 'A cold, echoing tomb beneath the manor. The dead do not rest easy here — by design.';
+        this.buildable = true;
+        this.buildZone = 'basement';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 7; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'skull', text: 'Unlocks undead servants', stat: 'undead', value: this.level },
+            { icon: 'ghost', text: 'Necromancy rituals', stat: 'necromancy', value: this.level },
+            { icon: 'flame', text: 'Soul harvesting', stat: 'soul_harvest', value: this.level },
+            { icon: 'eye', text: '+Fear aura (manor-wide)', stat: 'fear', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'skull', label: 'Raise Undead', key: 'raise_undead' },
+            { icon: 'flame', label: 'Harvest Souls', key: 'harvest_souls' },
+        ];
+    }
+}
+
+class WineCellarClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Wine Cellar';
+        this.type = 'wine_cellar';
+        this.image = StorageImg;
+        this.description = 'Rows of dusty barrels and fine vintages. A source of trade income and liquid morale.';
+        this.buildable = true;
+        this.buildZone = 'basement';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 3; }
+
+    getIncomePerDay(): number { return this.level * 25; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'wine', text: `+${this.level * 25} Gold/day from trade`, stat: 'trade_income', value: this.level * 25 },
+            { icon: 'smile', text: '+Manor-wide morale (luxury)', stat: 'morale', value: 1 },
+            { icon: 'package', text: `+${this.level * 10} Storage capacity`, stat: 'storage', value: this.level * 10 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'wine', label: 'Trade Wines', key: 'trade_wines' },
+        ];
+    }
+}
+
+class GreenhouseClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Greenhouse';
+        this.type = 'greenhouse';
+        this.image = StableImg;
+        this.description = 'A glass-roofed growing house brimming with exotic herbs, luminous fungi, and alchemical plants.';
+        this.buildable = true;
+        this.buildZone = 'outside';
+        this.location = 'outdoors';
+    }
+
+    getUpkeep(): number { return 4; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'leaf', text: 'Produces potion ingredients', stat: 'ingredients', value: this.level },
+            { icon: 'flower', text: `+${this.level * 3} Herb yield per harvest`, stat: 'herb_yield', value: this.level * 3 },
+            { icon: 'flask', text: 'Synergy with Brewing Room', stat: 'brewing_synergy', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'leaf', label: 'Harvest Herbs', key: 'harvest_herbs' },
+            { icon: 'flower', label: 'Tend Plants', key: 'tend_plants' },
+        ];
+    }
+}
+
+class ObservatoryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Observatory';
+        this.type = 'observatory';
+        this.image = EmptyRoomImg;
+        this.description = 'A towering spire capped with an enchanted telescope that peers into the fabric of fate itself.';
+        this.buildable = true;
+        this.buildZone = 'outside';
+        this.location = 'outdoors';
+    }
+
+    getUpkeep(): number { return 6; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'telescope', text: 'Divination & star-reading', stat: 'divination', value: this.level },
+            { icon: 'eye', text: 'Event foresight (preview upcoming events)', stat: 'foresight', value: this.level },
+            { icon: 'sparkles', text: '+Arcane research speed', stat: 'arcane_research', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'telescope', label: 'Gaze at Stars', key: 'stargaze' },
+            { icon: 'eye', label: 'Divine Future', key: 'divine_future' },
+        ];
+    }
+}
+
+class TrainingGroundsClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Training Grounds';
+        this.type = 'training_grounds';
+        this.image = EmptyRoomImg;
+        this.description = 'A muddy yard of sparring dummies, archery targets, and obstacle courses. Guards are forged here.';
+        this.buildable = true;
+        this.buildZone = 'outside';
+        this.location = 'outdoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'swords', text: 'Combat training for servants', stat: 'combat_training', value: this.level },
+            { icon: 'shield', text: `+${this.level * 10}% Guard strength`, stat: 'guard_strength', value: this.level * 10 },
+            { icon: 'dumbbell', text: '+Stamina growth rate', stat: 'stamina_growth', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'swords', label: 'Train Guards', key: 'train_guards' },
+            { icon: 'dumbbell', label: 'Drill Servants', key: 'drill_servants' },
+        ];
+    }
+}
+
+class GraveyardClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Graveyard';
+        this.type = 'graveyard';
+        this.image = EmptyRoomImg;
+        this.description = 'A fog-shrouded cemetery of crooked headstones and whispering spirits. A prerequisite for darker arts.';
+        this.buildable = true;
+        this.buildZone = 'outside';
+        this.location = 'outdoors';
+    }
+
+    getUpkeep(): number { return 3; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'skull', text: 'Necromancy prerequisite', stat: 'necro_prereq', value: 1 },
+            { icon: 'ghost', text: 'Spirit summoning ground', stat: 'spirit_summon', value: this.level },
+            { icon: 'eye', text: '+Fear aura (outside)', stat: 'fear_outside', value: this.level },
+            { icon: 'bone', text: 'Produces corpse materials', stat: 'corpse_materials', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'ghost', label: 'Commune with Dead', key: 'commune_dead' },
+            { icon: 'skull', label: 'Exhume', key: 'exhume' },
+        ];
+    }
+}
+
+class EnchantingWorkshopClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Enchanting Workshop';
+        this.type = 'enchanting_workshop';
+        this.image = BrewingImg;
+        this.description = 'A cluttered workshop humming with arcane energy. Rune-etched workbenches and floating crystals fill the air with a violet glow.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 6; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'sparkles', text: 'Unlocks item enchantment', stat: 'enchantment', value: 1 },
+            { icon: 'wand', text: `+${this.level * 10}% Enchant potency`, stat: 'enchant_potency', value: this.level * 10 },
+            { icon: 'gem', text: 'Imbue items with magical effects', stat: 'imbue', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'sparkles', label: 'Enchant', key: 'enchant' },
+            { icon: 'wand', label: 'Imbue', key: 'imbue' },
+        ];
+    }
+}
+
+class StudyClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Study';
+        this.type = 'study';
+        this.image = ClassroomImg;
+        this.description = 'A private office of dark mahogany and candlelight. Maps, dossiers, and half-finished plans cover every surface.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 3; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'map', text: 'Quest planning & tracking', stat: 'quest_planning', value: this.level },
+            { icon: 'search', text: `+${this.level * 15}% Research speed`, stat: 'research_speed', value: this.level * 15 },
+            { icon: 'lightbulb', text: 'Unlocks new techniques', stat: 'techniques', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'search', label: 'Research', key: 'research' },
+            { icon: 'clipboard-list', label: 'Plan', key: 'plan' },
+        ];
+    }
+}
+
+class ArmoryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Armory';
+        this.type = 'armory';
+        this.image = StorageImg;
+        this.description = 'Racks of polished weapons, suits of enchanted armor, and the acrid scent of oiled steel. The manor\'s teeth.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 4; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'shield', text: `+${this.level * 10}% Manor defense`, stat: 'defense', value: this.level * 10 },
+            { icon: 'swords', text: 'Guard equipment upgrades', stat: 'guard_equip', value: this.level },
+            { icon: 'hammer', text: 'Weapon & armor forging', stat: 'forging', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'hammer', label: 'Forge', key: 'forge' },
+            { icon: 'shield', label: 'Equip Guards', key: 'equip_guards' },
+        ];
+    }
+}
+
+class ChapelClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Dark Chapel';
+        this.type = 'chapel';
+        this.image = RitualImg;
+        this.description = 'A candlelit chapel of inverted icons and whispered litanies. Devotion is reshaped here — faith bent to serve the master.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'church', text: 'Devotion training', stat: 'devotion', value: this.level },
+            { icon: 'brain', text: 'Assigned servant: ++Obedience', stat: 'obedience', value: 2 },
+            { icon: 'heart-crack', text: 'Assigned servant: +Corruption', stat: 'corruption', value: 1 },
+            { icon: 'flame', text: 'Dark worship empowerment', stat: 'dark_worship', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'church', label: 'Hold Service', key: 'hold_service' },
+            { icon: 'flame', label: 'Corrupt Faith', key: 'corrupt_faith' },
+        ];
+    }
+}
+
+class PerformanceHallClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Performance Hall';
+        this.type = 'performance_hall';
+        this.image = EmptyRoomImg;
+        this.description = 'A grand hall of velvet curtains, enchanted acoustics, and a stage for mesmerizing performances. Music here carries... suggestions.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'music', text: '+Manor-wide morale (entertainment)', stat: 'morale', value: this.level },
+            { icon: 'eye', text: 'Mesmerism through performance', stat: 'mesmerism', value: this.level },
+            { icon: 'smile', text: 'Audience: +Love, +Obedience', stat: 'audience_effect', value: 1 },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'music', label: 'Perform', key: 'perform' },
+            { icon: 'eye', label: 'Mesmerize', key: 'mesmerize' },
+        ];
+    }
+}
+
+class BathhouseClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Bathhouse';
+        this.type = 'bathhouse';
+        this.image = QuartersImg;
+        this.description = 'Steaming marble pools, scented oils, and warm towels. A place of vulnerability, relaxation, and quietly deepening bonds.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 4; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'heart', text: 'Assigned servant: +Love', stat: 'love', value: 1 },
+            { icon: 'dumbbell', text: `+${this.level * 20}% Stamina recovery`, stat: 'stamina_recovery', value: this.level * 20 },
+            { icon: 'handshake', text: 'Trust & intimacy building', stat: 'trust', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'droplets', label: 'Bathe', key: 'bathe' },
+            { icon: 'handshake', label: 'Socialize', key: 'socialize' },
+        ];
+    }
+}
+
+class BoudoirClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Boudoir';
+        this.type = 'boudoir';
+        this.image = YourRoomImg;
+        this.description = 'A dimly lit chamber of silk, perfume, and whispered promises. Charm and seduction are the weapons wielded here.';
+        this.buildable = true;
+        this.buildZone = 'mansion';
+        this.location = 'indoors';
+    }
+
+    getUpkeep(): number { return 5; }
+
+    getEffects(): RoomEffect[] {
+        return [
+            { icon: 'heart', text: 'Assigned servant: ++Love', stat: 'love', value: 2 },
+            { icon: 'heart-crack', text: 'Assigned servant: ++Corruption', stat: 'corruption', value: 2 },
+            { icon: 'sparkle', text: 'Seduction conditioning', stat: 'seduction', value: this.level },
+            { icon: 'gem', text: 'Charm manipulation', stat: 'charm', value: this.level },
+        ];
+    }
+
+    getActions(): RoomAction[] {
+        return [
+            { icon: 'heart', label: 'Seduce', key: 'seduce' },
+            { icon: 'sparkle', label: 'Charm', key: 'charm' },
+        ];
+    }
+}
+
 // Get all buildable room types, optionally filtered by build zone
 function getBuildableRoomTypes(zoneFilter?: BuildZone): BaseRoom[] {
     const allTypes = [
-        'ritual', 'classroom', 'brewing', 'stable'
+        'ritual', 'classroom', 'brewing', 'stable',
+        'infirmary', 'laboratory', 'crypt', 'wine_cellar',
+        'greenhouse', 'observatory', 'training_grounds', 'graveyard',
+        'enchanting_workshop', 'study', 'armory', 'chapel',
+        'performance_hall', 'bathhouse', 'boudoir'
     ];
     return allTypes
         .map(t => createRoom(t))
@@ -684,6 +1163,36 @@ function createRoom(
             return new MainHallClass(level, occupant);
         case 'terrace':
             return new TerraceClass(level, occupant);
+        case 'infirmary':
+            return new InfirmaryClass(level, occupant);
+        case 'laboratory':
+            return new LaboratoryClass(level, occupant);
+        case 'crypt':
+            return new CryptClass(level, occupant);
+        case 'wine_cellar':
+            return new WineCellarClass(level, occupant);
+        case 'greenhouse':
+            return new GreenhouseClass(level, occupant);
+        case 'observatory':
+            return new ObservatoryClass(level, occupant);
+        case 'training_grounds':
+            return new TrainingGroundsClass(level, occupant);
+        case 'graveyard':
+            return new GraveyardClass(level, occupant);
+        case 'enchanting_workshop':
+            return new EnchantingWorkshopClass(level, occupant);
+        case 'study':
+            return new StudyClass(level, occupant);
+        case 'armory':
+            return new ArmoryClass(level, occupant);
+        case 'chapel':
+            return new ChapelClass(level, occupant);
+        case 'performance_hall':
+            return new PerformanceHallClass(level, occupant);
+        case 'bathhouse':
+            return new BathhouseClass(level, occupant);
+        case 'boudoir':
+            return new BoudoirClass(level, occupant);
         default:
             return new EmptyRoomClass();
     }
@@ -763,23 +1272,23 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         { slotId: '1st_slot_9', floor: '1st', x: 76, y: 0, width: 23, height: 40, roomType: 'library', level: 1 },
         { slotId: '1st_slot_10', floor: '1st', x: 74, y: 81, width: 25, height: 18, roomType: 'stairway', level: 1 },
         { slotId: '1st_slot_12', floor: '1st', x: 33, y: 63, width: 39, height: 36, roomType: 'main_hall', level: 1 },
-        { slotId: '1st_slot_13', floor: '1st', x: 1, y: 63, width: 18, height: 36, roomType: 'terrace', level: 1 },
+        { slotId: '1st_slot_13', floor: '1st', x: 0, y: 63, width: 19, height: 36, roomType: 'terrace', level: 1 },
         { slotId: '1st_slot_14', floor: '1st', x: 21, y: 63, width: 10, height: 36, roomType: 'corridor', level: 1 },
-        { slotId: '1st_slot_15', floor: '1st', x: 1, y: 42, width: 18, height: 19, roomType: 'hallway_nook', level: 1 },
+        { slotId: '1st_slot_15', floor: '1st', x: 0, y: 42, width: 19, height: 19, roomType: 'hallway_nook', level: 1 },
         
         // 2nd Floor slots
         { slotId: '2nd_slot_1', floor: '2nd', x: 12, y: 0, width: 31, height: 19, roomType: 'your_room', level: 1 },
-        { slotId: '2nd_slot_2', floor: '2nd', x: 0, y: 42, width: 99, height: 10, roomType: 'corridor', level: 1 },
-        { slotId: '2nd_slot_4', floor: '2nd', x: 45, y: 21, width: 54, height: 19, roomType: 'quarters', level: 1 },
-        { slotId: '2nd_slot_5', floor: '2nd', x: 0, y: 54, width: 32, height: 22, roomType: null },
-        { slotId: '2nd_slot_6', floor: '2nd', x: 67, y: 54, width: 32, height: 22, roomType: null },
+        { slotId: '2nd_slot_2', floor: '2nd', x: 0, y: 43, width: 99, height: 10, roomType: 'corridor', level: 1 },
+        { slotId: '2nd_slot_4', floor: '2nd', x: 45, y: 21, width: 54, height: 20, roomType: 'quarters', level: 1 },
+        { slotId: '2nd_slot_5', floor: '2nd', x: 0, y: 55, width: 32, height: 21, roomType: null },
+        { slotId: '2nd_slot_6', floor: '2nd', x: 67, y: 55, width: 32, height: 21, roomType: null },
         { slotId: '2nd_slot_7', floor: '2nd', x: 45, y: 0, width: 21, height: 19, roomType: 'wardrobe', level: 1 },
         { slotId: '2nd_slot_8', floor: '2nd', x: 68, y: 0, width: 31, height: 19, roomType: 'trophy_room', level: 1 },
-        { slotId: '2nd_slot_9', floor: '2nd', x: 12, y: 21, width: 31, height: 19, roomType: null },
+        { slotId: '2nd_slot_9', floor: '2nd', x: 12, y: 21, width: 31, height: 20, roomType: null },
         { slotId: '2nd_slot_10', floor: '2nd', x: 67, y: 78, width: 32, height: 21, roomType: null },
         { slotId: '2nd_slot_12', floor: '2nd', x: 0, y: 78, width: 32, height: 21, roomType: null },
         { slotId: '2nd_slot_14', floor: '2nd', x: 0, y: 0, width: 10, height: 40, roomType: 'stairway', level: 1 },
-        { slotId: '2nd_slot_13', floor: '2nd', x: 34, y: 54, width: 31, height: 22, roomType: null },
+        { slotId: '2nd_slot_13', floor: '2nd', x: 34, y: 55, width: 31, height: 21, roomType: null },
         { slotId: '2nd_slot_15', floor: '2nd', x: 34, y: 78, width: 31, height: 21, roomType: 'balcony', level: 1 },
         
         // Basement slots
@@ -859,7 +1368,9 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         const slotDataMap = new Map(slotData.map(s => [s.slotId, s]));
         return defaults.map((defSlot) => {
             const stateSlot = slotDataMap.get(defSlot.slotId);
-            const roomType = stateSlot?.roomType ?? defSlot.roomType;
+            // Use stateSlot data if it exists (even if roomType is null = removed room)
+            // Only fall back to defaults when there's no state entry at all
+            const roomType = stateSlot ? stateSlot.roomType : defSlot.roomType;
             const level = stateSlot?.level ?? defSlot.level ?? 1;
             const occupant = stateSlot?.occupant ?? defSlot.occupant;
             const room = createRoom(roomType, level, occupant);

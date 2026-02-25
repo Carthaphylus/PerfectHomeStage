@@ -417,6 +417,21 @@ export const LayoutEditorPanel: FC<LayoutEditorPanelProps> = (props) => {
                                     <option value="stable">Stable</option>
                                     <option value="cell">Cell</option>
                                     <option value="dungeon">Dungeon</option>
+                                    <option value="infirmary">Infirmary</option>
+                                    <option value="laboratory">Laboratory</option>
+                                    <option value="crypt">Crypt</option>
+                                    <option value="wine_cellar">Wine Cellar</option>
+                                    <option value="greenhouse">Greenhouse</option>
+                                    <option value="observatory">Observatory</option>
+                                    <option value="training_grounds">Training Grounds</option>
+                                    <option value="graveyard">Graveyard</option>
+                                    <option value="enchanting_workshop">Enchanting Workshop</option>
+                                    <option value="study">Study</option>
+                                    <option value="armory">Armory</option>
+                                    <option value="chapel">Dark Chapel</option>
+                                    <option value="performance_hall">Performance Hall</option>
+                                    <option value="bathhouse">Bathhouse</option>
+                                    <option value="boudoir">Boudoir</option>
                                 </optgroup>
                                 <optgroup label="── Decorative ──">
                                     <option value="wardrobe">Wardrobe</option>

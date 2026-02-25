@@ -39,6 +39,7 @@ import {
     Lasso, Unlink, Fingerprint, Crosshair, Grab, HandMetal,
     Telescope, Stars, Atom, Glasses, Globe,
     Shell, Bone, TreePine, Mountain, Tent,
+    Church, HeartPulse, Microscope, Handshake,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -232,6 +233,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     'tree-pine': TreePine,
     mountain: Mountain,
     tent: Tent,
+    church: Church,
+    'heart-pulse': HeartPulse,
+    microscope: Microscope,
+    handshake: Handshake,
+    lightbulb: Lightbulb,
 };
 
 export interface GameIconProps {
