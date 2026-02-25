@@ -4,6 +4,8 @@ import type { Stage } from '../Stage';
 import { ROOM_ROLES } from '../data';
 import type { Role } from '../data';
 import { GameIcon } from './GameIcon';
+import { LayoutEditorHandles, LayoutEditorPanel } from './LayoutEditor';
+import type { LayoutSlot } from './LayoutEditor';
 
 
 // Room images
@@ -70,6 +72,7 @@ import IconChat from '../assets/Images/Icons/chat.png';
 // ============================================================================
 
 type FloorType = 'basement' | '1st' | '2nd' | 'outside';
+type BuildZone = 'mansion' | 'basement' | 'outside';
 
 // Effect and action descriptors for the room system
 interface RoomEffect {
@@ -95,6 +98,7 @@ abstract class BaseRoom {
     level: number;
     occupant?: string;
     buildable: boolean;  // Can this room type be built by the player?
+    buildZone?: BuildZone; // Where can this room be built? (only relevant if buildable)
     location: 'indoors' | 'outdoors'; // Where can this room be placed?
 
     constructor(
@@ -189,6 +193,7 @@ class RitualRoomClass extends BaseRoom {
         this.image = RitualImg;
         this.description = 'A dark chamber for summoning demons and performing unholy rituals.';
         this.buildable = true;
+        this.buildZone = 'basement';
         this.location = 'indoors';
     }
 
@@ -218,7 +223,7 @@ class QuartersClass extends BaseRoom {
         this.type = 'quarters';
         this.image = QuartersImg;
         this.description = 'Comfortable housing for your servants. Each quarters houses up to 10.';
-        this.buildable = true;
+        this.buildable = false;
         this.location = 'indoors';
     }
 
@@ -241,6 +246,7 @@ class ClassroomClass extends BaseRoom {
         this.image = ClassroomImg;
         this.description = 'A space for education and training. Lessons raise obedience across the board.';
         this.buildable = true;
+        this.buildZone = 'mansion';
         this.location = 'indoors';
     }
 
@@ -268,7 +274,7 @@ class StorageClass extends BaseRoom {
         this.type = 'storage';
         this.image = StorageImg;
         this.description = 'A secure room for storing items and materials.';
-        this.buildable = true;
+        this.buildable = false;
         this.location = 'indoors';
     }
 
@@ -288,7 +294,7 @@ class KitchenClass extends BaseRoom {
         this.type = 'kitchen';
         this.image = OvenImg;
         this.description = 'Where meals are prepared for the manor. Good food keeps everyone happy.';
-        this.buildable = true;
+        this.buildable = false;
         this.location = 'indoors';
     }
 
@@ -316,7 +322,7 @@ class LoungeClass extends BaseRoom {
         this.type = 'lounge';
         this.image = QuartersImg; // Placeholder
         this.description = 'A comfortable space for relaxation and socializing among servants.';
-        this.buildable = true;
+        this.buildable = false;
         this.location = 'indoors';
     }
 
@@ -351,6 +357,7 @@ class BrewingRoomClass extends BaseRoom {
         this.image = BrewingImg;
         this.description = 'A workshop for crafting potions, elixirs, and other concoctions.';
         this.buildable = true;
+        this.buildZone = 'basement';
         this.location = 'indoors';
     }
 
@@ -379,6 +386,7 @@ class StableClass extends BaseRoom {
         this.image = StableImg;
         this.description = 'Shelter for magical creatures and beasts of burden.';
         this.buildable = true;
+        this.buildZone = 'outside';
         this.location = 'outdoors';
     }
 
@@ -426,7 +434,7 @@ class CellClass extends BaseRoom {
         this.type = 'cell';
         this.image = CellImg;
         this.description = 'A small holding cell for prisoners. Breaks down resistance over time.';
-        this.buildable = true;
+        this.buildable = false;
         this.location = 'indoors';
     }
 
@@ -459,15 +467,162 @@ class EmptyRoomClass extends BaseRoom {
     }
 }
 
-// Get all buildable room types, optionally filtered by location
-function getBuildableRoomTypes(locationFilter?: 'indoors' | 'outdoors'): BaseRoom[] {
+// ============================================================================
+// DECORATIVE ROOMS — Aesthetic-only, no mechanical purpose
+// ============================================================================
+
+class WardrobeClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Wardrobe';
+        this.type = 'wardrobe';
+        this.image = StorageImg;
+        this.description = 'A walk-in wardrobe filled with fine garments and enchanted robes.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class BathroomClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Bathroom';
+        this.type = 'bathroom';
+        this.image = QuartersImg;
+        this.description = 'A lavish bathing chamber with steaming pools and scented oils.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class HallwayNookClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Hallway Nook';
+        this.type = 'hallway_nook';
+        this.image = CorridorImg;
+        this.description = 'A cozy alcove tucked into the corridor, with a cushioned bench and a candle.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class LibraryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Library';
+        this.type = 'library';
+        this.image = ClassroomImg;
+        this.description = 'Towering shelves of tomes, scrolls, and arcane manuscripts. Purely for scholarly ambiance.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class GalleryClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Gallery';
+        this.type = 'gallery';
+        this.image = EmptyRoomImg;
+        this.description = 'A long hall adorned with portraits, tapestries, and trophy displays.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class BalconyClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Balcony';
+        this.type = 'balcony';
+        this.image = EmptyRoomImg;
+        this.description = 'An open-air terrace overlooking the manor grounds, perfect for moonlit contemplation.';
+        this.buildable = false;
+        this.location = 'outdoors';
+    }
+}
+
+class FountainClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Fountain';
+        this.type = 'fountain';
+        this.image = EmptyRoomImg;
+        this.description = 'An ornate fountain with gently cascading enchanted water.';
+        this.buildable = false;
+        this.location = 'outdoors';
+    }
+}
+
+class GardenClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Garden';
+        this.type = 'garden';
+        this.image = StableImg;
+        this.description = 'A lush garden filled with exotic flora, winding paths, and the hum of fae insects.';
+        this.buildable = false;
+        this.location = 'outdoors';
+    }
+}
+
+class TrophyRoomClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Trophy Room';
+        this.type = 'trophy_room';
+        this.image = DungeonImg;
+        this.description = 'A dim chamber displaying conquered relics, enchanted artifacts, and mementos of dominance.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class StairwayClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Stairway';
+        this.type = 'stairway';
+        this.image = CorridorImg;
+        this.description = 'A winding staircase connecting the manor floors, its stone steps worn smooth by countless footsteps.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class MainHallClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Main Hall';
+        this.type = 'main_hall';
+        this.image = EmptyRoomImg;
+        this.description = 'The grand central hall of the manor, with vaulted ceilings, a roaring hearth, and banners adorning the walls.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class TerraceClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Terrace';
+        this.type = 'terrace';
+        this.image = EmptyRoomImg;
+        this.description = 'A sun-dappled stone terrace draped in climbing ivy, overlooking the manor grounds.';
+        this.buildable = false;
+        this.location = 'outdoors';
+    }
+}
+
+// Get all buildable room types, optionally filtered by build zone
+function getBuildableRoomTypes(zoneFilter?: BuildZone): BaseRoom[] {
     const allTypes = [
-        'ritual', 'quarters', 'classroom', 'storage', 'kitchen',
-        'lounge', 'brewing', 'stable', 'cell'
+        'ritual', 'classroom', 'brewing', 'stable'
     ];
     return allTypes
         .map(t => createRoom(t))
-        .filter(r => r.buildable && (!locationFilter || r.location === locationFilter));
+        .filter(r => r.buildable && (!zoneFilter || r.buildZone === zoneFilter));
 }
 
 // Factory function to create room instances
@@ -505,6 +660,30 @@ function createRoom(
             return new DungeonClass(level, occupant);
         case 'cell':
             return new CellClass(level, occupant);
+        case 'wardrobe':
+            return new WardrobeClass(level, occupant);
+        case 'bathroom':
+            return new BathroomClass(level, occupant);
+        case 'hallway_nook':
+            return new HallwayNookClass(level, occupant);
+        case 'library':
+            return new LibraryClass(level, occupant);
+        case 'gallery':
+            return new GalleryClass(level, occupant);
+        case 'balcony':
+            return new BalconyClass(level, occupant);
+        case 'fountain':
+            return new FountainClass(level, occupant);
+        case 'garden':
+            return new GardenClass(level, occupant);
+        case 'trophy_room':
+            return new TrophyRoomClass(level, occupant);
+        case 'stairway':
+            return new StairwayClass(level, occupant);
+        case 'main_hall':
+            return new MainHallClass(level, occupant);
+        case 'terrace':
+            return new TerraceClass(level, occupant);
         default:
             return new EmptyRoomClass();
     }
@@ -539,8 +718,8 @@ interface ManorScreenProps {
 
 const FLOOR_IMAGES: { [key in FloorType]: string } = {
     'basement': BasementImg,
-    '1st': Floor1Img,
-    '2nd': Floor2Img,
+    '1st': Floor2Img,
+    '2nd': Floor1Img,
     'outside': EmptyRoomImg, // Placeholder for outside
 };
 
@@ -558,6 +737,9 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     const [showBuildPicker, setShowBuildPicker] = useState(false);
     const [catalogueSelection, setCatalogueSelection] = useState<BaseRoom | null>(null);
+    const [layoutEditorOpen, setLayoutEditorOpen] = useState(false);
+    const [layoutEditorSlots, setLayoutEditorSlots] = useState<LayoutSlot[] | null>(null);
+    const [leSelectedSlotId, setLeSelectedSlotId] = useState<string | null>(null);
     const blueprintContainerRef = useRef<HTMLDivElement>(null);
 
     // ========================================================================
@@ -570,34 +752,55 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
     const getDefaultSlots = (): RoomSlot[] => [
         // 1st Floor slots
-        { slotId: '1st_slot_1', floor: '1st', x: 1,    y: 21, width: 45, height: 22, roomType: 'your_room', level: 1 },
-        { slotId: '1st_slot_2', floor: '1st', x: 2,    y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
-        { slotId: '1st_slot_3', floor: '1st', x: 34.5, y: 67, width: 30, height: 30, roomType: 'ritual',    level: 1 },
-        { slotId: '1st_slot_4', floor: '1st', x: 50,   y: 21, width: 45, height: 22, roomType: 'quarters',  level: 1 },
-        { slotId: '1st_slot_5', floor: '1st', x: 2,    y: 67, width: 30, height: 30, roomType: null },
-        { slotId: '1st_slot_6', floor: '1st', x: 67,   y: 67, width: 30, height: 30, roomType: null },
-        { slotId: '1st_slot_7', floor: '1st', x: 66,   y: 1,  width: 30, height: 18, roomType: null },
-        { slotId: '1st_slot_8', floor: '1st', x: 1,    y: 1,  width: 30, height: 18, roomType: null },
-        { slotId: '1st_slot_9', floor: '1st', x: 33,   y: 1,  width: 30, height: 18, roomType: null },
+        { slotId: '1st_slot_1', floor: '1st', x: 44, y: 21, width: 30, height: 19, roomType: null },
+        { slotId: '1st_slot_2', floor: '1st', x: 74, y: 63, width: 25, height: 16, roomType: 'storage', level: 1 },
+        { slotId: '1st_slot_3', floor: '1st', x: 64, y: 42, width: 35, height: 19, roomType: 'kitchen', level: 1 },
+        { slotId: '1st_slot_4', floor: '1st', x: 21, y: 42, width: 41, height: 19, roomType: 'lounge', level: 1 },
+        { slotId: '1st_slot_5', floor: '1st', x: 44, y: 0, width: 30, height: 19, roomType: null },
+        { slotId: '1st_slot_6', floor: '1st', x: 0, y: 0, width: 10, height: 40, roomType: 'stairway', level: 1 },
+        { slotId: '1st_slot_7', floor: '1st', x: 12, y: 0, width: 30, height: 19, roomType: null },
+        { slotId: '1st_slot_8', floor: '1st', x: 12, y: 21, width: 30, height: 19, roomType: null },
+        { slotId: '1st_slot_9', floor: '1st', x: 76, y: 0, width: 23, height: 40, roomType: 'library', level: 1 },
+        { slotId: '1st_slot_10', floor: '1st', x: 74, y: 81, width: 25, height: 18, roomType: 'stairway', level: 1 },
+        { slotId: '1st_slot_12', floor: '1st', x: 33, y: 63, width: 39, height: 36, roomType: 'main_hall', level: 1 },
+        { slotId: '1st_slot_13', floor: '1st', x: 1, y: 63, width: 18, height: 36, roomType: 'terrace', level: 1 },
+        { slotId: '1st_slot_14', floor: '1st', x: 21, y: 63, width: 10, height: 36, roomType: 'corridor', level: 1 },
+        { slotId: '1st_slot_15', floor: '1st', x: 1, y: 42, width: 18, height: 19, roomType: 'hallway_nook', level: 1 },
         
         // 2nd Floor slots
-        { slotId: '2nd_slot_1', floor: '2nd', x: 45,  y: 23, width: 50, height: 20, roomType: 'classroom', level: 1 },
-        { slotId: '2nd_slot_2', floor: '2nd', x: 65,  y: 1,  width: 30, height: 20, roomType: 'storage',   level: 1 },
-        { slotId: '2nd_slot_3', floor: '2nd', x: 67,  y: 66, width: 30, height: 30, roomType: 'kitchen',   level: 1 },
-        { slotId: '2nd_slot_4', floor: '2nd', x: 2,   y: 66, width: 60, height: 30, roomType: 'lounge',    level: 1 },
-        { slotId: '2nd_slot_5', floor: '2nd', x: 31,  y: 1,  width: 35, height: 20, roomType: null },
-        { slotId: '2nd_slot_6', floor: '2nd', x: 2,   y: 47, width: 95, height: 15, roomType: 'corridor',  level: 1 },
-        { slotId: '2nd_slot_7', floor: '2nd', x: 2,   y: 1,  width: 25, height: 20, roomType: 'brewing',   level: 1 },
-        { slotId: '2nd_slot_8', floor: '2nd', x: 2,   y: 23, width: 40, height: 20, roomType: null },
+        { slotId: '2nd_slot_1', floor: '2nd', x: 12, y: 0, width: 31, height: 19, roomType: 'your_room', level: 1 },
+        { slotId: '2nd_slot_2', floor: '2nd', x: 0, y: 42, width: 99, height: 10, roomType: 'corridor', level: 1 },
+        { slotId: '2nd_slot_4', floor: '2nd', x: 45, y: 21, width: 54, height: 19, roomType: 'quarters', level: 1 },
+        { slotId: '2nd_slot_5', floor: '2nd', x: 0, y: 54, width: 32, height: 22, roomType: null },
+        { slotId: '2nd_slot_6', floor: '2nd', x: 67, y: 54, width: 32, height: 22, roomType: null },
+        { slotId: '2nd_slot_7', floor: '2nd', x: 45, y: 0, width: 21, height: 19, roomType: 'wardrobe', level: 1 },
+        { slotId: '2nd_slot_8', floor: '2nd', x: 68, y: 0, width: 31, height: 19, roomType: 'trophy_room', level: 1 },
+        { slotId: '2nd_slot_9', floor: '2nd', x: 12, y: 21, width: 31, height: 19, roomType: null },
+        { slotId: '2nd_slot_10', floor: '2nd', x: 67, y: 78, width: 32, height: 21, roomType: null },
+        { slotId: '2nd_slot_12', floor: '2nd', x: 0, y: 78, width: 32, height: 21, roomType: null },
+        { slotId: '2nd_slot_14', floor: '2nd', x: 0, y: 0, width: 10, height: 40, roomType: 'stairway', level: 1 },
+        { slotId: '2nd_slot_13', floor: '2nd', x: 34, y: 54, width: 31, height: 22, roomType: null },
+        { slotId: '2nd_slot_15', floor: '2nd', x: 34, y: 78, width: 31, height: 21, roomType: 'balcony', level: 1 },
         
         // Basement slots
-        { slotId: 'basement_slot_1', floor: 'basement', x: 21, y: 51, width: 55, height: 25, roomType: 'dungeon', level: 1 },
-        { slotId: 'basement_slot_2', floor: 'basement', x: 22, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
-        { slotId: 'basement_slot_3', floor: 'basement', x: 41, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
-        { slotId: 'basement_slot_4', floor: 'basement', x: 60, y: 23, width: 16, height: 25, roomType: 'cell',    level: 1 },
+        { slotId: 'basement_slot_1', floor: 'basement', x: 44, y: 74, width: 55, height: 25, roomType: 'dungeon', level: 1 },
+        { slotId: 'basement_slot_2', floor: 'basement', x: 38, y: 45, width: 19, height: 27, roomType: 'cell', level: 1 },
+        { slotId: 'basement_slot_3', floor: 'basement', x: 59, y: 45, width: 19, height: 27, roomType: 'cell', level: 1 },
+        { slotId: 'basement_slot_4', floor: 'basement', x: 80, y: 45, width: 19, height: 27, roomType: 'cell', level: 1 },
+        { slotId: 'basement_slot_5', floor: 'basement', x: 17, y: 45, width: 19, height: 27, roomType: 'cell', level: 1 },
+        { slotId: 'basement_slot_6', floor: 'basement', x: 0, y: 74, width: 42, height: 25, roomType: null },
+        { slotId: 'basement_slot_7', floor: 'basement', x: 0, y: 45, width: 15, height: 27, roomType: 'corridor', level: 1 },
+        { slotId: 'basement_slot_8', floor: 'basement', x: 34, y: 0, width: 31, height: 20, roomType: null },
+        { slotId: 'basement_slot_9', floor: 'basement', x: 67, y: 0, width: 31, height: 20, roomType: null },
+        { slotId: 'basement_slot_10', floor: 'basement', x: 34, y: 23, width: 31, height: 20, roomType: null },
+        { slotId: 'basement_slot_11', floor: 'basement', x: 67, y: 23, width: 31, height: 20, roomType: null },
+        { slotId: 'basement_slot_12', floor: 'basement', x: 1, y: 0, width: 31, height: 20, roomType: null },
+        { slotId: 'basement_slot_13', floor: 'basement', x: 1, y: 23, width: 31, height: 20, roomType: null },
         
         // Outside slots
         { slotId: 'outside_slot_1', floor: 'outside', x: 1, y: 74, width: 35, height: 25, roomType: 'stable', level: 1 },
+        { slotId: 'outside_slot_2', floor: 'outside', x: 71, y: 72, width: 28, height: 27, roomType: 'garden', level: 1 },
+        
     ];
 
     // Load slots: merge saved data (roomType/level/occupant) with default positions
@@ -672,9 +875,16 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         .filter(s => s.room.type !== 'empty')
         .reduce((sum, s) => sum + s.room.getUpkeep(), 0);
 
-    // Get the location type for the current floor
+    // Get the location type for the current floor (display)
     const getFloorLocation = (floor: FloorType): 'indoors' | 'outdoors' => {
         return floor === 'outside' ? 'outdoors' : 'indoors';
+    };
+
+    // Get the build zone for the current floor (filtering)
+    const getFloorBuildZone = (floor: FloorType): BuildZone => {
+        if (floor === 'outside') return 'outside';
+        if (floor === 'basement') return 'basement';
+        return 'mansion';
     };
 
     const handleRoomClick = (slotWithRoom: SlotWithRoom) => {
@@ -763,6 +973,21 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                     >
                         Basement
                     </button>
+                    {import.meta.env.MODE === 'development' && (
+                    <button 
+                        className={`floor-button layout-editor-toggle ${layoutEditorOpen ? 'active' : ''}`}
+                        onClick={() => {
+                            if (!layoutEditorOpen) {
+                                // Initialise editor slots from current defaults
+                                setLayoutEditorSlots(getDefaultSlots());
+                            }
+                            setLayoutEditorOpen(!layoutEditorOpen);
+                        }}
+                        title="Toggle Layout Editor (dev tool)"
+                    >
+                        ⚙ Layout
+                    </button>
+                    )}
                 </div>
             </div>
 
@@ -859,7 +1084,39 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                         </div>
                     ))}
                     </div>
+
+                    {/* Layout Editor drag handles on blueprint */}
+                    {layoutEditorOpen && layoutEditorSlots && (
+                        <LayoutEditorHandles
+                            slots={layoutEditorSlots}
+                            currentFloor={currentFloor}
+                            blueprintRef={blueprintContainerRef}
+                            onSlotsChange={setLayoutEditorSlots}
+                            selectedSlotId={leSelectedSlotId}
+                            setSelectedSlotId={setLeSelectedSlotId}
+                        />
+                    )}
                 </div>
+
+                {/* Right panel: Layout Editor panel OR Room Detail panel */}
+                {layoutEditorOpen && layoutEditorSlots ? (
+                    <LayoutEditorPanel
+                        slots={layoutEditorSlots}
+                        currentFloor={currentFloor}
+                        blueprintRef={blueprintContainerRef}
+                        onSlotsChange={setLayoutEditorSlots}
+                        onClose={() => setLayoutEditorOpen(false)}
+                        onRoomTypeChange={(slotId, roomType) => {
+                            setSlotData(prev => prev.map(s =>
+                                s.slotId === slotId
+                                    ? { ...s, roomType, level: roomType ? 1 : undefined, occupant: undefined }
+                                    : s
+                            ));
+                        }}
+                        selectedSlotId={leSelectedSlotId}
+                        setSelectedSlotId={setLeSelectedSlotId}
+                    />
+                ) : (
                 <div className={`room-detail-panel ${selectedRoom ? 'visible' : ''}`}>
                     {selectedRoom && selectedSlot ? (
                         <>
@@ -1001,11 +1258,12 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                         </div>
                     )}
                 </div>
+                )}
             </div>
             
             {/* Room Catalogue Overlay */}
             {showBuildPicker && selectedSlot && (() => {
-                const buildableRooms = getBuildableRoomTypes(getFloorLocation(selectedSlot.floor));
+                const buildableRooms = getBuildableRoomTypes(getFloorBuildZone(selectedSlot.floor));
                 const preview = catalogueSelection || buildableRooms[0] || null;
                 return (
                     <div className="catalogue-overlay" onClick={() => { setShowBuildPicker(false); setCatalogueSelection(null); }}>

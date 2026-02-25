@@ -46,6 +46,26 @@
         color: var(--highlight);
         box-shadow: 0 0 10px rgba(200, 170, 110, 0.08);
       }
+
+      &.layout-editor-toggle {
+        margin-left: auto;
+        font-size: 10px;
+        border-color: rgba(0, 200, 255, 0.25);
+        color: rgba(0, 200, 255, 0.7);
+
+        &:hover {
+          border-color: rgba(0, 200, 255, 0.5);
+          color: rgba(0, 220, 255, 1);
+          background: rgba(0, 200, 255, 0.08) !important;
+        }
+
+        &.active {
+          background: rgba(0, 200, 255, 0.12) !important;
+          border-color: rgba(0, 200, 255, 0.5);
+          color: rgba(0, 220, 255, 1);
+          box-shadow: 0 0 10px rgba(0, 200, 255, 0.15);
+        }
+      }
     }
   }
   
@@ -269,30 +289,33 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 50%, transparent) !important;
-        padding: 12px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.35) 70%, transparent) !important;
+        padding: 4px 6px;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        border-top: 1px solid rgba(100, 150, 200, 0.3);
         
         .room-name {
-          font-size: 14px;
+          font-size: 9px;
           font-weight: bold;
           color: #e0ecf4;
           text-transform: uppercase;
-          letter-spacing: 1px;
-          text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+          letter-spacing: 0.5px;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+          line-height: 1.2;
         }
         
         .room-level {
-          font-size: 12px;
-          color: rgba(150, 200, 255, 0.9);
-          background: rgba(58, 80, 107, 0.8) !important;
-          padding: 4px 8px;
-          border-radius: 3px;
-          border: 1px solid rgba(100, 150, 200, 0.4);
+          font-size: 8px;
+          color: rgba(180, 210, 240, 0.95);
+          background: rgba(30, 50, 70, 0.75) !important;
+          padding: 1px 4px;
+          border-radius: 2px;
+          border: 1px solid rgba(100, 150, 200, 0.35);
           font-weight: bold;
+          line-height: 1.2;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
       }
     }
