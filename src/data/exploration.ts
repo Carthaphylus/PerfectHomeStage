@@ -150,33 +150,32 @@ const PIP_SHOP: EventShopPhase = {
     shopName: "Pip's Emporium",
     shopkeeperName: 'Pip',
     shopkeeperGreeting: '"Find what you need? I\'ve got more where that came from — just say the word! Squeak!"',
-    categories: ['Supplies', 'Arcane', 'Special'],
+    categories: ['Supplies', 'Reagents', 'Pip\'s Finds'],
     exitStep: 'depart',
     items: [
-        // ─ Supplies ─
+        // ─ Supplies — practical frontier goods ─
         { itemName: 'Traveler\'s Rations',    price: 5,   quantity: 2, category: 'Supplies' },
-        { itemName: 'Dreamcatcher Herb',      price: 8,   quantity: 3, category: 'Supplies' },
-        { itemName: 'Mousefolk Cheese Wheel',  price: 3,   quantity: 1, category: 'Supplies' },
-        { itemName: 'Honeysuckle Blossoms',   price: 6,   quantity: 3, category: 'Supplies' },
         { itemName: 'Healing Salve',          price: 8,   quantity: 1, category: 'Supplies' },
-        { itemName: 'Moonflower Petals',      price: 10,  quantity: 2, category: 'Supplies' },
-        { itemName: 'Frostwhisper Moss',      price: 9,   quantity: 2, category: 'Supplies' },
-        // ─ Arcane ─
-        { itemName: 'Mana Crystal',           price: 15,  quantity: 1, category: 'Arcane' },
-        { itemName: 'Spiral Incense',         price: 12,  quantity: 2, category: 'Arcane' },
-        { itemName: 'Enchanted Candle',       price: 10,  quantity: 1, category: 'Arcane' },
-        { itemName: 'Silver Pocket Mirror',   price: 20,  quantity: 1, category: 'Arcane', stock: 1 },
-        { itemName: 'Moonstone Splinter',     price: 12,  quantity: 1, category: 'Arcane' },
-        { itemName: 'Amethyst Shard',         price: 14,  quantity: 1, category: 'Arcane' },
-        { itemName: 'Rose Quartz Dust',       price: 6,   quantity: 3, category: 'Arcane' },
-        // ─ Special ─
-        { itemName: 'Obedience Elixir',       price: 30,  quantity: 1, category: 'Special', stock: 2 },
-        { itemName: 'Whispering Vial',        price: 25,  quantity: 1, category: 'Special', stock: 2 },
-        { itemName: 'Suggestive Perfume',     price: 15,  quantity: 1, category: 'Special' },
-        { itemName: 'Binding Tincture',       price: 18,  quantity: 1, category: 'Special' },
-        { itemName: 'Bottled Starlight',      price: 22,  quantity: 1, category: 'Special', stock: 3 },
-        { itemName: 'Sweetness Tonic',        price: 16,  quantity: 1, category: 'Special' },
-        { itemName: 'Map Fragment',           price: 12,  quantity: 1, category: 'Special', stock: 1 },
+        { itemName: 'Mousefolk Cheese Wheel',  price: 3,   quantity: 1, category: 'Supplies' },
+        { itemName: 'Stamina Draught',        price: 12,  quantity: 1, category: 'Supplies' },
+        { itemName: 'Antidote',               price: 10,  quantity: 1, category: 'Supplies' },
+        { itemName: 'Binding Cord',           price: 6,   quantity: 2, category: 'Supplies' },
+        { itemName: 'Binding Circle Chalk',   price: 4,   quantity: 3, category: 'Supplies' },
+        // ─ Reagents — crafting herbs & minerals ─
+        { itemName: 'Dreamcatcher Herb',      price: 8,   quantity: 3, category: 'Reagents' },
+        { itemName: 'Honeysuckle Blossoms',   price: 6,   quantity: 3, category: 'Reagents' },
+        { itemName: 'Moonflower Petals',      price: 10,  quantity: 2, category: 'Reagents' },
+        { itemName: 'Frostwhisper Moss',      price: 9,   quantity: 2, category: 'Reagents' },
+        { itemName: 'Rose Quartz Dust',       price: 6,   quantity: 3, category: 'Reagents' },
+        { itemName: 'Mana Crystal',           price: 15,  quantity: 1, category: 'Reagents' },
+        { itemName: 'Moonstone Splinter',     price: 12,  quantity: 1, category: 'Reagents' },
+        // ─ Pip's Finds — rare things Pip "acquired" ─
+        { itemName: 'Silver Pocket Mirror',   price: 20,  quantity: 1, category: 'Pip\'s Finds', stock: 1 },
+        { itemName: 'Enchanted Candle',       price: 10,  quantity: 1, category: 'Pip\'s Finds' },
+        { itemName: 'Map Fragment',           price: 12,  quantity: 1, category: 'Pip\'s Finds', stock: 1 },
+        { itemName: 'Bottled Starlight',      price: 22,  quantity: 1, category: 'Pip\'s Finds', stock: 3 },
+        { itemName: 'Suggestive Perfume',     price: 15,  quantity: 1, category: 'Pip\'s Finds', stock: 2 },
+        { itemName: 'Luck Charm',             price: 14,  quantity: 1, category: 'Pip\'s Finds' },
     ],
 };
 
@@ -557,6 +556,38 @@ const EXPLORE_RUINS_DELVE: EventDefinition = {
 
 // ── CIRCUS EVENTS ──
 
+// ── Shop inventory for Madame Vesper's Curiosities ──
+const VESPER_SHOP: EventShopPhase = {
+    shopName: "Vesper's Curiosities",
+    shopkeeperName: 'Madame Vesper',
+    shopkeeperGreeting: '"Every item here has a story, dear. The question is — which story do *you* need?"',
+    categories: ['Curiosities', 'Elixirs', 'Arcane Trinkets'],
+    exitStep: 'depart',
+    items: [
+        // ─ Curiosities — carnival novelties & conditioning atmospherics ─
+        { itemName: 'Fate-Woven Card',          price: 10,  quantity: 1, category: 'Curiosities' },
+        { itemName: 'Fortune Bones',             price: 14,  quantity: 1, category: 'Curiosities' },
+        { itemName: 'Stage Smoke Bomb',          price: 5,   quantity: 3, category: 'Curiosities' },
+        { itemName: 'Trance Taffy',              price: 3,   quantity: 5, category: 'Curiosities' },
+        { itemName: 'Carnival Prize Voucher',    price: 2,   quantity: 1, category: 'Curiosities' },
+        { itemName: 'Illusionist\'s Dust',       price: 8,   quantity: 2, category: 'Curiosities' },
+        // ─ Elixirs — potions, wines, and consumable mind-alterers ─
+        { itemName: 'Hypnotist\'s Honey Wine',   price: 15,  quantity: 1, category: 'Elixirs' },
+        { itemName: 'Spiral Incense',            price: 14,  quantity: 2, category: 'Elixirs' },
+        { itemName: 'Obedience Elixir',          price: 35,  quantity: 1, category: 'Elixirs', stock: 2 },
+        { itemName: 'Sweetness Tonic',           price: 18,  quantity: 1, category: 'Elixirs' },
+        { itemName: 'Binding Tincture',          price: 20,  quantity: 1, category: 'Elixirs' },
+        { itemName: 'Whispering Vial',           price: 28,  quantity: 1, category: 'Elixirs', stock: 1 },
+        // ─ Arcane Trinkets — equipment & rare conditioning tools ─
+        { itemName: 'Mind-Fog Candle',           price: 22,  quantity: 1, category: 'Arcane Trinkets', stock: 3 },
+        { itemName: 'Mesmerist\'s Pendulum',     price: 30,  quantity: 1, category: 'Arcane Trinkets', stock: 2 },
+        { itemName: 'Crystal Ball Shard',        price: 18,  quantity: 1, category: 'Arcane Trinkets' },
+        { itemName: 'Enchanted Masquerade Mask', price: 60,  quantity: 1, category: 'Arcane Trinkets', stock: 1 },
+        { itemName: 'Ringmaster\'s Baton',       price: 75,  quantity: 1, category: 'Arcane Trinkets', stock: 1 },
+        { itemName: 'Silken Blindfold',          price: 16,  quantity: 1, category: 'Arcane Trinkets' },
+    ],
+};
+
 const EXPLORE_CIRCUS_SHOW: EventDefinition = {
     id: 'explore_circus_show',
     name: 'The Main Show',
@@ -584,54 +615,34 @@ const EXPLORE_CIRCUS_SHOW: EventDefinition = {
 
 const EXPLORE_CIRCUS_STALLS: EventDefinition = {
     id: 'explore_circus_stalls',
-    name: 'Curiosity Stalls',
-    description: 'See what the circus vendors have for sale.',
+    name: 'Vesper\'s Curiosities',
+    description: 'Browse Madame Vesper\'s exotic wares at the circus stalls.',
     icon: 'shopping-bag',
     category: 'exploration',
-    startStep: 'browse',
+    startStep: 'arrive',
     steps: {
-        browse: {
-            id: 'browse',
-            text: '*The circus stalls are a bizarre bazaar of the strange and the arcane. Bottled whispers, enchanted candles, fortune bones, and jars of glowing substances line the shelves. One stall catches your eye — "Madame Vesper\'s Exotic Elixirs."*\n\n*The proprietor, a cloaked figure with amber eyes, gestures at her wares.*\n\n"Something for the mind, perhaps? I can see you\'re the sort who appreciates... influence."',
-            choices: [
-                {
-                    id: 'buy_elixir',
-                    label: 'Buy an Obedience Elixir',
-                    tooltip: 'A rare potion, useful for conditioning. Costs 25 gold.',
-                    nextStep: 'buy_elixir',
-                    effects: [{ type: 'modify_gold', value: -25 }],
-                },
-                {
-                    id: 'buy_incense',
-                    label: 'Buy Spiral Incense',
-                    tooltip: 'Enchanted incense, good for setting the mood. Costs 10 gold.',
-                    nextStep: 'buy_incense',
-                    effects: [{ type: 'modify_gold', value: -10 }],
-                },
-                {
-                    id: 'just_look',
-                    label: 'Just Looking',
-                    tooltip: 'Browse without buying.',
-                    nextStep: 'window_shop',
-                },
-            ],
+        // ── STEP 1: Arrival ──
+        arrive: {
+            id: 'arrive',
+            text: '*The circus stalls are a bizarre bazaar of the strange and the arcane. Bottled whispers, enchanted candles, fortune bones, and jars of glowing substances line the shelves. Colored lanterns cast shifting hues over the crowd, and the air smells of caramel, smoke, and something faintly intoxicating.*\n\n*One stall dominates the row — draped in deep violet silk with constellations stitched in silver thread. A sign above reads: "Vesper\'s Curiosities — Fortunes Told, Fates Sold."*',
+            nextStep: 'vesper_intro',
         },
-        buy_elixir: {
-            id: 'buy_elixir',
-            text: '*Madame Vesper produces a shimmering golden vial from beneath the counter with a knowing smile.*\n\n"Obedience Elixir — my finest blend. One drop in their tea and they\'ll be... considerably more agreeable. Use it wisely, dear."\n\n*You tuck the vial into your coat. A worthwhile investment.*',
-            effects: [{ type: 'add_item', target: 'Obedience Elixir', value: 1 }],
-            isEnding: true,
+        // ── STEP 2: Vesper's Introduction ──
+        vesper_intro: {
+            id: 'vesper_intro',
+            text: '*Behind the counter sits a woman of indeterminate age, cloaked in dark fabric that shimmers like a night sky. Her amber eyes catch yours with an unsettling directness — as though she can see something behind your face that interests her greatly.*\n\n*Her fingers, adorned with silver rings, drum a slow rhythm on a crystal ball that sits before her. When she speaks, her voice is low and measured, like someone who already knows your answer.*\n\n"Ah. You again — or is it for the first time? Time gets strange around me, you understand. Come, come. Madame Vesper has *exactly* what you need. She always does."',
+            nextStep: 'shop_hub',
         },
-        buy_incense: {
-            id: 'buy_incense',
-            text: '*The amber-eyed vendor wraps three sticks of spiral incense in paper, tying them with a ribbon that seems to shimmer with its own light.*\n\n"Burn these during your sessions. The smoke carries a mild enchantment — it opens the mind, softens resistance. Subtle, but effective."\n\n*You pocket the incense. The price was fair for the quality.*',
-            effects: [{ type: 'add_item', target: 'Spiral Incense', value: 3 }],
-            isEnding: true,
+        // ── STEP 3: Shop UI ──
+        shop_hub: {
+            id: 'shop_hub',
+            text: '*Vesper sweeps a ringed hand across her display, and the items seem to shimmer — each one catching the lantern light as if vying for your attention. The crystal ball pulses softly, casting shifting reflections across the merchandise.*\n\n"Browse at your leisure, dear. Everything here has a purpose — some just haven\'t found their purpose yet. Rather like *people*, wouldn\'t you say?"',
+            shopPhase: VESPER_SHOP,
         },
-        window_shop: {
-            id: 'window_shop',
-            text: '*You browse the stalls without committing to a purchase. The variety is impressive, if eccentric. Near the edge of the grounds, a juggler tosses you a coin for catching one of his dropped balls.*\n\n"Nice reflexes, friend!"',
-            effects: [{ type: 'modify_gold', value: 5 }],
+        // ── STEP 4: Departure ──
+        depart: {
+            id: 'depart',
+            text: '*You step away from the stall, your purchases carefully stowed. Behind you, Madame Vesper\'s voice follows like perfume on a breeze.*\n\n"Do come back when the stars align. I\'ll have something new for you — I always do."\n\n*As you glance back, you could swear the crystal ball is still watching you. But then a passing couple blocks your view, and when they pass, the stall looks perfectly ordinary again.*\n\n*Perfectly ordinary.*',
             isEnding: true,
         },
     },

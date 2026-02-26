@@ -22,6 +22,7 @@ import {
     ScanEye, TestTubes, Moon, Hand, MessageCircle,
     Pencil, RotateCcw, Check, X, ChevronLeft, ChevronRight, FileText,
     Coins, ShoppingBag, ArrowLeft, Package, Minus, Plus,
+    Tent, FlaskRound, Wand, Scroll,
 } from 'lucide-react';
 
 // ── Spell Icon Component ──
@@ -1503,18 +1504,28 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
 
                 {/* Category tabs */}
                 <div className="shop-categories">
-                    {shopPhase.categories.map(cat => (
+                    {shopPhase.categories.map(cat => {
+                        const iconMap: Record<string, React.ReactNode> = {
+                            'Supplies': <Package size={12} />,
+                            'Arcane': <Sparkles size={12} />,
+                            'Special': <Star size={12} />,
+                            'Reagents': <FlaskRound size={12} />,
+                            'Pip\'s Finds': <Star size={12} />,
+                            'Curiosities': <Tent size={12} />,
+                            'Elixirs': <FlaskConical size={12} />,
+                            'Arcane Trinkets': <Wand size={12} />,
+                        };
+                        return (
                         <button
                             key={cat}
                             className={`shop-tab ${activeCategory === cat ? 'active' : ''}`}
                             onClick={() => setShopCategory(cat)}
                         >
-                            {cat === 'Supplies' && <Package size={12} />}
-                            {cat === 'Arcane' && <Sparkles size={12} />}
-                            {cat === 'Special' && <Star size={12} />}
+                            {iconMap[cat] || <ShoppingBag size={12} />}
                             <span>{cat}</span>
                         </button>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Items grid */}

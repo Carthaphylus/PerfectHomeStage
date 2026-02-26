@@ -40,6 +40,8 @@ import {
     Telescope, Stars, Atom, Glasses, Globe,
     Shell, Bone, TreePine, Mountain, Tent,
     Church, HeartPulse, Microscope, Handshake,
+    // Circus / Carnival icons
+    Candy, Dices, Disc, RectangleVertical, Ticket, VenetianMask, WandSparkles,
     // Turn system icons
     Sunrise, Sunset, CheckCircle, Sofa, ArrowUp, ArrowDown,
     // Start menu
@@ -243,6 +245,15 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     handshake: Handshake,
     lightbulb: Lightbulb,
 
+    // ── Circus / Carnival ──
+    candy: Candy,
+    dices: Dices,
+    disc: Disc,
+    'rectangle-vertical': RectangleVertical,
+    ticket: Ticket,
+    'venetian-mask': VenetianMask,
+    'wand-sparkles': WandSparkles,
+
     // ── Turn System ──
     sunrise: Sunrise,
     sunset: Sunset,
@@ -352,6 +363,20 @@ const COMPOSITE_ICONS: Record<string, CompositeIconDef> = {
 
     // Currency
     'gold-coins':        { base: 'coins',       overlay: 'sparkle',   pos: 'tr', scale: 0.3, overlayColor: '#f0d060' },
+
+    // Circus goods
+    'card-fate':         { base: 'rectangle-vertical', overlay: 'sparkle', pos: 'tr', scale: 0.4, overlayColor: '#b882ff' },
+    'ball-crystal':      { base: 'circle',      overlay: 'eye',       pos: 'center', scale: 0.5, overlayColor: '#a0c0f0' },
+    'pendulum-mesmer':   { base: 'disc',        overlay: 'spiral',    pos: 'br', scale: 0.4, overlayColor: '#c8aa6e' },
+    'smoke-stage':       { base: 'cloud',       overlay: 'sparkle',   pos: 'tr', scale: 0.35, overlayColor: '#f0d060' },
+    'wine-hypnotic':     { base: 'wine',        overlay: 'spiral',    pos: 'tr', scale: 0.4, overlayColor: '#c8aa6e' },
+    'candy-trance':      { base: 'candy',       overlay: 'moon',      pos: 'tr', scale: 0.35, overlayColor: '#c0c0e0' },
+    'candle-mindfog':    { base: 'flame',       overlay: 'cloud',     pos: 'bl', scale: 0.4, overlayColor: '#b882ff' },
+    'mask-masquerade':   { base: 'venetian-mask', overlay: 'sparkles', pos: 'tr', scale: 0.35, overlayColor: '#f0a830' },
+    'baton-ringmaster':  { base: 'wand-sparkles', overlay: 'crown',   pos: 'tr', scale: 0.4, overlayColor: '#f0a830' },
+    'bones-fortune':     { base: 'dices',       overlay: 'moon-star', pos: 'tr', scale: 0.35, overlayColor: '#c0c0e0' },
+    'dust-illusionist':  { base: 'sparkles',    overlay: 'eye',       pos: 'bl', scale: 0.4, overlayColor: '#a0c0f0' },
+    'voucher-carnival':  { base: 'ticket',      overlay: 'star',      pos: 'tr', scale: 0.35, overlayColor: '#f0d060' },
 };
 
 /** Position offsets for composite overlays (percentage of container) */

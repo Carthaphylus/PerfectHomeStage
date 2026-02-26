@@ -400,6 +400,68 @@ export const ITEM_REGISTRY: Record<string, ItemDefinition> = {
         stackable: false, maxStack: 1,
     },
 
+    // ── Circus Goods (Madame Vesper's Curiosities) ──
+    'Fate-Woven Card': {
+        name: 'Fate-Woven Card', type: 'consumable', rarity: 'uncommon', icon: 'card-fate',
+        description: 'A tarot card shimmering with genuine enchantment. Reveals hidden truths about a captive\'s deepest desires when burned during a session.',
+        stackable: true, maxStack: 10,
+    },
+    'Crystal Ball Shard': {
+        name: 'Crystal Ball Shard', type: 'material', rarity: 'rare', icon: 'ball-crystal',
+        description: 'A cracked fragment of a fortune-teller\'s crystal ball. Still holds residual scrying magic — useful as an alchemy catalyst.',
+        stackable: true, maxStack: 15,
+    },
+    'Mesmerist\'s Pendulum': {
+        name: 'Mesmerist\'s Pendulum', type: 'equipment', rarity: 'rare', icon: 'pendulum-mesmer',
+        description: 'A weighted pendulum on a silver chain, used by stage mesmerists. Swings with an unnervingly perfect rhythm that draws the eye.',
+        stackable: true, maxStack: 3,
+    },
+    'Stage Smoke Bomb': {
+        name: 'Stage Smoke Bomb', type: 'consumable', rarity: 'common', icon: 'smoke-stage',
+        description: 'A small clay sphere filled with theatrical flash powder. Produces a dramatic cloud of shimmering smoke — useful for distractions or atmosphere.',
+        stackable: true, maxStack: 20,
+    },
+    'Hypnotist\'s Honey Wine': {
+        name: 'Hypnotist\'s Honey Wine', type: 'consumable', rarity: 'uncommon', icon: 'wine-hypnotic',
+        description: 'Sweet amber wine laced with a mild relaxant. Lowers inhibitions and makes the drinker more receptive to suggestion. A circus specialty.',
+        stackable: true, maxStack: 10,
+    },
+    'Trance Taffy': {
+        name: 'Trance Taffy', type: 'consumable', rarity: 'common', icon: 'candy-trance',
+        description: 'Chewy carnival candy infused with a faint calming enchantment. Tastes of lavender and honey. Mildly sedative.',
+        stackable: true, maxStack: 20,
+    },
+    'Mind-Fog Candle': {
+        name: 'Mind-Fog Candle', type: 'consumable', rarity: 'rare', icon: 'candle-mindfog',
+        description: 'A dark wax candle that burns with pale violet smoke. The fumes cloud rational thought and amplify emotional vulnerability. Handle with care.',
+        stackable: true, maxStack: 8,
+    },
+    'Enchanted Masquerade Mask': {
+        name: 'Enchanted Masquerade Mask', type: 'equipment', rarity: 'epic', icon: 'mask-masquerade',
+        description: 'An ornate half-mask decorated with feathers and arcane filigree. The wearer\'s voice carries an unnatural allure — words spoken through it feel like intimate whispers.',
+        stackable: false, maxStack: 1,
+    },
+    'Ringmaster\'s Baton': {
+        name: 'Ringmaster\'s Baton', type: 'equipment', rarity: 'epic', icon: 'baton-ringmaster',
+        description: 'A slender black baton tipped with a golden spiral. Once wielded by a legendary ringmaster — it radiates commanding presence and amplifies charm magic.',
+        stackable: false, maxStack: 1,
+    },
+    'Fortune Bones': {
+        name: 'Fortune Bones', type: 'consumable', rarity: 'uncommon', icon: 'bones-fortune',
+        description: 'A set of carved animal knucklebones etched with mystic symbols. Cast them to divine fragments of the future — or to unsettle a captive during conditioning.',
+        stackable: true, maxStack: 5,
+    },
+    'Illusionist\'s Dust': {
+        name: 'Illusionist\'s Dust', type: 'material', rarity: 'uncommon', icon: 'dust-illusionist',
+        description: 'Glittering powder used by circus illusionists. When thrown, it creates brief but vivid visual hallucinations. A useful alchemy ingredient.',
+        stackable: true, maxStack: 30,
+    },
+    'Carnival Prize Voucher': {
+        name: 'Carnival Prize Voucher', type: 'key', rarity: 'common', icon: 'voucher-carnival',
+        description: 'A stamped paper voucher redeemable at the Circus of the Crescent Moon. Collect enough and trade them for rare prizes.',
+        stackable: true, maxStack: 50,
+    },
+
     // ── Currency ──
     'Gold Coin': {
         name: 'Gold Coin', type: 'currency', rarity: 'common', icon: 'gold-coins',
