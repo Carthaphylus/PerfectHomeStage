@@ -508,10 +508,37 @@
         }
       }
 
-      // Locked state
+      // Locked state (stat requirements not met)
       &.locked {
         opacity: 0.4;
         .task-card-name { color: rgba(240, 230, 210, 0.5); }
+      }
+
+      // Room-locked state (room not built)
+      &.room-locked {
+        opacity: 0.5;
+        cursor: default;
+
+        .task-card-icon {
+          filter: grayscale(0.6);
+        }
+
+        .task-card-name {
+          color: rgba(200, 180, 160, 0.45);
+        }
+
+        .task-card-room-locked {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 9px;
+          color: rgba(180, 100, 100, 0.65);
+          font-style: italic;
+        }
+
+        &:hover {
+          background: rgba(80, 60, 70, 0.06);
+        }
       }
     }
 
@@ -614,6 +641,12 @@
         border-radius: 10px;
         background: rgba(200, 170, 110, 0.04);
         border: 1px solid rgba(200, 170, 110, 0.06);
+
+        &.room-locked {
+          color: rgba(180, 100, 100, 0.7);
+          background: rgba(180, 100, 100, 0.06);
+          border-color: rgba(180, 100, 100, 0.12);
+        }
       }
     }
 

@@ -10,10 +10,12 @@ import {
     ManorUpgrade, DungeonProgress, SceneMessage, SceneData,
     SkillStats, HouseholdStats, WitchStats,
     MessageStateType, ConfigType, InitStateType, ChatStateType,
-    SavedSlotData, SaveFileSlot, MAX_SAVE_SLOTS,
+    SavedSlotData, SaveFileSlot, MAX_SAVE_SLOTS, SAVE_VERSION,
     EventEffect, EventSkillCheck, EventChatPhase, ShopItem, EventShopPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
     ConditioningCategory, ConditioningAction, ActionResult,
+    // Turn system
+    TurnSummary, TurnChange, TurnTaskResult,
     // Tasks
     TaskCategory, TaskOutcomeQuality, TaskTraitModifier, TaskRequirement,
     TaskReward, TaskDefinition, ActiveTask, TaskOutcome,
@@ -892,22 +894,196 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /**
      * Tick all active tasks — decrement turnsRemaining for every servant with an active task.
      * Auto-completes tasks that reach 0. Returns outcomes for completed tasks.
-     * (Called by the future turn system's end-of-turn handler)
+     * Called by the turn system's end-of-day handler.
      */
-    tickTasks(): { servantName: string; outcome: TaskOutcome }[] {
-        const completed: { servantName: string; outcome: TaskOutcome }[] = [];
+    tickTasks(): { servantName: string; taskDefinitionId: string; outcome: TaskOutcome }[] {
+        const completed: { servantName: string; taskDefinitionId: string; outcome: TaskOutcome }[] = [];
         for (const [name, servant] of Object.entries(this.currentState.servants)) {
             if (servant.activeTask && servant.activeTask.turnsRemaining > 0) {
+                const defId = servant.activeTask.definitionId;
                 servant.activeTask.turnsRemaining--;
                 if (servant.activeTask.turnsRemaining <= 0) {
                     const outcome = this.completeTask(name);
                     if (outcome) {
-                        completed.push({ servantName: name, outcome });
+                        completed.push({ servantName: name, taskDefinitionId: defId, outcome });
                     }
                 }
             }
         }
         return completed;
+    }
+
+    // ============================
+    // Turn System — End of Day
+    // ============================
+
+    /** Base stamina recovery per turn (can be enhanced by manor upgrades later) */
+    private getStaminaRecovery(): number {
+        return 25;
+    }
+
+    /**
+     * End the current day. Produces a TurnSummary capturing everything that changed:
+     * - Tasks tick (progress & completion)
+     * - Servant stamina recovery
+     * - Gold/mana/household stat deltas
+     * - Day counter advances
+     */
+    endDay(): TurnSummary {
+        const st = this.currentState.stats;
+        const dayEnded = st.day;
+        const changes: TurnChange[] = [];
+
+        // ── Snapshot "before" values ──
+        const goldBefore = st.gold;
+        const manaBefore = st.mana;
+        const comfortBefore = st.household.comfort;
+        const obedienceBefore = st.household.obedience;
+
+        // Snapshot servant stamina before recovery
+        const staminaSnapshots: Record<string, number> = {};
+        for (const [name, servant] of Object.entries(this.currentState.servants)) {
+            staminaSnapshots[name] = servant.stamina;
+        }
+
+        // ── 1. Tick tasks (progress & auto-complete) ──
+        // First, capture active tasks that will just progress (not complete yet)
+        const taskProgressions: TurnSummary['taskProgressions'] = [];
+        const aboutToComplete: Set<string> = new Set();
+
+        for (const [name, servant] of Object.entries(this.currentState.servants)) {
+            if (servant.activeTask && servant.activeTask.turnsRemaining > 0) {
+                if (servant.activeTask.turnsRemaining === 1) {
+                    aboutToComplete.add(name);
+                }
+            }
+        }
+
+        const completed = this.tickTasks();
+
+        // Build completed task summaries
+        const completedTasks: TurnTaskResult[] = completed.map(c => {
+            const def = getTaskById(c.taskDefinitionId);
+            return {
+                servantName: c.servantName,
+                taskName: def?.name || 'Unknown Task',
+                quality: c.outcome.quality,
+                rewards: c.outcome.rewards,
+            };
+        });
+
+        // Log completed task rewards as changes
+        for (const ct of completedTasks) {
+            changes.push({
+                icon: 'check-circle',
+                label: `${ct.servantName}: ${ct.taskName}`,
+                detail: `Completed (${ct.quality})`,
+                category: 'task',
+                color: ct.quality === 'excellent' ? '#7dd4a0' : ct.quality === 'standard' ? '#c8aa6e' : '#c87d6e',
+            });
+            for (const r of ct.rewards) {
+                switch (r.type) {
+                    case 'gold':
+                        changes.push({ icon: 'coins', label: 'Gold', detail: r.narrative || `+${r.amount} gold`, delta: r.amount, category: 'finance', color: '#e8c84a' });
+                        break;
+                    case 'mana':
+                        changes.push({ icon: 'sparkles', label: 'Mana', detail: r.narrative || `+${r.amount} mana`, delta: r.amount, category: 'mana', color: '#78a8d0' });
+                        break;
+                    case 'item':
+                        changes.push({ icon: 'package', label: r.itemName || 'Item', detail: r.narrative || `+${r.amount}`, delta: r.amount, category: 'item', color: '#a888c8' });
+                        break;
+                    case 'household':
+                        changes.push({ icon: r.stat === 'comfort' ? 'sofa' : 'shield', label: r.stat === 'comfort' ? 'Comfort' : 'Obedience', detail: r.narrative || `+${r.amount}`, delta: r.amount, category: 'household', color: '#7ab87a' });
+                        break;
+                    case 'stat':
+                        changes.push({ icon: 'trending-up', label: r.stat || 'Stat', detail: r.narrative || `+${r.amount}`, delta: r.amount, category: 'stat', color: '#c8aa6e' });
+                        break;
+                }
+            }
+        }
+
+        // Track tasks still in progress (after ticking)
+        for (const [name, servant] of Object.entries(this.currentState.servants)) {
+            if (servant.activeTask && servant.activeTask.turnsRemaining > 0) {
+                const def = getTaskById(servant.activeTask.definitionId);
+                taskProgressions.push({
+                    servantName: name,
+                    taskName: def?.name || 'Unknown',
+                    turnsRemaining: servant.activeTask.turnsRemaining,
+                    totalDuration: servant.activeTask.totalDuration,
+                });
+                changes.push({
+                    icon: 'clock',
+                    label: `${name}: ${def?.name || 'Task'}`,
+                    detail: `${servant.activeTask.turnsRemaining} turn${servant.activeTask.turnsRemaining !== 1 ? 's' : ''} remaining`,
+                    category: 'task',
+                    color: '#c8aa6e',
+                });
+            }
+        }
+
+        // ── 2. Servant stamina recovery ──
+        const staminaRecovery = this.getStaminaRecovery();
+        const servantStaminaChanges: TurnSummary['servantStaminaChanges'] = [];
+        for (const [name, servant] of Object.entries(this.currentState.servants)) {
+            const before = staminaSnapshots[name] ?? servant.stamina;
+            if (servant.stamina < servant.maxStamina && !servant.activeTask) {
+                // Only recover stamina if not currently working on a task
+                servant.stamina = Math.min(servant.maxStamina, servant.stamina + staminaRecovery);
+            }
+            const after = servant.stamina;
+            servantStaminaChanges.push({ name, before, after });
+            if (after !== before) {
+                const delta = after - before;
+                changes.push({
+                    icon: 'heart-pulse',
+                    label: `${name} Stamina`,
+                    detail: `${before} → ${after}`,
+                    delta,
+                    category: 'stamina',
+                    color: delta > 0 ? '#7dd4a0' : '#c87d6e',
+                });
+            }
+        }
+
+        // ── 3. Advance the day ──
+        st.day += 1;
+
+        // ── 4. Calculate net changes for finance header ──
+        const goldAfter = st.gold;
+        const manaAfter = st.mana;
+        const comfortAfter = st.household.comfort;
+        const obedienceAfter = st.household.obedience;
+
+        // Add finance summary at the top if there was gold movement
+        if (goldAfter !== goldBefore) {
+            const gd = goldAfter - goldBefore;
+            changes.unshift({
+                icon: 'coins',
+                label: 'Net Gold',
+                detail: `${goldBefore} → ${goldAfter} (${gd >= 0 ? '+' : ''}${gd})`,
+                delta: gd,
+                category: 'finance',
+                color: gd >= 0 ? '#e8c84a' : '#c87d6e',
+            });
+        }
+
+        return {
+            dayEnded,
+            dayStarting: st.day,
+            goldBefore,
+            goldAfter,
+            manaBefore,
+            manaAfter,
+            comfortBefore,
+            comfortAfter,
+            obedienceBefore,
+            obedienceAfter,
+            completedTasks,
+            changes,
+            servantStaminaChanges,
+            taskProgressions,
+        };
     }
 
     // ============================
@@ -2849,6 +3025,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     // ============================
     // Manor Save/Load Methods
     // ============================
+    // Save / Load System
+    // ============================
     
     /** Get manor slots from chatState (current chat's state) */
     getManorSlots(): SavedSlotData[] | undefined {
@@ -2860,22 +3038,93 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this.chatState.manorSlots = slots;
     }
 
-    /** Reset manor to defaults (new game) */
+    /** Reset all game state to defaults (new game) */
     resetManor(): void {
         this.chatState.manorSlots = undefined;
-        // Reset stats to defaults
+        this.chatState.generatedImages = undefined;
+        this.chatState.discoveredLocations = [];
+        this.chatState.totalHeroesCaptured = 0;
+        this.chatState.totalServantsConverted = 0;
+        this.chatState.achievements = [];
         const defaults = this.getDefaultMessageState();
-        this.currentState.stats = defaults.stats;
+        Object.assign(this.currentState, defaults);
     }
 
-    /** Restore stats from a save file */
-    restoreStats(stats: WitchStats): void {
-        this.currentState.stats = { ...stats };
+    /** Restore full game state from a loaded save file */
+    restoreFromSave(save: SaveFileSlot): void {
+        // Stats (always present)
+        this.currentState.stats = JSON.parse(JSON.stringify(save.stats));
+
+        // Player character
+        if (save.playerCharacter) {
+            this.currentState.playerCharacter = JSON.parse(JSON.stringify(save.playerCharacter));
+        }
+
+        // Manor grid
+        if (save.manorSlots) {
+            this.chatState.manorSlots = JSON.parse(JSON.stringify(save.manorSlots));
+        }
+
+        // Manor upgrades
+        if (save.manorUpgrades) {
+            this.currentState.manorUpgrades = JSON.parse(JSON.stringify(save.manorUpgrades));
+        }
+
+        // Heroes (merge back — uses Record<string, Hero>)
+        if (save.heroes) {
+            this.currentState.heroes = JSON.parse(JSON.stringify(save.heroes));
+        }
+
+        // Servants (full restore including stats, tasks, history, etc.)
+        if (save.servants) {
+            this.currentState.servants = JSON.parse(JSON.stringify(save.servants));
+        }
+
+        // Inventory
+        if (save.inventory) {
+            this.currentState.inventory = JSON.parse(JSON.stringify(save.inventory));
+        }
+
+        // Chat-level persistent data
+        if (save.discoveredLocations) {
+            this.chatState.discoveredLocations = [...save.discoveredLocations];
+        }
+        if (save.totalHeroesCaptured !== undefined) {
+            this.chatState.totalHeroesCaptured = save.totalHeroesCaptured;
+        }
+        if (save.totalServantsConverted !== undefined) {
+            this.chatState.totalServantsConverted = save.totalServantsConverted;
+        }
+        if (save.achievements) {
+            this.chatState.achievements = [...save.achievements];
+        }
+
+        // Generated images (portraits)
+        if (save.generatedImages) {
+            this.chatState.generatedImages = JSON.parse(JSON.stringify(save.generatedImages));
+        }
+
+        // Location
+        if (save.location) {
+            this.currentState.location = save.location;
+        }
+
+        // Dungeon
+        if (save.dungeonProgress) {
+            this.currentState.dungeonProgress = JSON.parse(JSON.stringify(save.dungeonProgress));
+        }
+
+        // NSFW mode
+        if (save.nsfwMode !== undefined) {
+            this.currentState.nsfwMode = save.nsfwMode;
+        }
     }
 
-    /** Restore generated images from a save file */
-    restoreGeneratedImages(images: Record<string, Record<string, string>>): void {
-        this.chatState.generatedImages = JSON.parse(JSON.stringify(images));
+    /** Build a save name from current state */
+    buildSaveName(): string {
+        const day = this.currentState.stats.day;
+        const servantCount = Object.keys(this.currentState.servants).length;
+        return `Day ${day} · ${servantCount} servant${servantCount !== 1 ? 's' : ''}`;
     }
 
     /** Get all save file slots */
@@ -2897,18 +3146,41 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return slots;
     }
 
-    /** Save manor data, stats, and generated images to a specific slot */
-    saveToSlot(slotIndex: number, name: string, data: SavedSlotData[], stats?: WitchStats): boolean {
+    /** Save full game state to a specific slot */
+    saveToSlot(slotIndex: number): boolean {
         if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return false;
         try {
             const key = `${this.storageKey}_slot_${slotIndex}`;
+            const st = this.currentState;
+            const cs = this.chatState;
+
             const saveFile: SaveFileSlot = {
-                name,
+                name: this.buildSaveName(),
                 timestamp: Date.now(),
-                data,
-                stats: stats || this.currentState.stats,
-                generatedImages: this.chatState.generatedImages || undefined,
+                version: SAVE_VERSION,
+
+                stats: JSON.parse(JSON.stringify(st.stats)),
+                playerCharacter: JSON.parse(JSON.stringify(st.playerCharacter)),
+                manorSlots: JSON.parse(JSON.stringify(cs.manorSlots || [])),
+                manorUpgrades: JSON.parse(JSON.stringify(st.manorUpgrades)),
+                heroes: JSON.parse(JSON.stringify(st.heroes)),
+                servants: JSON.parse(JSON.stringify(st.servants)),
+                inventory: JSON.parse(JSON.stringify(st.inventory)),
+
+                discoveredLocations: cs.discoveredLocations ? [...cs.discoveredLocations] : [],
+                totalHeroesCaptured: cs.totalHeroesCaptured || 0,
+                totalServantsConverted: cs.totalServantsConverted || 0,
+                achievements: cs.achievements ? [...cs.achievements] : [],
+                generatedImages: cs.generatedImages ? JSON.parse(JSON.stringify(cs.generatedImages)) : undefined,
+
+                location: st.location,
+                dungeonProgress: st.dungeonProgress ? JSON.parse(JSON.stringify(st.dungeonProgress)) : undefined,
+                nsfwMode: st.nsfwMode,
+
+                // Quests placeholder — will be populated once quest system is implemented
+                activeQuests: undefined,
             };
+
             localStorage.setItem(key, JSON.stringify(saveFile));
             return true;
         } catch (e) {
@@ -2917,7 +3189,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
     }
 
-    /** Load manor data from a specific slot */
+    /** Load game data from a specific slot */
     loadFromSlot(slotIndex: number): SaveFileSlot | null {
         if (slotIndex < 0 || slotIndex >= MAX_SAVE_SLOTS) return null;
         try {

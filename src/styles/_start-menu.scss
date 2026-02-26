@@ -1,0 +1,383 @@
+// ═══════════════════════════════════════════
+// START MENU — Title / Save / Load screen
+// ═══════════════════════════════════════════
+
+// Floating particles
+@keyframes smFloat {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  15%  { opacity: 0.5; }
+  85%  { opacity: 0.3; }
+  100% { transform: translateY(-220px) scale(0.4); opacity: 0; }
+}
+
+@keyframes smPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(200, 170, 110, 0.08); }
+  50%      { box-shadow: 0 0 40px rgba(200, 170, 110, 0.18); }
+}
+
+@keyframes smEmblemSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes smFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes smGlow {
+  0%, 100% { text-shadow: 0 0 20px rgba(200, 170, 110, 0.2), 0 0 40px rgba(200, 170, 110, 0.05); }
+  50%      { text-shadow: 0 0 30px rgba(200, 170, 110, 0.35), 0 0 60px rgba(200, 170, 110, 0.1); }
+}
+
+@keyframes smShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.start-menu {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(60, 40, 70, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 70%, rgba(40, 25, 50, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(50, 30, 40, 0.3) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(18, 12, 24, 0.99) 0%, rgba(12, 8, 16, 1) 100%) !important;
+  position: relative;
+  overflow: hidden;
+  padding: 40px 20px;
+
+  // ─── Particles ───
+  .sm-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .sm-particle {
+    position: absolute;
+    bottom: -10px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    animation: smFloat 8s ease-in infinite;
+
+    &.sm-particle-0 { background: rgba(200, 170, 110, 0.6); width: 2px; height: 2px; }
+    &.sm-particle-1 { background: rgba(160, 120, 200, 0.5); width: 3px; height: 3px; }
+    &.sm-particle-2 { background: rgba(100, 170, 255, 0.4); width: 2px; height: 2px; }
+    &.sm-particle-3 { background: rgba(200, 170, 110, 0.5); width: 4px; height: 4px; filter: blur(1px); }
+  }
+
+  // ─── Decorative frame ───
+  .sm-frame {
+    position: absolute;
+    inset: 16px;
+    pointer-events: none;
+  }
+
+  .sm-frame-corner {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      background: rgba(200, 170, 110, 0.15);
+    }
+
+    &.sm-corner-tl {
+      top: 0; left: 0;
+      &::before { top: 0; left: 0; width: 50px; height: 1px; }
+      &::after  { top: 0; left: 0; width: 1px; height: 50px; }
+    }
+    &.sm-corner-tr {
+      top: 0; right: 0;
+      &::before { top: 0; right: 0; width: 50px; height: 1px; }
+      &::after  { top: 0; right: 0; width: 1px; height: 50px; }
+    }
+    &.sm-corner-bl {
+      bottom: 0; left: 0;
+      &::before { bottom: 0; left: 0; width: 50px; height: 1px; }
+      &::after  { bottom: 0; left: 0; width: 1px; height: 50px; }
+    }
+    &.sm-corner-br {
+      bottom: 0; right: 0;
+      &::before { bottom: 0; right: 0; width: 50px; height: 1px; }
+      &::after  { bottom: 0; right: 0; width: 1px; height: 50px; }
+    }
+  }
+
+  // ─── Emblem ───
+  .sm-emblem {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    animation: smFadeIn 0.8s ease-out;
+  }
+
+  .sm-emblem-inner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+
+    .sm-emblem-icon {
+      color: rgba(200, 170, 110, 0.7);
+      filter: drop-shadow(0 0 10px rgba(200, 170, 110, 0.3));
+    }
+  }
+
+  .sm-emblem-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60px;
+    height: 60px;
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    border-radius: 50%;
+    animation: smEmblemSpin 30s linear infinite;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -3px; left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      background: rgba(200, 170, 110, 0.4);
+      border-radius: 50%;
+    }
+
+    &.sm-ring-outer {
+      width: 76px;
+      height: 76px;
+      border-color: rgba(200, 170, 110, 0.08);
+      animation-direction: reverse;
+      animation-duration: 45s;
+
+      &::before {
+        background: rgba(160, 120, 200, 0.3);
+      }
+    }
+  }
+
+  // ─── Title ───
+  .sm-title {
+    font-size: 28px;
+    margin: 0 0 8px 0;
+    color: var(--highlight);
+    letter-spacing: 3px;
+    animation: smFadeIn 0.8s ease-out 0.1s both, smGlow 4s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sm-subtitle {
+    font-size: 8px;
+    color: rgba(200, 170, 110, 0.4);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 0;
+    animation: smFadeIn 0.8s ease-out 0.2s both;
+  }
+
+  // ─── Divider ───
+  .sm-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 24px 0 20px;
+    animation: smFadeIn 0.8s ease-out 0.3s both;
+
+    .sm-divider-line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3), transparent);
+    }
+
+    .sm-divider-gem {
+      color: rgba(200, 170, 110, 0.4);
+    }
+  }
+
+  // ─── Flash message ───
+  .sm-flash-message {
+    text-align: center;
+    padding: 6px 20px;
+    margin-bottom: 12px;
+    background: rgba(200, 170, 110, 0.08);
+    border: 1px solid rgba(200, 170, 110, 0.25);
+    border-radius: 4px;
+    font-size: 8px;
+    color: var(--highlight);
+    animation: fadeInOut 2.5s ease-in-out;
+  }
+
+  // ─── Action buttons ───
+  .sm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 320px;
+    max-width: 90%;
+    animation: smFadeIn 0.8s ease-out 0.4s both;
+  }
+
+  .sm-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Press Start 2P', monospace;
+
+    .sm-btn-icon {
+      flex-shrink: 0;
+    }
+
+    .sm-btn-label {
+      flex: 1;
+      text-align: left;
+    }
+
+    .sm-btn-detail {
+      font-size: 6px;
+      opacity: 0.5;
+      letter-spacing: 1px;
+    }
+
+    // Shimmer effect on hover
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.04) 45%,
+        rgba(255, 255, 255, 0.08) 50%,
+        rgba(255, 255, 255, 0.04) 55%,
+        transparent 60%
+      );
+      background-size: 250% 100%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    &:hover::after {
+      animation: smShimmer 1.5s linear;
+      opacity: 1;
+    }
+  }
+
+  // Continue — golden, prominent
+  .sm-btn-continue {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(200, 170, 110, 0.12) 0%, transparent 60%),
+      linear-gradient(135deg, rgba(50, 38, 22, 0.95) 0%, rgba(40, 28, 16, 0.95) 100%) !important;
+    border: 1px solid rgba(200, 170, 110, 0.35);
+    color: rgba(220, 190, 130, 0.9);
+
+    .sm-btn-icon { color: rgba(200, 170, 110, 0.7); }
+
+    &:hover {
+      border-color: rgba(200, 170, 110, 0.6);
+      color: var(--highlight);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200, 170, 110, 0.12);
+    }
+  }
+
+  // New Game — green accent
+  .sm-btn-new {
+    background: rgba(60, 50, 70, 0.6) !important;
+    border: 1px solid rgba(100, 150, 80, 0.25);
+    color: rgba(168, 212, 160, 0.85);
+
+    .sm-btn-icon { color: rgba(100, 150, 80, 0.7); }
+
+    &:hover {
+      background: rgba(60, 50, 70, 0.8) !important;
+      border-color: rgba(100, 150, 80, 0.5);
+      color: #a8d4a0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(100, 150, 80, 0.08);
+    }
+  }
+
+  // Save/Load row
+  .sm-save-row {
+    display: flex;
+    gap: 10px;
+
+    .sm-btn {
+      flex: 1;
+    }
+  }
+
+  .sm-btn-save {
+    background: rgba(50, 50, 70, 0.6) !important;
+    border: 1px solid rgba(100, 130, 180, 0.25);
+    color: rgba(160, 184, 212, 0.85);
+
+    .sm-btn-icon { color: rgba(100, 130, 180, 0.7); }
+
+    &:hover {
+      background: rgba(50, 50, 70, 0.8) !important;
+      border-color: rgba(100, 130, 180, 0.5);
+      color: #a0b8d4;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(100, 130, 180, 0.08);
+    }
+  }
+
+  .sm-btn-load {
+    background: rgba(60, 50, 55, 0.6) !important;
+    border: 1px solid rgba(200, 170, 110, 0.2);
+    color: rgba(200, 170, 110, 0.7);
+
+    .sm-btn-icon { color: rgba(200, 170, 110, 0.55); }
+
+    &:hover {
+      background: rgba(60, 50, 55, 0.8) !important;
+      border-color: rgba(200, 170, 110, 0.4);
+      color: rgba(200, 170, 110, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(200, 170, 110, 0.06);
+    }
+  }
+
+  // ─── Footer ───
+  .sm-footer {
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 6px;
+    color: rgba(200, 170, 110, 0.2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: smFadeIn 0.8s ease-out 0.6s both;
+
+    .sm-footer-icon {
+      color: rgba(200, 170, 110, 0.2);
+    }
+  }
+}

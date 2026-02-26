@@ -429,13 +429,100 @@ export interface SavedSlotData {
     occupant?: string;
 }
 
-/** A save file slot with metadata */
+/** Full game state snapshot — everything needed to restore a game */
 export interface SaveFileSlot {
+    /** Save metadata */
     name: string;
     timestamp: number;
-    data: SavedSlotData[];
-    stats?: WitchStats;
+    version: number;               // schema version for migration
+
+    /** Player stats */
+    stats: WitchStats;
+
+    /** Player character */
+    playerCharacter: PlayerCharacter;
+
+    /** Manor grid layout */
+    manorSlots: SavedSlotData[];
+
+    /** Manor upgrades */
+    manorUpgrades: { [upgradeName: string]: ManorUpgrade };
+
+    /** All heroes (keyed by name) */
+    heroes: { [heroName: string]: Hero };
+
+    /** All servants (keyed by name) */
+    servants: { [servantName: string]: Servant };
+
+    /** Full inventory */
+    inventory: { [itemName: string]: InventoryItem };
+
+    /** Chat-level persistent data */
+    discoveredLocations: Location[];
+    totalHeroesCaptured: number;
+    totalServantsConverted: number;
+    achievements: string[];
+
+    /** Generated images (portraits etc.) */
     generatedImages?: Record<string, Record<string, string>>;
+
+    /** Current location */
+    location?: Location;
+
+    /** Dungeon state */
+    dungeonProgress?: DungeonProgress;
+
+    /** Quest state (placeholder for future quest system) */
+    activeQuests?: {
+        questId: string;
+        currentStep: number;
+        startedDay: number;
+        data?: Record<string, any>;
+    }[];
+
+    /** Misc flags */
+    nsfwMode?: boolean;
 }
 
-export const MAX_SAVE_SLOTS = 3;
+/** Current save format version — bump when schema changes */
+export const SAVE_VERSION = 2;
+
+export const MAX_SAVE_SLOTS = 5;
+
+// ── Turn System ──
+
+/** A single line-item change that happened during end-of-day */
+export interface TurnChange {
+    icon: string;
+    label: string;
+    detail: string;
+    delta?: number;       // numeric change (+/-)
+    category: 'finance' | 'item' | 'servant' | 'task' | 'stat' | 'household' | 'mana' | 'stamina';
+    color?: string;
+}
+
+/** A completed-task entry shown in the summary */
+export interface TurnTaskResult {
+    servantName: string;
+    taskName: string;
+    quality: TaskOutcomeQuality;
+    rewards: TaskReward[];
+}
+
+/** Full summary of what happened when the day ended */
+export interface TurnSummary {
+    dayEnded: number;
+    dayStarting: number;
+    goldBefore: number;
+    goldAfter: number;
+    manaBefore: number;
+    manaAfter: number;
+    comfortBefore: number;
+    comfortAfter: number;
+    obedienceBefore: number;
+    obedienceAfter: number;
+    completedTasks: TurnTaskResult[];
+    changes: TurnChange[];
+    servantStaminaChanges: { name: string; before: number; after: number }[];
+    taskProgressions: { servantName: string; taskName: string; turnsRemaining: number; totalDuration: number }[];
+}

@@ -422,6 +422,89 @@
           background: rgba(200, 170, 110, 0.2);
           border-color: rgba(200, 170, 110, 0.4);
         }
+
+        &.locked {
+          cursor: not-allowed;
+          opacity: 0.4;
+          border-color: rgba(120, 100, 90, 0.2);
+          background: rgba(60, 50, 50, 0.15);
+          color: rgba(200, 170, 110, 0.35);
+
+          &:hover {
+            background: rgba(60, 50, 50, 0.15);
+            border-color: rgba(120, 100, 90, 0.2);
+          }
+        }
+      }
+
+      // ── Locked role row ──
+      &.locked {
+        opacity: 0.5;
+        cursor: default;
+
+        &:hover {
+          background: rgba(80, 60, 70, 0.08);
+        }
+
+        .role-row-icon {
+          filter: grayscale(0.6);
+        }
+
+        .role-row-name {
+          color: rgba(200, 180, 160, 0.45) !important;
+        }
+
+        .role-row-holder.locked {
+          color: rgba(180, 100, 100, 0.6);
+          font-style: italic;
+          font-size: 9px;
+        }
+      }
+    }
+
+    // ── Locked roles divider & toggle ──
+    .role-locked-divider {
+      margin: 8px 0 4px;
+      padding: 0 4px;
+
+      .role-locked-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 12px;
+        font-size: 10px;
+        font-family: inherit;
+        letter-spacing: 0.5px;
+        border-radius: 5px;
+        border: 1px dashed rgba(200, 170, 110, 0.18);
+        background: rgba(200, 170, 110, 0.04);
+        color: rgba(200, 170, 110, 0.5);
+        cursor: pointer;
+        transition: all 0.25s;
+
+        &:hover {
+          background: rgba(200, 170, 110, 0.08);
+          border-color: rgba(200, 170, 110, 0.3);
+          color: rgba(200, 170, 110, 0.75);
+        }
+
+        &.active {
+          border-style: solid;
+          background: rgba(200, 170, 110, 0.06);
+          color: rgba(200, 170, 110, 0.65);
+        }
+      }
+    }
+
+    // ── Locked group styling ──
+    .role-group-locked {
+      .role-group-header.locked {
+        color: rgba(180, 140, 100, 0.35);
+        display: flex;
+        align-items: center;
+        gap: 5px;
       }
     }
   }

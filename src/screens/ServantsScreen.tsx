@@ -5,6 +5,7 @@ import {
     getRoleById, ROOM_ROLES, STAT_DEFINITIONS, numberToGrade, getGradeColor,
     getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, checkTaskRequirements, getApplicableTraitModifiers,
+    isTaskRoomBuilt,
 } from '../data';
 import type { Servant, Role, TaskDefinition, TaskOutcome, TaskCategory, TaskReward } from '../data';
 import { CharacterProfile } from './CharacterProfile';
@@ -540,14 +541,24 @@ interface RoleAssignmentModalProps {
 
 const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAssign, onClose }) => {
     const [previewRole, setPreviewRole] = useState<Role | null>(null);
+    const [showLocked, setShowLocked] = useState(false);
 
     // Get available roles (universal + rooms that exist in the manor)
     const availableRoles = stage().getAvailableRolesForManor();
+    const builtRoomTypes = new Set(stage().getBuiltRoomTypes());
     const allServants = stage().currentState.servants;
 
     // Group roles: universal first, then by room type
     const universalRoles = availableRoles.filter(r => r.roomType === null);
     const roomRoles = availableRoles.filter(r => r.roomType !== null);
+
+    // Locked room roles — rooms in ROOM_ROLES that are NOT built
+    const lockedRoomGroups: Record<string, Role[]> = {};
+    for (const [roomType, roles] of Object.entries(ROOM_ROLES)) {
+        if (!builtRoomTypes.has(roomType)) {
+            lockedRoomGroups[roomType] = roles;
+        }
+    }
 
     // Group room roles by roomType
     const roomGroups: Record<string, Role[]> = {};
@@ -567,7 +578,7 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
         return labels[type] || type;
     };
 
-    const renderRoleRow = (role: Role) => {
+    const renderRoleRow = (role: Role, locked = false) => {
         const holders = Object.values(allServants).filter(s => s.assignedRole === role.id);
         const isCurrentTarget = holders.some(h => h.name === target.name);
         const otherHolders = holders.filter(h => h.name !== target.name);
@@ -575,7 +586,9 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
         // For unique roles: show the single holder (if any)
         // For non-unique roles: show count of other holders
         let holderLabel: string | null = null;
-        if (isCurrentTarget) {
+        if (locked) {
+            holderLabel = 'Room not built';
+        } else if (isCurrentTarget) {
             holderLabel = '(current)';
         } else if (role.unique && otherHolders.length > 0) {
             holderLabel = `${otherHolders[0].name}`;
@@ -585,7 +598,9 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
 
         // Button label
         let btnLabel: string | JSX.Element = 'Assign';
-        if (isCurrentTarget) {
+        if (locked) {
+            btnLabel = <GameIcon icon="lock" size={12} />;
+        } else if (isCurrentTarget) {
             btnLabel = <GameIcon icon="check" size={12} />;
         } else if (role.unique && otherHolders.length > 0) {
             btnLabel = 'Replace';
@@ -594,24 +609,25 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
         return (
             <div
                 key={role.id}
-                className={`role-row ${previewRole?.id === role.id ? 'previewing' : ''} ${isCurrentTarget ? 'current' : ''}`}
+                className={`role-row ${previewRole?.id === role.id ? 'previewing' : ''} ${isCurrentTarget ? 'current' : ''} ${locked ? 'locked' : ''}`}
                 onClick={() => setPreviewRole(role)}
             >
                 <span className="role-row-icon"><GameIcon icon={role.icon} size={16} /></span>
                 <div className="role-row-info">
-                    <span className="role-row-name" style={{ color: role.color }}>
+                    <span className="role-row-name" style={{ color: locked ? undefined : role.color }}>
                         {role.name}
                         {!role.unique && <span className="role-row-multi-badge" title="Multiple servants can hold this role"><GameIcon icon="infinity" size={10} /></span>}
                     </span>
                     {holderLabel && (
-                        <span className={`role-row-holder ${isCurrentTarget ? 'self' : 'other'}`}>
+                        <span className={`role-row-holder ${locked ? 'locked' : isCurrentTarget ? 'self' : 'other'}`}>
                             {holderLabel}
                         </span>
                     )}
                 </div>
                 <button
-                    className="role-row-assign-btn"
-                    onClick={(e) => { e.stopPropagation(); onAssign(role.id); }}
+                    className={`role-row-assign-btn ${locked ? 'locked' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); if (!locked) onAssign(role.id); }}
+                    disabled={locked}
                 >
                     {btnLabel}
                 </button>
@@ -632,13 +648,33 @@ const RoleAssignmentModal: FC<RoleAssignmentModalProps> = ({ stage, target, onAs
                     <div className="role-list">
                         <div className="role-group">
                             <div className="role-group-header">Universal</div>
-                            {universalRoles.map(renderRoleRow)}
+                            {universalRoles.map(r => renderRoleRow(r))}
                         </div>
 
                         {Object.entries(roomGroups).map(([roomType, roles]) => (
                             <div key={roomType} className="role-group">
                                 <div className="role-group-header">{roomLabel(roomType)}</div>
-                                {roles.map(renderRoleRow)}
+                                {roles.map(r => renderRoleRow(r))}
+                            </div>
+                        ))}
+
+                        {/* Locked roles toggle */}
+                        <div className="role-locked-divider">
+                            <button
+                                className={`role-locked-toggle ${showLocked ? 'active' : ''}`}
+                                onClick={() => setShowLocked(prev => !prev)}
+                            >
+                                <GameIcon icon={showLocked ? 'eye-off' : 'eye'} size={12} />
+                                {showLocked ? 'Hide' : 'Show'} Locked Roles ({Object.values(lockedRoomGroups).flat().length})
+                            </button>
+                        </div>
+
+                        {showLocked && Object.entries(lockedRoomGroups).map(([roomType, roles]) => (
+                            <div key={`locked-${roomType}`} className="role-group role-group-locked">
+                                <div className="role-group-header locked">
+                                    <GameIcon icon="lock" size={10} /> {roomLabel(roomType)}
+                                </div>
+                                {roles.map(r => renderRoleRow(r, true))}
                             </div>
                         ))}
                     </div>
@@ -738,6 +774,7 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
     const [activeCategory, setActiveCategory] = useState<TaskCategory | 'all'>('all');
 
     const availableTasks = stage().getAvailableTasksForServantByName(target.name);
+    const builtRoomTypes = stage().getBuiltRoomTypes();
     const categoryOrder: TaskCategory[] = ['room', 'exploration', 'training', 'upkeep', 'personal'];
 
     // Filter by search + category
@@ -794,10 +831,26 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
         }
     };
 
+    // Sort: best quality first, stat-locked next, room-locked last
+    const sortedTasks = [...filteredTasks].sort((a, b) => {
+        const aRoomLocked = !isTaskRoomBuilt(a, builtRoomTypes);
+        const bRoomLocked = !isTaskRoomBuilt(b, builtRoomTypes);
+        const aReqMet = checkTaskRequirements(target, a).met;
+        const bReqMet = checkTaskRequirements(target, b).met;
+
+        // Room-locked always last
+        if (aRoomLocked !== bRoomLocked) return aRoomLocked ? 1 : -1;
+        // Stat-locked after available
+        if (aReqMet !== bReqMet) return aReqMet ? -1 : 1;
+        // Within same tier, sort by quality score descending
+        return getQualityScore(b) - getQualityScore(a);
+    });
+
     // Render a task card in the left panel
     const renderTaskCard = (task: TaskDefinition) => {
         const reqCheck = checkTaskRequirements(target, task);
-        const isLocked = !reqCheck.met;
+        const roomBuilt = isTaskRoomBuilt(task, builtRoomTypes);
+        const isLocked = !reqCheck.met || !roomBuilt;
         const hasActiveTask = !!target.activeTask;
         const score = getQualityScore(task);
         const quality = getQualityLabel(score);
@@ -805,27 +858,35 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
         return (
             <div
                 key={task.id}
-                className={`task-card ${previewTask?.id === task.id ? 'selected' : ''} ${isLocked ? 'locked' : ''}`}
+                className={`task-card ${previewTask?.id === task.id ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${!roomBuilt ? 'room-locked' : ''}`}
                 onClick={() => setPreviewTask(task)}
             >
-                <div className="task-card-accent" style={{ backgroundColor: task.color }} />
-                <div className="task-card-icon" style={{ color: task.color }}>
+                <div className="task-card-accent" style={{ backgroundColor: roomBuilt ? task.color : 'rgba(120,100,90,0.3)' }} />
+                <div className="task-card-icon" style={{ color: roomBuilt ? task.color : 'rgba(200,180,160,0.35)' }}>
                     <GameIcon icon={task.icon} size={18} />
                 </div>
                 <div className="task-card-body">
                     <span className="task-card-name">{task.name}</span>
                     <span className="task-card-meta">
-                        <span className="task-card-duration">
-                            {Array.from({ length: Math.min(task.duration, 5) }, (_, i) => (
-                                <span key={i} className="duration-pip" />
-                            ))}
-                        </span>
-                        {task.manaCost ? (
-                            <span className="task-card-mana"><GameIcon icon="sparkles" size={9} /> {task.manaCost}</span>
-                        ) : null}
-                        {task.staminaCost ? (
-                            <span className="task-card-stamina"><GameIcon icon="zap" size={9} /> {task.staminaCost}</span>
-                        ) : null}
+                        {!roomBuilt && task.roomType ? (
+                            <span className="task-card-room-locked">
+                                <GameIcon icon="lock" size={9} /> {getRoomTypeLabel(task.roomType)}
+                            </span>
+                        ) : (
+                            <>
+                                <span className="task-card-duration">
+                                    {Array.from({ length: Math.min(task.duration, 5) }, (_, i) => (
+                                        <span key={i} className="duration-pip" />
+                                    ))}
+                                </span>
+                                {task.manaCost ? (
+                                    <span className="task-card-mana"><GameIcon icon="sparkles" size={9} /> {task.manaCost}</span>
+                                ) : null}
+                                {task.staminaCost ? (
+                                    <span className="task-card-stamina"><GameIcon icon="zap" size={9} /> {task.staminaCost}</span>
+                                ) : null}
+                            </>
+                        )}
                     </span>
                 </div>
                 <div className={`task-card-suitability suitability-${isLocked ? 'locked' : quality}`}>
@@ -837,6 +898,7 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
 
     // Preview panel calculations
     const previewReqCheck = previewTask ? checkTaskRequirements(target, previewTask) : null;
+    const previewRoomBuilt = previewTask ? isTaskRoomBuilt(previewTask, builtRoomTypes) : true;
     const previewTraitMods = previewTask ? getApplicableTraitModifiers(target, previewTask) : [];
     const previewScore = previewTask ? getQualityScore(previewTask) : 0;
     const previewQuality = previewTask ? getQualityLabel(previewScore) : null;
@@ -894,8 +956,8 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                 <div className="task-modal-body">
                     {/* ── Left: task cards ── */}
                     <div className="task-list">
-                        {filteredTasks.length > 0 ? (
-                            filteredTasks.map(renderTaskCard)
+                        {sortedTasks.length > 0 ? (
+                            sortedTasks.map(renderTaskCard)
                         ) : (
                             <div className="task-list-empty">
                                 <GameIcon icon="search" size={20} />
@@ -917,11 +979,12 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                                         <h4 className="task-detail-name" style={{ color: previewTask.color }}>
                                             {previewTask.name}
                                         </h4>
-                                        <span className="task-detail-tag">
-                                            <GameIcon icon={getTaskCategoryIcon(previewTask.category)} size={10} />
+                                        <span className={`task-detail-tag ${!previewRoomBuilt ? 'room-locked' : ''}`}>
+                                            <GameIcon icon={!previewRoomBuilt ? 'lock' : getTaskCategoryIcon(previewTask.category)} size={10} />
                                             {previewTask.roomType
                                                 ? getRoomTypeLabel(previewTask.roomType)
                                                 : getTaskCategoryLabel(previewTask.category)}
+                                            {!previewRoomBuilt && ' (Not Built)'}
                                         </span>
                                     </div>
 
@@ -1074,10 +1137,11 @@ const TaskAssignmentModal: FC<TaskAssignmentModalProps> = ({ stage, target, onAs
                                 <div className="task-detail-footer">
                                     <button
                                         className="task-detail-assign-btn"
-                                        disabled={!previewReqCheck?.met || !!target.activeTask || (previewTask.staminaCost ? (target.stamina ?? 100) < previewTask.staminaCost : false)}
+                                        disabled={!previewRoomBuilt || !previewReqCheck?.met || !!target.activeTask || (previewTask.staminaCost ? (target.stamina ?? 100) < previewTask.staminaCost : false)}
                                         onClick={() => onAssign(previewTask.id)}
                                     >
-                                        {target.activeTask ? 'Already on a Task' :
+                                        {!previewRoomBuilt ? 'Room Not Built' :
+                                         target.activeTask ? 'Already on a Task' :
                                          !previewReqCheck?.met ? 'Requirements Not Met' :
                                          (previewTask.staminaCost && (target.stamina ?? 100) < previewTask.staminaCost) ? 'Not Enough Stamina' :
                                          'Assign Task'}

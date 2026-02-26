@@ -40,6 +40,10 @@ import {
     Telescope, Stars, Atom, Glasses, Globe,
     Shell, Bone, TreePine, Mountain, Tent,
     Church, HeartPulse, Microscope, Handshake,
+    // Turn system icons
+    Sunrise, Sunset, CheckCircle, Sofa, ArrowUp, ArrowDown,
+    // Start menu
+    Play,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -238,6 +242,15 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     microscope: Microscope,
     handshake: Handshake,
     lightbulb: Lightbulb,
+
+    // ── Turn System ──
+    sunrise: Sunrise,
+    sunset: Sunset,
+    'check-circle': CheckCircle,
+    sofa: Sofa,
+    'arrow-up': ArrowUp,
+    'arrow-down': ArrowDown,
+    play: Play,
 };
 
 export interface GameIconProps {

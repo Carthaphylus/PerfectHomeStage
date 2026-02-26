@@ -28,9 +28,10 @@ interface ExploreScreenProps {
     location: Location;
     setScreenType: (type: ScreenType) => void;
     startEvent: (definitionId: string, target?: string, returnTo?: ScreenType) => void;
+    endDay: () => void;
 }
 
-export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScreenType, startEvent }) => {
+export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScreenType, startEvent, endDay }) => {
     const [introComplete, setIntroComplete] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState<number>(-1);
 
@@ -170,6 +171,13 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
                     >
                         <GameIcon icon="map" size={14} />
                         <span>Return to Map</span>
+                    </button>
+                    <button
+                        className="leave-button end-day-leave"
+                        onClick={endDay}
+                    >
+                        <GameIcon icon="sunset" size={14} />
+                        <span>Return Home (End Day)</span>
                     </button>
                 </div>
             </div>

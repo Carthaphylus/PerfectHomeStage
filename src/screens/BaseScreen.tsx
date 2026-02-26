@@ -1,6 +1,7 @@
 import React, { FC, useState, useCallback } from 'react';
 import type { Stage } from '../Stage';
-import type { SceneData, ActiveEvent, Location } from '../data';
+import type { SceneData, ActiveEvent, Location, TurnSummary } from '../data';
+import { StartMenuScreen } from './StartMenuScreen';
 import { MenuScreen } from './MenuScreen';
 import { ManorScreen } from './ManorScreen';
 import { WorldMapScreen } from './WorldMapScreen';
@@ -14,6 +15,7 @@ import { ItemLibrary } from './ItemLibrary';
 import { EventScreen } from './EventScreen';
 import { ConversionScreen } from './ConversionScreen';
 import { ExploreScreen } from './ExploreScreen';
+import { TurnSummaryScreen } from './TurnSummaryScreen';
 import { StatBar } from './StatBar';
 import { ScreenType } from './screenTypes';
 
@@ -22,7 +24,7 @@ interface BaseScreenProps {
 }
 
 export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
-    const [screenType, setScreenType] = useState<ScreenType>(ScreenType.MENU);
+    const [screenType, setScreenType] = useState<ScreenType>(ScreenType.START_MENU);
     const [returnScreen, setReturnScreen] = useState<ScreenType>(ScreenType.MENU);
 
     // Scene data owned by React state — NOT read from Stage
@@ -36,6 +38,9 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
 
     // Explore location
     const [exploreLocation, setExploreLocation] = useState<Location | null>(null);
+
+    // Turn summary data
+    const [turnSummary, setTurnSummary] = useState<TurnSummary | null>(null);
 
     /**
      * Start a scene: creates it on Stage (for API use), stores snapshot in React state,
@@ -107,14 +112,30 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
         setScreenType(ScreenType.EXPLORE);
     }, []);
 
-    const showStatBar = screenType !== ScreenType.MENU;
+    /** Trigger end-of-day: runs turn logic, shows summary screen */
+    const endDay = useCallback(() => {
+        const summary = stage().endDay();
+        setTurnSummary(summary);
+        setScreenType(ScreenType.TURN_SUMMARY);
+    }, [stage]);
+
+    /** Called when the player clicks Continue on the turn summary */
+    const continueTurn = useCallback(() => {
+        setTurnSummary(null);
+        setScreenType(ScreenType.MENU);
+    }, []);
+
+    const showStatBar = screenType !== ScreenType.START_MENU && screenType !== ScreenType.MENU && screenType !== ScreenType.TURN_SUMMARY;
 
     return (
         <div className="base-screen">
             {showStatBar && <StatBar stage={stage} />}
 
+            {screenType === ScreenType.START_MENU && (
+                <StartMenuScreen stage={stage} setScreenType={setScreenType} />
+            )}
             {screenType === ScreenType.MENU && (
-                <MenuScreen stage={stage} setScreenType={setScreenType} />
+                <MenuScreen stage={stage} setScreenType={setScreenType} endDay={endDay} />
             )}
             {screenType === ScreenType.MANOR && (
                 <ManorScreen stage={stage} setScreenType={setScreenType} />
@@ -149,6 +170,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                     location={exploreLocation}
                     setScreenType={setScreenType}
                     startEvent={startEvent}
+                    endDay={endDay}
                 />
             )}
 
@@ -183,6 +205,16 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
                     scene={activeScene}
                     setScreenType={setScreenType}
                     onEnd={endScene}
+                />
+            )}
+
+            {/* Turn summary screen */}
+            {screenType === ScreenType.TURN_SUMMARY && turnSummary && (
+                <TurnSummaryScreen
+                    stage={stage}
+                    summary={turnSummary}
+                    setScreenType={setScreenType}
+                    onContinue={continueTurn}
                 />
             )}
         </div>

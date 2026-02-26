@@ -164,8 +164,8 @@ export function getAvailableRoles(builtRoomTypes: string[]): Role[] {
     return roles;
 }
 
-/** Default room types built in a fresh manor */
+/** Default room types built in a fresh manor (must match getDefaultSlots in ManorScreen) */
 export const DEFAULT_BUILT_ROOM_TYPES = [
-    'ritual', 'quarters', 'classroom', 'storage', 'kitchen',
-    'lounge', 'brewing', 'stable', 'dungeon', 'cell',
+    'quarters', 'storage', 'kitchen', 'lounge',
+    'stable', 'dungeon', 'cell',
 ];

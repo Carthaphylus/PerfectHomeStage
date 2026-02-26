@@ -1,4 +1,5 @@
 export enum ScreenType {
+    START_MENU = 'start_menu',
     MENU = 'menu',
     MANOR = 'manor',
     WORLD_MAP = 'world_map',
@@ -12,4 +13,5 @@ export enum ScreenType {
     PC_PROFILE = 'pc_profile',
     CONVERSION = 'conversion',
     EXPLORE = 'explore',
+    TURN_SUMMARY = 'turn_summary',
 }

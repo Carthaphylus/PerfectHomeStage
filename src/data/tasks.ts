@@ -51,6 +51,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 25,
         roomType: 'kitchen',
         primaryStat: 'insight',
+        roleBonus: 'head_cook',
         requirements: [],
         traitModifiers: [
             { traitKey: 'perceptive', effect: 'bonus', magnitude: 12, description: 'Spots hidden ingredients' },
@@ -142,6 +143,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 30,
         roomType: 'classroom',
         primaryStat: 'insight',
+        roleBonus: 'instructor',
         requirements: [{ stat: 'insight', minimum: 25 }],
         traitModifiers: [
             { traitKey: 'perceptive', effect: 'bonus', magnitude: 12, description: 'Catches details others miss' },
@@ -189,6 +191,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 25,
         roomType: 'ritual',
         primaryStat: 'attunement',
+        roleBonus: 'ritual_keeper',
         requirements: [{ stat: 'attunement', minimum: 25 }],
         traitModifiers: [
             { traitKey: 'occultist', effect: 'bonus', magnitude: 12, description: 'Attunes to dark energy easily' },
@@ -422,13 +425,15 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
     'combat_drill': {
         id: 'combat_drill',
         name: 'Combat Drill',
-        description: 'Rigorous physical training to sharpen combat skills. Builds strength, endurance, and discipline through repeated drills.',
+        description: 'Rigorous physical training to sharpen combat skills in the servant quarters. Builds strength, endurance, and discipline through repeated drills.',
         category: 'training',
         icon: 'swords',
         color: '#d4807a',
         duration: 2,
         staminaCost: 45,
+        roomType: 'quarters',
         primaryStat: 'prowess',
+        roleBonus: 'quartermaster',
         requirements: [],
         traitModifiers: [
             { traitKey: 'fierce', effect: 'bonus', magnitude: 15, description: 'Thrives in physical challenge' },
@@ -445,13 +450,15 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
     'arcane_study': {
         id: 'arcane_study',
         name: 'Arcane Study',
-        description: 'Meditative study of magical principles and arcane theory. Deepens attunement and broadens magical expertise.',
+        description: 'Meditative study of magical principles and arcane theory in the classroom. Deepens attunement and broadens magical expertise.',
         category: 'training',
         icon: 'sparkles',
         color: '#a888c8',
         duration: 3,
         staminaCost: 40,
+        roomType: 'classroom',
         primaryStat: 'attunement',
+        roleBonus: 'instructor',
         requirements: [{ stat: 'attunement', minimum: 15 }],
         traitModifiers: [
             { traitKey: 'occultist', effect: 'bonus', magnitude: 15, description: 'Innate affinity for magic' },
@@ -468,13 +475,15 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
     'social_practice': {
         id: 'social_practice',
         name: 'Social Practice',
-        description: 'Practice social skills through etiquette drills, role-playing conversations, and presence exercises.',
+        description: 'Practice social skills through etiquette drills, role-playing conversations, and presence exercises in the lounge.',
         category: 'training',
         icon: 'crown',
         color: '#c8b878',
         duration: 2,
         staminaCost: 30,
+        roomType: 'lounge',
         primaryStat: 'presence',
+        roleBonus: 'host',
         requirements: [],
         traitModifiers: [
             { traitKey: 'charismatic', effect: 'bonus', magnitude: 12, description: 'Natural social talent' },
@@ -492,13 +501,15 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
     'focus_training': {
         id: 'focus_training',
         name: 'Focus Training',
-        description: 'Intensive mental exercises to sharpen concentration, willpower, and self-discipline. Meditation and obedience drills.',
+        description: 'Intensive mental exercises in the classroom to sharpen concentration, willpower, and self-discipline. Meditation and obedience drills.',
         category: 'training',
         icon: 'target',
         color: '#60b890',
         duration: 2,
         staminaCost: 35,
+        roomType: 'classroom',
         primaryStat: 'discipline',
+        roleBonus: 'instructor',
         requirements: [],
         traitModifiers: [
             { traitKey: 'disciplined', effect: 'bonus', magnitude: 15, description: 'Already self-controlled' },
@@ -699,7 +710,8 @@ export function getRoomTypeLabel(roomType: string): string {
 
 /**
  * Get all tasks available to a specific servant,
- * filtered by stat requirements, built room types, and discovered locations.
+ * filtered by discovered locations only.
+ * Room tasks for unbuilt rooms are still included (shown as locked in UI).
  */
 export function getAvailableTasksForServant(
     servant: Servant,
@@ -707,16 +719,21 @@ export function getAvailableTasksForServant(
     discoveredLocations: Location[],
 ): TaskDefinition[] {
     return Object.values(TASK_REGISTRY).filter(task => {
-        // Room tasks: must have the room built
-        if (task.roomType && !builtRoomTypes.includes(task.roomType)) {
-            return false;
-        }
         // Exploration tasks: must have the location discovered
         if (task.location && !discoveredLocations.includes(task.location)) {
             return false;
         }
         return true;
     });
+}
+
+/**
+ * Check if a task's required room is built.
+ * Returns true if the task has no room requirement, or the room is built.
+ */
+export function isTaskRoomBuilt(task: TaskDefinition, builtRoomTypes: string[]): boolean {
+    if (!task.roomType) return true;
+    return builtRoomTypes.includes(task.roomType);
 }
 
 /**
