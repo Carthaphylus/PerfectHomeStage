@@ -393,6 +393,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [chatJudgment, setChatJudgment] = useState<AIChatJudgment | null>(null);
     const [judgmentApplied, setJudgmentApplied] = useState(false);
 
+    // ── End-of-chat loading state ──
+    const [endingChat, setEndingChat] = useState(false);
+
     // ── Debug context viewer ──
     const [debugContextText, setDebugContextText] = useState<string | null>(null);
 
@@ -691,6 +694,9 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     };
 
     const handleEndChat = async () => {
+        // Show loading overlay immediately
+        setEndingChat(true);
+
         // Save messages before ending (endEventChat clears them)
         const messagesSnapshot = [...chatMessages];
         const isMulti = stage().isMultiServantChat();
@@ -755,6 +761,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         }
 
         stage().endEventChat();
+        setEndingChat(false);
         const updated = stage().getActiveEvent();
         if (updated) {
             onEventUpdate(updated);
@@ -868,6 +875,35 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         const activeSpeaker = isMultiChat ? stage().getMultiChatActiveSpeaker() : '';
         const chatSpeaker = isMultiChat ? activeSpeaker : interpolate(chatPhase.speaker, event.target, pcName);
         const chatCharAvatar = stage().getCharacterAvatar(chatSpeaker);
+
+        // Loading overlay while generating summary & judgment
+        if (endingChat) {
+            const chatCharData = stage().getCharacterData(chatSpeaker);
+            const bg = EVENT_CHAT_BACKGROUNDS[chatPhase.location || 'Dungeon'] || DungeonBg;
+            return (
+                <div
+                    className="event-screen event-chat-mode skit-screen skit-active"
+                    style={{ '--char-color': chatCharData?.color || '#c8aa6e' } as React.CSSProperties}
+                >
+                    <div className="skit-background" style={{ backgroundImage: `url(${bg})` }} />
+                    <div className="skit-overlay" />
+                    <div className="skit-header">
+                        <div className="skit-header-left">
+                            <span className="skit-location-badge">{chatPhase.location || 'Dungeon'}</span>
+                        </div>
+                        <div className="skit-header-center">
+                            <span className="skit-header-name">Ending Session...</span>
+                        </div>
+                        <div className="skit-header-right" />
+                    </div>
+                    <div className="end-chat-loading">
+                        <div className="end-chat-loading-spinner" />
+                        <span className="end-chat-loading-text">Evaluating conversation...</span>
+                        <span className="end-chat-loading-sub">Generating summary & analyzing changes</span>
+                    </div>
+                </div>
+            );
+        }
         const chatPcAvatar = stage().currentState.playerCharacter.avatar;
         const chatCharData = stage().getCharacterData(chatSpeaker);
         const canEnd = chatPhase.skippable || event.chatMessageCount >= (chatPhase.minMessages || 0);
