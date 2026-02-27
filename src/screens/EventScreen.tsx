@@ -6,12 +6,14 @@ import {
     getItemDefinition, getRarityColor,
     CONDITIONING_ACTIONS, CONDITIONING_STRATEGIES,
     getConditioningTier,
+    getCategoryDisplay, SERVANT_CHAT_SCOPE, MULTI_CHAT_SCOPE,
 } from '../data';
 import type {
     ActiveEvent, EventDefinition, EventStep, EventChoice,
     EventChatPhase, EventShopPhase, ShopItem,
     SceneMessage, SceneData, Location,
     ConditioningAction, ActionResult, ConditioningTier,
+    AIChatJudgment, AIChatChange, ChatChangeScope,
 } from '../data';
 import { FormattedText, TypewriterText, TypingIndicator } from './SkitText';
 import { GameIcon } from './GameIcon';
@@ -387,6 +389,10 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const [summaryText, setSummaryText] = useState('');
     const [generatingSummary, setGeneratingSummary] = useState(false);
 
+    // ── AI Chat Judgment state ──
+    const [chatJudgment, setChatJudgment] = useState<AIChatJudgment | null>(null);
+    const [judgmentApplied, setJudgmentApplied] = useState(false);
+
     // ── Debug context viewer ──
     const [debugContextText, setDebugContextText] = useState<string | null>(null);
 
@@ -693,31 +699,58 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
             ? interpolate(chatPhase.speaker, event.target, pcName)
             : null;
 
-        // Generate scene summary
+        // Resolve change scope and participants for judgment
+        const changeScope: ChatChangeScope | undefined = chatPhase?.changeScope;
+        const judgmentParticipants: string[] = isMulti
+            ? multiParticipantNames
+            : (speakerName ? [speakerName] : []);
+
+        // Generate scene summary AND AI judgment in parallel
         if (messagesSnapshot.length > 0) {
             setGeneratingSummary(true);
-            try {
-                if (isMulti && multiParticipantNames.length > 0) {
-                    // For multi-chat: generate one summary and save it to all participants
-                    const primaryName = multiParticipantNames[0];
-                    const summary = await stage().generateSceneSummary(primaryName, messagesSnapshot);
-                    if (summary) {
-                        // Append a note about who was in the group chat
-                        const groupNote = `(Group chat with ${multiParticipantNames.join(', ')})`;
-                        const fullSummary = `${groupNote} ${summary}`;
-                        setSceneSummary(fullSummary);
-                        setSummaryText(fullSummary);
+            setChatJudgment(null);
+            setJudgmentApplied(false);
+
+            const summaryPromise = (async () => {
+                try {
+                    if (isMulti && multiParticipantNames.length > 0) {
+                        const primaryName = multiParticipantNames[0];
+                        const summary = await stage().generateSceneSummary(primaryName, messagesSnapshot);
+                        if (summary) {
+                            const groupNote = `(Group chat with ${multiParticipantNames.join(', ')})`;
+                            const fullSummary = `${groupNote} ${summary}`;
+                            setSceneSummary(fullSummary);
+                            setSummaryText(fullSummary);
+                        }
+                    } else if (speakerName) {
+                        const summary = await stage().generateSceneSummary(speakerName, messagesSnapshot);
+                        if (summary) {
+                            setSceneSummary(summary);
+                            setSummaryText(summary);
+                        }
                     }
-                } else if (speakerName) {
-                    const summary = await stage().generateSceneSummary(speakerName, messagesSnapshot);
-                    if (summary) {
-                        setSceneSummary(summary);
-                        setSummaryText(summary);
+                } catch (e) {
+                    console.error('[EventScreen] Summary generation failed:', e);
+                }
+            })();
+
+            const judgmentPromise = (async () => {
+                if (changeScope && judgmentParticipants.length > 0) {
+                    try {
+                        const result = await stage().generateChatJudgment(
+                            messagesSnapshot, changeScope, judgmentParticipants,
+                        );
+                        if (result) {
+                            setChatJudgment(result);
+                            console.log('[EventScreen] AI judgment received:', result.changes.length, 'changes');
+                        }
+                    } catch (e) {
+                        console.error('[EventScreen] Judgment generation failed:', e);
                     }
                 }
-            } catch (e) {
-                console.error('[EventScreen] Summary generation failed:', e);
-            }
+            })();
+
+            await Promise.all([summaryPromise, judgmentPromise]);
             setGeneratingSummary(false);
         }
 
@@ -728,7 +761,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         }
     };
 
-    /** Accept the scene summary and save to character history */
+    /** Accept the scene summary and save to character history, then apply AI changes */
     const handleAcceptSummary = () => {
         const isMulti = event.definitionId === 'multi_servant_chat';
         const multiParticipantNames: string[] = event.vars.participants || [];
@@ -746,7 +779,16 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                 stage().updateCharacterHistory(speakerName, summaryText.trim());
             }
         }
+
+        // Apply AI-driven chat changes
+        if (chatJudgment && chatJudgment.changes.length > 0 && !judgmentApplied) {
+            stage().applyChatChanges(chatJudgment);
+            setJudgmentApplied(true);
+            console.log('[EventScreen] Applied AI chat changes');
+        }
+
         setSceneSummary(null);
+        setChatJudgment(null);
         setSummaryEditing(false);
 
         // Now advance if there's a next step
@@ -756,9 +798,11 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
         }
     };
 
-    /** Skip saving the summary */
+    /** Skip saving the summary — also discards AI changes */
     const handleSkipSummary = () => {
         setSceneSummary(null);
+        setChatJudgment(null);
+        setJudgmentApplied(false);
         setSummaryEditing(false);
 
         if (currentStep.nextStep) {
@@ -1372,7 +1416,7 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                         {generatingSummary ? (
                             <div className="scene-summary-loading">
                                 <TypingIndicator name={speakerName} avatar={''} />
-                                <span>Generating summary...</span>
+                                <span>Generating summary & evaluating changes...</span>
                             </div>
                         ) : summaryEditing ? (
                             <textarea
@@ -1390,6 +1434,49 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
                             </div>
                         )}
                     </div>
+
+                    {/* AI Chat Changes Display */}
+                    {!generatingSummary && chatJudgment && chatJudgment.changes.length > 0 && (
+                        <div className="chat-changes-section">
+                            <p className="chat-changes-label">Conversation Effects:</p>
+                            <div className="chat-changes-list">
+                                {chatJudgment.changes.map((change, i) => {
+                                    const display = getCategoryDisplay(change.category);
+                                    const isPositive = (change.delta ?? 0) > 0
+                                        || change.category === 'item_add';
+                                    const isNegative = (change.delta ?? 0) < 0
+                                        || change.category === 'item_remove';
+                                    const deltaStr = change.category === 'item_add'
+                                        ? `+${change.quantity || 1} ${change.itemName}`
+                                        : change.category === 'item_remove'
+                                        ? `-${change.quantity || 1} ${change.itemName}`
+                                        : change.category === 'stat'
+                                        ? `${(change.delta ?? 0) > 0 ? '+' : ''}${change.delta} ${change.field}`
+                                        : `${(change.delta ?? 0) > 0 ? '+' : ''}${change.delta}`;
+                                    return (
+                                        <div
+                                            key={i}
+                                            className={`chat-change-chip ${isPositive ? 'positive' : isNegative ? 'negative' : 'neutral'}`}
+                                            title={change.reasoning}
+                                        >
+                                            <GameIcon icon={display.icon} size={12} />
+                                            <span className="chat-change-label">
+                                                {change.target ? `${change.target} ` : ''}
+                                                {display.label}
+                                            </span>
+                                            <span className="chat-change-delta">{deltaStr}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {chatJudgment.summary && (
+                                <p className="chat-changes-summary">{chatJudgment.summary}</p>
+                            )}
+                        </div>
+                    )}
+                    {!generatingSummary && chatJudgment === null && chatPhase?.changeScope && (
+                        <p className="chat-changes-none">No notable changes from this conversation.</p>
+                    )}
                 </div>
                 <div className="event-actions">
                     {!generatingSummary && (

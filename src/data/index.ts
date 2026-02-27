@@ -34,3 +34,6 @@ export * from './exploration';
 
 // Task system
 export * from './tasks';
+
+// AI Chat Change system
+export * from './chatChanges';

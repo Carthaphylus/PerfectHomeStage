@@ -476,6 +476,100 @@
   }
 }
 
+// ── AI Chat Changes (post-chat judgment) ──
+.chat-changes-section {
+  padding: 14px 18px;
+  background: rgba(20, 14, 28, 0.7);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  border-radius: 8px;
+  margin: 4px 0 12px;
+
+  .chat-changes-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: rgba(200, 170, 110, 0.6);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .chat-changes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chat-change-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    background: rgba(0, 0, 0, 0.25);
+    cursor: default;
+    transition: border-color 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: rgba(200, 170, 110, 0.3);
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    &.positive {
+      border-color: rgba(74, 222, 128, 0.25);
+      background: rgba(74, 222, 128, 0.06);
+
+      .chat-change-delta {
+        color: #4ade80;
+      }
+    }
+
+    &.negative {
+      border-color: rgba(248, 113, 113, 0.25);
+      background: rgba(248, 113, 113, 0.06);
+
+      .chat-change-delta {
+        color: #f87171;
+      }
+    }
+
+    &.neutral {
+      .chat-change-delta {
+        color: rgba(200, 170, 110, 0.7);
+      }
+    }
+
+    .chat-change-label {
+      color: rgba(220, 200, 170, 0.75);
+      white-space: nowrap;
+    }
+
+    .chat-change-delta {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+  }
+
+  .chat-changes-summary {
+    margin-top: 10px;
+    font-size: 8px;
+    color: rgba(200, 170, 110, 0.45);
+    line-height: 1.6;
+    font-style: italic;
+  }
+}
+
+.chat-changes-none {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: rgba(200, 170, 110, 0.3);
+  text-align: center;
+  padding: 8px 0;
+  font-style: italic;
+}
+
 // ==========================================
 // Shop Mode (Video-game style trading UI)
 // ==========================================

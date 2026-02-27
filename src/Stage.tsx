@@ -47,6 +47,10 @@ import {
     TASK_REGISTRY, getTaskById, getTaskCategoryLabel, getTaskCategoryIcon,
     getRoomTypeLabel, getAvailableTasksForServant, checkTaskRequirements,
     getApplicableTraitModifiers,
+    // AI Chat Changes
+    ChatChangeCategory, ChatChangeScope, ChatChangeScopeEntry, AIChatChange, AIChatJudgment,
+    SERVANT_CHAT_SCOPE, MULTI_CHAT_SCOPE, EVENT_CHAT_FULL_SCOPE,
+    getScopeEntry, clampToScope, describeScopeForPrompt,
 } from './data';
 
 
@@ -1449,6 +1453,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         location: location,
                         skippable: true,
                         minMessages: 0,
+                        changeScope: { ...SERVANT_CHAT_SCOPE, targetCharacters: [servantName] },
                     },
                     isEnding: true,
                     onEnter: (ctx: EventContext) => {
@@ -1489,6 +1494,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         location: location,
                         skippable: true,
                         minMessages: 0,
+                        changeScope: { ...MULTI_CHAT_SCOPE, targetCharacters: [...servantNames] },
                     },
                     isEnding: true,
                     onEnter: (ctx: EventContext) => {
@@ -2360,6 +2366,361 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         const target = hero || servant;
         if (!target) return;
         target.backstory = backstory;
+    }
+
+    // ============================
+    // AI Chat Judgment System
+    // ============================
+
+    /**
+     * After a chat ends, ask the AI to evaluate the conversation and return
+     * structured state changes (love, obedience, gold, items, stats, etc.).
+     * Returns null on failure — the chat still works, just no AI-driven changes.
+     */
+    async generateChatJudgment(
+        messages: SceneMessage[],
+        scope: ChatChangeScope,
+        participants: string[],
+    ): Promise<AIChatJudgment | null> {
+        if (messages.length === 0) return null;
+
+        const pcName = this.currentState.playerCharacter.name;
+        const filteredMessages = messages.filter(m => m.sender !== '\u00a7system');
+        if (filteredMessages.length === 0) return null;
+
+        // Build participant context
+        const participantContext = participants.map(name => {
+            const servant = this.currentState.servants[name];
+            if (!servant) return `${name}: (not found)`;
+            return [
+                `${name}:`,
+                `  Love: ${servant.love}/100, Obedience: ${servant.obedience}/100, Stamina: ${servant.stamina}/${servant.maxStamina}`,
+                servant.stats ? `  Stats: ${Object.entries(servant.stats).map(([k, v]) => `${k}: ${v}`).join(', ')}` : '',
+            ].filter(Boolean).join('\n');
+        }).join('\n');
+
+        // Build the conversation transcript
+        const transcript = filteredMessages
+            .map(m => `${m.sender}: ${m.text}`)
+            .join('\n');
+
+        // Describe allowed changes
+        const scopeDescription = describeScopeForPrompt(scope);
+
+        const prompt = [
+            `[SYSTEM] You are evaluating a conversation that just happened in a game. Based on how the conversation went, decide what state changes should occur.`,
+            ``,
+            `[PLAYER]: ${pcName}`,
+            `[PARTICIPANTS]:`,
+            participantContext,
+            ``,
+            `[ALLOWED CHANGES — you may ONLY use these categories with deltas in these ranges]:`,
+            `  ${scopeDescription}`,
+            ``,
+            `[GUIDELINES]:`,
+            `- Evaluate the TONE and CONTENT of the conversation.`,
+            `- Positive, kind, or affectionate interactions should increase love.`,
+            `- Commands obeyed, discipline shown, or submission should increase obedience.`,
+            `- Defiance, rudeness, or resistance should decrease obedience.`,
+            `- Harsh, cruel, or dismissive behavior from the player should decrease love.`,
+            `- Conversations consume energy — stamina usually decreases slightly.`,
+            `- Gold/mana changes should only happen if something was explicitly given, traded, or offered in the conversation.`,
+            `- Item changes should only happen if an item was explicitly given, found, or lost in the narrative.`,
+            `- Stat changes (prowess, expertise, etc.) should be rare — only if training or a learning moment occurred.`,
+            `- It is ENTIRELY VALID to return an empty changes array if nothing notable happened.`,
+            `- Each change should have a "reasoning" explaining why.`,
+            `- If multiple participants are involved, you can make separate changes for each.`,
+            `- Keep changes modest and proportional to the conversation length and intensity.`,
+            ``,
+            `[CONVERSATION]:`,
+            transcript,
+            ``,
+            `[RESPONSE FORMAT — return ONLY valid JSON, no markdown, no explanation]:`,
+            `{`,
+            `  "changes": [`,
+            `    { "category": "love", "target": "CharacterName", "delta": 3, "reasoning": "Player was affectionate" },`,
+            `    { "category": "obedience", "target": "CharacterName", "delta": -1, "reasoning": "Character showed mild defiance" }`,
+            `  ],`,
+            `  "summary": "Brief overall summary of changes"`,
+            `}`,
+            ``,
+            `For item changes use: { "category": "item_add", "itemName": "Item Name", "quantity": 1, "reasoning": "..." }`,
+            `For stat changes use: { "category": "stat", "target": "CharacterName", "field": "prowess", "delta": 1, "reasoning": "..." }`,
+            `For gold/mana use: { "category": "gold", "delta": 5, "reasoning": "..." }`,
+            ``,
+            `Return ONLY the JSON object:`,
+        ].join('\n');
+
+        try {
+            console.log('[ChatJudgment] Generating AI judgment for chat...');
+            const response = await this.generator.textGen({
+                prompt,
+                include_history: false,
+                max_tokens: 500,
+                stop: [],
+                template: '',
+                context_length: null,
+                min_tokens: null,
+            });
+
+            const raw = response?.result?.trim();
+            if (!raw) {
+                console.warn('[ChatJudgment] Empty response from AI');
+                return null;
+            }
+
+            return this.parseChatJudgment(raw, scope, participants);
+        } catch (e) {
+            console.error('[ChatJudgment] Generation failed:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Parse the AI's JSON response into a validated AIChatJudgment.
+     * Clamps values to scope ranges, filters invalid targets/items.
+     */
+    parseChatJudgment(
+        raw: string,
+        scope: ChatChangeScope,
+        participants: string[],
+    ): AIChatJudgment | null {
+        try {
+            // Try to extract JSON — handle both raw JSON and ```json blocks
+            let jsonStr = raw.trim();
+            const jsonBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (jsonBlockMatch) {
+                jsonStr = jsonBlockMatch[1].trim();
+            }
+            // Also try to find just the JSON object if there's surrounding text
+            const objMatch = jsonStr.match(/\{[\s\S]*\}/);
+            if (objMatch) {
+                jsonStr = objMatch[0];
+            }
+
+            const parsed = JSON.parse(jsonStr);
+            if (!parsed || !Array.isArray(parsed.changes)) {
+                console.warn('[ChatJudgment] Invalid JSON structure:', raw);
+                return null;
+            }
+
+            const validatedChanges: AIChatChange[] = [];
+
+            for (const change of parsed.changes) {
+                if (!change || typeof change !== 'object') continue;
+                if (!change.category || typeof change.category !== 'string') continue;
+
+                const category = change.category as ChatChangeCategory;
+                const scopeEntry = getScopeEntry(scope, category);
+                if (!scopeEntry) {
+                    console.warn(`[ChatJudgment] Category "${category}" not in scope, skipping`);
+                    continue;
+                }
+
+                // Validate target character for character-specific categories
+                const charCategories: ChatChangeCategory[] = ['love', 'obedience', 'stamina', 'stat'];
+                if (charCategories.includes(category)) {
+                    const target = change.target;
+                    if (!target || typeof target !== 'string') continue;
+
+                    // Must be a valid servant (or in participants)
+                    const servant = this.currentState.servants[target];
+                    if (!servant) {
+                        console.warn(`[ChatJudgment] Target "${target}" not found in servants, skipping`);
+                        continue;
+                    }
+
+                    // If scope restricts targets, check
+                    if (scope.targetCharacters && !scope.targetCharacters.includes(target)) {
+                        console.warn(`[ChatJudgment] Target "${target}" not in allowed targets, skipping`);
+                        continue;
+                    }
+                }
+
+                // Validate and clamp delta
+                let delta = typeof change.delta === 'number' ? change.delta : 0;
+                delta = clampToScope(scope, category, delta);
+
+                // For item categories, validate item
+                if (category === 'item_add' || category === 'item_remove') {
+                    const itemName = change.itemName;
+                    if (!itemName || typeof itemName !== 'string') continue;
+
+                    // Check against allowed items if specified
+                    if (scopeEntry.allowedItems && !scopeEntry.allowedItems.includes(itemName)) {
+                        console.warn(`[ChatJudgment] Item "${itemName}" not in allowed items, skipping`);
+                        continue;
+                    }
+
+                    // For item_remove, check player actually has the item
+                    if (category === 'item_remove' && !this.hasItem(itemName)) {
+                        console.warn(`[ChatJudgment] Cannot remove "${itemName}" — not in inventory`);
+                        continue;
+                    }
+
+                    validatedChanges.push({
+                        category,
+                        itemName,
+                        quantity: Math.max(1, Math.min(change.quantity || 1, scopeEntry.max)),
+                        reasoning: change.reasoning || '',
+                    });
+                    continue;
+                }
+
+                // For stat category, validate field
+                if (category === 'stat') {
+                    const field = change.field;
+                    if (!field || typeof field !== 'string') continue;
+                    const validStats: string[] = ['prowess', 'expertise', 'attunement', 'presence', 'discipline', 'insight'];
+                    if (!validStats.includes(field)) continue;
+                    if (scopeEntry.allowedStats && !scopeEntry.allowedStats.includes(field as StatName)) {
+                        console.warn(`[ChatJudgment] Stat "${field}" not in allowed stats, skipping`);
+                        continue;
+                    }
+                }
+
+                // Skip zero deltas (no change — item categories already handled above)
+                if (delta === 0) continue;
+
+                validatedChanges.push({
+                    category,
+                    target: change.target,
+                    field: change.field,
+                    delta,
+                    reasoning: change.reasoning || '',
+                });
+            }
+
+            console.log(`[ChatJudgment] Validated ${validatedChanges.length} changes from AI response`);
+
+            return {
+                changes: validatedChanges,
+                summary: typeof parsed.summary === 'string' ? parsed.summary : '',
+            };
+        } catch (e) {
+            console.error('[ChatJudgment] Failed to parse AI response:', e, '\nRaw:', raw);
+            return null;
+        }
+    }
+
+    /**
+     * Apply validated AI chat changes to the game state.
+     * Returns the list of changes that were actually applied (for display).
+     */
+    applyChatChanges(judgment: AIChatJudgment): AIChatChange[] {
+        const applied: AIChatChange[] = [];
+
+        for (const change of judgment.changes) {
+            try {
+                switch (change.category) {
+                    case 'love': {
+                        const servant = this.currentState.servants[change.target || ''];
+                        if (servant && change.delta) {
+                            servant.love = Math.max(0, Math.min(100, servant.love + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'obedience': {
+                        const servant = this.currentState.servants[change.target || ''];
+                        if (servant && change.delta) {
+                            servant.obedience = Math.max(0, Math.min(100, servant.obedience + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'stamina': {
+                        const servant = this.currentState.servants[change.target || ''];
+                        if (servant && change.delta) {
+                            servant.stamina = Math.max(0, Math.min(servant.maxStamina, servant.stamina + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'gold': {
+                        if (change.delta) {
+                            this.currentState.stats.gold = Math.max(0, this.currentState.stats.gold + change.delta);
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'mana': {
+                        if (change.delta) {
+                            this.currentState.stats.mana = Math.max(0,
+                                Math.min(this.currentState.stats.maxMana, this.currentState.stats.mana + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'comfort': {
+                        if (change.delta) {
+                            this.currentState.stats.household.comfort = Math.max(0,
+                                this.currentState.stats.household.comfort + change.delta);
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'household_obedience': {
+                        if (change.delta) {
+                            this.currentState.stats.household.obedience = Math.max(0,
+                                this.currentState.stats.household.obedience + change.delta);
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'item_add': {
+                        const itemName = change.itemName || '';
+                        const qty = change.quantity || 1;
+                        const existing = this.currentState.inventory[itemName];
+                        if (existing) {
+                            existing.quantity += qty;
+                        } else {
+                            try {
+                                this.currentState.inventory[itemName] = {
+                                    name: itemName,
+                                    quantity: qty,
+                                    type: getItemDefinition(itemName).type,
+                                };
+                            } catch {
+                                // Item not in registry — add as misc
+                                this.currentState.inventory[itemName] = {
+                                    name: itemName,
+                                    quantity: qty,
+                                    type: 'material',
+                                };
+                            }
+                        }
+                        applied.push(change);
+                        break;
+                    }
+                    case 'item_remove': {
+                        const itemName = change.itemName || '';
+                        const qty = change.quantity || 1;
+                        const item = this.currentState.inventory[itemName];
+                        if (item) {
+                            item.quantity -= qty;
+                            if (item.quantity <= 0) delete this.currentState.inventory[itemName];
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'stat': {
+                        const servant = this.currentState.servants[change.target || ''];
+                        const statKey = change.field as StatName;
+                        if (servant && statKey && servant.stats[statKey] !== undefined && change.delta) {
+                            servant.stats[statKey] = Math.max(0, Math.min(100, servant.stats[statKey] + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.error(`[ChatJudgment] Failed to apply change:`, change, e);
+            }
+        }
+
+        console.log(`[ChatJudgment] Applied ${applied.length} changes to game state`);
+        return applied;
     }
 
     /**

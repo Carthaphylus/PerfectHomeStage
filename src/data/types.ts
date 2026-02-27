@@ -211,6 +211,53 @@ export interface EventSkillCheck {
     modifier?: number;
 }
 
+// ── AI Chat Change System ──
+
+/** Categories of state changes the AI can make during a chat */
+export type ChatChangeCategory =
+    | 'love'
+    | 'obedience'
+    | 'stamina'
+    | 'gold'
+    | 'mana'
+    | 'comfort'
+    | 'household_obedience'
+    | 'item_add'
+    | 'item_remove'
+    | 'stat';  // character stat (prowess, expertise, etc.)
+
+/** A single allowed change category with min/max range */
+export interface ChatChangeScopeEntry {
+    category: ChatChangeCategory;
+    min: number;   // minimum delta (typically negative)
+    max: number;   // maximum delta (typically positive)
+    allowedItems?: string[];   // for item categories — restrict which items
+    allowedStats?: StatName[]; // for 'stat' category — restrict which stats
+}
+
+/** Full scope of what the AI is allowed to change during a chat */
+export interface ChatChangeScope {
+    entries: ChatChangeScopeEntry[];
+    targetCharacters?: string[];  // restrict which characters can be affected
+}
+
+/** A single AI-decided state change */
+export interface AIChatChange {
+    category: ChatChangeCategory;
+    target?: string;     // character name (for love/obedience/stamina/stat)
+    field?: string;      // stat name (for 'stat' category)
+    delta?: number;      // numeric change
+    itemName?: string;   // for item categories
+    quantity?: number;   // for item categories (default 1)
+    reasoning: string;   // AI's rationale for this change
+}
+
+/** Full AI judgment result for a chat */
+export interface AIChatJudgment {
+    changes: AIChatChange[];
+    summary: string;   // brief rationale for all changes
+}
+
 /** Chat phase config — opens AI roleplay within an event step */
 export interface EventChatPhase {
     context: string;
@@ -219,6 +266,7 @@ export interface EventChatPhase {
     skippable: boolean;
     minMessages?: number;
     maxMessages?: number;
+    changeScope?: ChatChangeScope;  // AI-driven state changes allowed during this chat
 }
 
 /** A single item in a shop's inventory */
