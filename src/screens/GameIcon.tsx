@@ -269,6 +269,8 @@ export interface GameIconProps {
     size?: number;
     className?: string;
     color?: string;
+    /** Override the composite overlay position (e.g. force 'br' in inventory grids) */
+    overlayPos?: 'tr' | 'tl' | 'br' | 'bl' | 'center';
 }
 
 /**
@@ -388,7 +390,27 @@ const POS_OFFSETS: Record<string, React.CSSProperties> = {
     center: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
 };
 
-export const GameIcon: FC<GameIconProps> = ({ icon, size = 14, className = '', color }) => {
+/** Type-based fallback colors for items without a composite overlay color */
+const TYPE_ICON_COLORS: Record<string, string> = {
+    equipment: '#c8aa6e',
+    consumable: '#70b0ff',
+    material: '#a0c0a0',
+    key: '#f0d060',
+    currency: '#f0d060',
+};
+
+/**
+ * Returns an item-specific icon color based on its composite overlay color,
+ * or falls back to a type-based color.
+ */
+export function getItemIconColor(iconKey: string, itemType?: string): string {
+    const composite = COMPOSITE_ICONS[iconKey];
+    if (composite?.overlayColor) return composite.overlayColor;
+    if (itemType && TYPE_ICON_COLORS[itemType]) return TYPE_ICON_COLORS[itemType];
+    return '#c8aa6e';
+}
+
+export const GameIcon: FC<GameIconProps> = ({ icon, size = 14, className = '', color, overlayPos }) => {
     // Check for composite icon first
     const composite = COMPOSITE_ICONS[icon];
     if (composite) {
@@ -396,7 +418,7 @@ export const GameIcon: FC<GameIconProps> = ({ icon, size = 14, className = '', c
         const OverlayIcon = ICON_MAP[composite.overlay];
         if (BaseIcon && OverlayIcon) {
             const overlaySize = Math.round(size * composite.scale);
-            const pos = POS_OFFSETS[composite.pos];
+            const pos = POS_OFFSETS[overlayPos || composite.pos];
             return (
                 <span
                     className={`game-icon game-icon-composite ${className}`}

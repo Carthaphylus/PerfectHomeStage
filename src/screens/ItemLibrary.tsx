@@ -1,7 +1,7 @@
 import React, { FC, useState, useMemo } from 'react';
 import type { Stage } from '../Stage';
 import type { MessageStateType } from '../data';
-import { GameIcon } from './GameIcon';
+import { GameIcon, getItemIconColor } from './GameIcon';
 import {
     ItemType,
     ItemDefinition,
@@ -135,7 +135,7 @@ export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
                                             onClick={() => setSelectedItemName(item.name)}
                                         >
                                             <div className="ilib-card-icon">
-                                                <GameIcon icon={item.icon} size={20} />
+                                                <GameIcon icon={item.icon} size={20} color={getItemIconColor(item.icon, item.type)} overlayPos="br" />
                                             </div>
                                             <div className="ilib-card-name">{item.name}</div>
                                             <div className={`ilib-card-rarity rarity-${item.rarity}`}>
@@ -158,7 +158,7 @@ export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
                         <>
                             <div className="ilib-detail-header" style={{ '--rarity-color': getRarityColor(selectedItem.rarity) } as React.CSSProperties}>
                                 <span className="ilib-detail-icon">
-                                    <GameIcon icon={selectedItem.icon} size={28} />
+                                    <GameIcon icon={selectedItem.icon} size={28} color={getItemIconColor(selectedItem.icon, selectedItem.type)} overlayPos="br" />
                                 </span>
                                 <div className="ilib-detail-title-group">
                                     <span className="ilib-detail-name" style={{ color: getRarityColor(selectedItem.rarity) }}>
@@ -202,7 +202,7 @@ export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
                                             const ingDef = getItemDefinition(ing.itemName);
                                             return (
                                                 <div key={idx} className={`ilib-recipe-row ${ok ? 'satisfied' : 'unsatisfied'}`}>
-                                                    <GameIcon icon={ingDef.icon} size={12} />
+                                                    <GameIcon icon={ingDef.icon} size={12} color={getItemIconColor(ingDef.icon, ingDef.type)} overlayPos="br" />
                                                     <span className="ilib-recipe-name">{ing.itemName}</span>
                                                     <span className={`ilib-recipe-qty ${ok ? 'qty-ok' : 'qty-no'}`}>
                                                         {have}/{ing.quantity}

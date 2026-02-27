@@ -3,7 +3,7 @@ import { ScreenType } from './screenTypes';
 import type { Stage } from '../Stage';
 import { getItemDefinition, getRarityColor } from '../data';
 import type { InventoryItem, ItemType } from '../data';
-import { GameIcon } from './GameIcon';
+import { GameIcon, getItemIconColor } from './GameIcon';
 
 interface InventoryScreenProps {
     stage: () => Stage;
@@ -73,7 +73,7 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                                     style={{ '--rarity-color': rarityColor } as React.CSSProperties}
                                     onClick={() => setSelectedItem(isSelected ? null : item)}
                                 >
-                                    <div className="inv-item-icon"><GameIcon icon={def.icon} size={20} /></div>
+                                    <div className="inv-item-icon"><GameIcon icon={def.icon} size={20} color={getItemIconColor(def.icon, def.type)} overlayPos="br" /></div>
                                     <div className="inv-item-name">{def.name}</div>
                                     {item.quantity > 1 && (
                                         <div className="inv-item-qty">×{item.quantity}</div>
