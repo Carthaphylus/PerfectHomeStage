@@ -15,7 +15,7 @@ import {
     Hourglass, Unlock, Settings, PlusCircle, Save, FolderOpen,
     Trash2, XCircle, Wand2, Castle, Map, Backpack, Key, Coins,
     HelpCircle, Image, Flower2, ChevronLeft, RefreshCw, Infinity,
-    Diamond, ArrowLeftRight, Users, Zap, CircleDot,
+    Diamond, ArrowLeftRight, Users, Zap, CircleDot, Pencil,
     // Scene
     Footprints, ShieldAlert, HeartCrack, LockKeyhole, Orbit, Flame,
     // Conversion & Archetypes
@@ -131,6 +131,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     'circle-dot': CircleDot,
     orbit: Orbit,
     flame: Flame,
+    pencil: Pencil,
 
     // ── Scene / Special ──
     footprints: Footprints,
