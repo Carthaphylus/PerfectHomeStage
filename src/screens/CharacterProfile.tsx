@@ -1,6 +1,7 @@
 import React, { FC, ReactNode } from 'react';
 import type { Stage } from '../Stage';
 import { Stage as StageClass } from '../Stage';
+import { AspectRatio } from '@chub-ai/stages-ts';
 import { STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../data';
 import type { StatName } from '../data';
 import { CharacterGallery } from './CharacterGallery';
@@ -92,14 +93,42 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
         setRegenLoading(true);
         setRegenError(null);
         try {
-            const result = await stage().regeneratePortrait(character.name, regenPrompt || undefined);
-            if (result) {
-                setAvatarOverride(result);
+            // Call generator directly like the gallery does — avoids Stage method binding issues
+            const gen = stage().generator;
+            const prompt = regenPrompt || StageClass.buildPortraitPrompt(
+                character.details['Species'] || 'animal',
+                character.title || 'adventurer',
+                character.details['Gender']?.includes('Male') ? 'Male' : 'Female',
+            );
+
+            console.log('[Regen] Starting portrait regeneration for', character.name);
+            const response = await gen.makeImage({
+                prompt,
+                negative_prompt: StageClass.PORTRAIT_NEGATIVE,
+                aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+                remove_background: false,
+            });
+            console.log('[Regen] Response:', response);
+
+            if (response?.url) {
+                setAvatarOverride(response.url);
                 setShowRegenPrompt(false);
+
+                // Persist to chatState like gallery does
+                const chatState = stage().chatState;
+                if (!chatState.generatedImages) chatState.generatedImages = {};
+                if (!chatState.generatedImages[character.name]) chatState.generatedImages[character.name] = {};
+                chatState.generatedImages[character.name]['portrait'] = response.url;
+
+                // Also update the hero/servant object directly
+                const st = stage().currentState;
+                const target = st.heroes[character.name] || st.servants?.[character.name];
+                if (target) target.avatar = response.url;
             } else {
                 setRegenError('No image returned. Try adjusting the prompt.');
             }
         } catch (err: any) {
+            console.error('[Regen] Error:', err);
             setRegenError(err?.message || 'Generation failed.');
         } finally {
             setRegenLoading(false);
