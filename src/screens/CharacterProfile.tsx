@@ -1,5 +1,6 @@
 import React, { FC, ReactNode } from 'react';
 import type { Stage } from '../Stage';
+import { Stage as StageClass } from '../Stage';
 import { STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../data';
 import type { StatName } from '../data';
 import { CharacterGallery } from './CharacterGallery';
@@ -63,6 +64,40 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     extraSections,
     assignedRole,    archetypeTraits, titleColor,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
+    const [showRegenPrompt, setShowRegenPrompt] = React.useState(false);
+    const [regenPrompt, setRegenPrompt] = React.useState('');
+    const [regenLoading, setRegenLoading] = React.useState(false);
+    const [regenError, setRegenError] = React.useState<string | null>(null);
+
+    // Build default prompt when opening the editor
+    const openRegenEditor = () => {
+        const defaultPrompt = StageClass.buildPortraitPrompt(
+            character.details['Species'] || 'animal',
+            character.title || 'adventurer',
+            character.details['Gender']?.includes('Male') ? 'Male' : 'Female',
+        );
+        setRegenPrompt(defaultPrompt);
+        setRegenError(null);
+        setShowRegenPrompt(true);
+    };
+
+    const handleRegenerate = async () => {
+        setRegenLoading(true);
+        setRegenError(null);
+        try {
+            const result = await stage().regeneratePortrait(character.name, regenPrompt || undefined);
+            if (result) {
+                character.avatar = result;
+                setShowRegenPrompt(false);
+            } else {
+                setRegenError('No image returned. Try adjusting the prompt.');
+            }
+        } catch (err: any) {
+            setRegenError(err?.message || 'Generation failed.');
+        } finally {
+            setRegenLoading(false);
+        }
+    };
 
     if (showGallery) {
         return (
@@ -109,8 +144,46 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                         <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
                             <GameIcon icon="image" size={12} /> Gallery
                         </button>
+                        <button
+                            className="gallery-open-btn regen-btn"
+                            onClick={openRegenEditor}
+                            disabled={regenLoading}
+                        >
+                            <GameIcon icon="refresh-cw" size={12} /> {regenLoading ? 'Generating...' : 'Regenerate'}
+                        </button>
                         {extraActions}
                     </div>
+
+                    {/* ── Regenerate Prompt Editor ── */}
+                    {showRegenPrompt && (
+                        <div className="regen-prompt-panel">
+                            <label className="regen-label">Image Prompt</label>
+                            <textarea
+                                className="regen-textarea"
+                                value={regenPrompt}
+                                onChange={e => setRegenPrompt(e.target.value)}
+                                rows={5}
+                                disabled={regenLoading}
+                            />
+                            <div className="regen-actions">
+                                <button
+                                    className="regen-generate-btn"
+                                    onClick={handleRegenerate}
+                                    disabled={regenLoading || !regenPrompt.trim()}
+                                >
+                                    {regenLoading ? 'Generating...' : 'Generate'}
+                                </button>
+                                <button
+                                    className="regen-cancel-btn"
+                                    onClick={() => setShowRegenPrompt(false)}
+                                    disabled={regenLoading}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                            {regenError && <span className="regen-error">{regenError}</span>}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Right: Bio Panel ── */}

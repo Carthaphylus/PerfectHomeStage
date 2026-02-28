@@ -2799,22 +2799,30 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Fire-and-forget portrait generation for a generated NPC.
      * Stores result in _pendingNPCPortraits when complete.
      */
-    generateNPCPortraitAsync(npc: GeneratedNPC): void {
-        const genderAdj = npc.gender === 'Male' ? 'male' : 'female';
-        const prompt = [
-            `${genderAdj} furry anthro ${npc.species.toLowerCase()},`,
-            `full fur body, animal face, animal snout, paws,`,
-            `${npc.className.toLowerCase()}, medieval fantasy outfit,`,
-            `kemono, anime furry, high quality, detailed,`,
+    /** Build the default portrait prompt for an NPC/hero. Public so the UI can show/edit it. */
+    static buildPortraitPrompt(species: string, className: string, gender: string): string {
+        const genderAdj = gender === 'Male' ? 'male' : 'female';
+        return [
+            `1girl, solo,` ,
+            `${genderAdj} furry ${species.toLowerCase()},`,
+            `fur covered body, animal head, animal ears, colored fur, animal nose,`,
+            `${className.toLowerCase()}, medieval fantasy outfit,`,
+            `anime, kemono, furry, high quality, detailed,`,
             `upper body portrait, looking at viewer,`,
-            `soft lighting, vibrant colors`,
+            `dark background, soft lighting, vibrant colors`,
         ].join(' ');
+    }
+
+    static readonly PORTRAIT_NEGATIVE = 'human, human face, human skin, realistic, photorealistic, 3d render, nekomimi, cat ears only, human with animal ears, blurry, low quality, text, watermark';
+
+    generateNPCPortraitAsync(npc: GeneratedNPC): void {
+        const prompt = Stage.buildPortraitPrompt(npc.species, npc.className, npc.gender);
 
         this.generator.makeImage({
             prompt,
-            negative_prompt: 'blurry, low quality, text, watermark, realistic, photorealistic, 3d render, human face, human skin, nekomimi, cat ears only, human with animal ears',
+            negative_prompt: Stage.PORTRAIT_NEGATIVE,
             aspect_ratio: AspectRatio.PHOTO_VERTICAL,
-            remove_background: true,
+            remove_background: false,
         }).then((response) => {
             if (response?.url) {
                 this._pendingNPCPortraits[npc.name] = response.url;
@@ -2836,6 +2844,41 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }).catch((err) => {
             console.error(`[NPC] Portrait generation failed for ${npc.name}:`, err);
         });
+    }
+
+    /**
+     * Regenerate a portrait for an existing hero using a custom or default prompt.
+     * Returns a promise so the UI can show loading state.
+     */
+    async regeneratePortrait(heroName: string, customPrompt?: string): Promise<string | null> {
+        const hero = this.currentState.heroes[heroName];
+        if (!hero) return null;
+
+        const prompt = customPrompt || Stage.buildPortraitPrompt(
+            hero.details['Species'] || 'animal',
+            hero.heroClass || 'adventurer',
+            hero.details['Gender']?.includes('Male') ? 'Male' : 'Female',
+        );
+
+        try {
+            const response = await this.generator.makeImage({
+                prompt,
+                negative_prompt: Stage.PORTRAIT_NEGATIVE,
+                aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+                remove_background: false,
+            });
+            if (response?.url) {
+                hero.avatar = response.url;
+                if (!this.chatState.generatedImages) this.chatState.generatedImages = {};
+                if (!this.chatState.generatedImages[heroName]) this.chatState.generatedImages[heroName] = {};
+                this.chatState.generatedImages[heroName]['portrait'] = response.url;
+                console.log(`[NPC] Portrait regenerated for ${heroName}`);
+                return response.url;
+            }
+        } catch (err) {
+            console.error(`[NPC] Portrait regeneration failed for ${heroName}:`, err);
+        }
+        return null;
     }
 
     /**
