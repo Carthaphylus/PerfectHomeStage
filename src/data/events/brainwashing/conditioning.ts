@@ -1,9 +1,7 @@
 // ──────────────────────────────────────────
 // CONDITIONING SYSTEM — Strategies & Actions
 // ──────────────────────────────────────────
-import type { ConditioningStrategy, ConditioningAction } from '../types';
-
-export type { ConditioningStrategy, ConditioningAction };
+import type { ConditioningStrategy, ConditioningAction } from '../../../types';
 
 /** Conditioning behavior threshold tier */
 export type ConditioningTier = 'defiant' | 'wavering' | 'susceptible' | 'broken';
