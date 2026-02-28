@@ -28,7 +28,7 @@ export const WorldMapScreen: FC<WorldMapScreenProps> = ({ stage, setScreenType, 
     const locations: MapLocation[] = [
         { id: 'Manor', name: 'The Manor', x: 73, y: 45, discovered: true, description: 'Your domain of power' },
         { id: 'Town', name: 'Town', x: 52, y: 40, discovered: true, description: 'A bustling settlement' },
-        { id: 'Woods', name: 'The Woods', x: 28.5, y: 67.5, discovered: stage().chatState.discoveredLocations.includes('Woods'), description: 'Dark and mysterious forest' },
+        { id: 'Woods', name: 'The Woods', x: 28.5, y: 67.5, discovered: true, description: 'Dark and mysterious forest' },
         { id: 'Ruins', name: 'Ancient Ruins', x: 44, y: 75, discovered: true, description: 'Crumbling structures of old' },
         { id: 'Circus', name: 'Circus', x: 79, y: 90, discovered: true, description: 'A place of wonder and danger' },
     ];
