@@ -4,8 +4,8 @@
 // ──────────────────────────────────────────
 import type { EventDefinition, EventContext, EventChoice, SkillStats } from '../../../types';
 import { rollSkillCheck } from '../mechanics';
-import { generateRandomNPC, npcToHero, getCombatStyleInfo } from '../../../npcGeneration';
-import type { GeneratedNPC, CombatStyle } from '../../../npcGeneration';
+import { generateRandomNPC, npcToHero, getCombatStyleInfo } from '../../npcGeneration';
+import type { GeneratedNPC, CombatStyle } from '../../npcGeneration';
 
 // ══════════════════════════════════════════
 // CAPTURE ACTION DEFINITIONS

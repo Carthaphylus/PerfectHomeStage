@@ -2,7 +2,7 @@ import React, { FC, useState, useEffect, useCallback } from 'react';
 import { ScreenType } from './screenTypes';
 import type { Stage } from '../Stage';
 import type { Location } from '../data';
-import { EXPLORE_DATA, LocationExploreData, LocationActivity } from '../data/exploration';
+import { EXPLORE_DATA, LocationExploreData, LocationActivity } from '../data/events/exploration/events';
 import { FormattedText, TypewriterText } from './SkitText';
 import { GameIcon } from './GameIcon';
 
