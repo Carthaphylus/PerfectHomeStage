@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition, EventShopPhase } from './types';
+import type { Location, EventDefinition, EventShopPhase } from '../types';
 
 // ── Location Explore Data ──
 
@@ -719,7 +719,7 @@ const EXPLORE_CIRCUS_BACKSTAGE: EventDefinition = {
 // ── All Explore Events (exported as an array for easy registration) ──
 
 // Import the capture event
-import { EXPLORE_WOODS_CAPTURE } from './events';
+import { EXPLORE_WOODS_CAPTURE } from './capture';
 
 export const EXPLORE_EVENTS: EventDefinition[] = [
     // Town

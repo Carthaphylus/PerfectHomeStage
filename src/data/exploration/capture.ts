@@ -2,10 +2,10 @@
 // CAPTURE EVENT — Woods NPC Capture Minigame
 // Three-phase structured hunt: Tracking → Confrontation → Binding
 // ──────────────────────────────────────────
-import type { EventDefinition, EventContext, EventChoice, SkillStats } from '../../types';
-import { rollSkillCheck } from '../mechanics';
-import { generateRandomNPC, npcToHero, getCombatStyleInfo } from '../../npcGeneration';
-import type { GeneratedNPC, CombatStyle } from '../../npcGeneration';
+import type { EventDefinition, EventContext, EventChoice, SkillStats } from '../types';
+import { rollSkillCheck } from '../events/mechanics';
+import { generateRandomNPC, npcToHero, getCombatStyleInfo } from '../npcGeneration';
+import type { GeneratedNPC, CombatStyle } from '../npcGeneration';
 
 // ══════════════════════════════════════════
 // CAPTURE ACTION DEFINITIONS

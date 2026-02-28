@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // CONDITIONING SYSTEM — Strategies & Actions
 // ──────────────────────────────────────────
-import type { ConditioningStrategy, ConditioningAction } from './types';
+import type { ConditioningStrategy, ConditioningAction } from '../types';
 
 export type { ConditioningStrategy, ConditioningAction };
 

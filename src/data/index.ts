@@ -20,17 +20,17 @@ export * from './characters';
 // Item system
 export * from './items';
 
-// Conversion archetypes
-export * from './conversion';
+// Event system (common mechanics)
+export { rollSkillCheck } from './events/mechanics';
 
-// Conditioning system
-export * from './conditioning';
+// Brainwashing system (conditioning, conversion, event)
+export * from './brainwashing/conditioning';
+export * from './brainwashing/conversion';
+export * from './brainwashing/event';
 
-// Event system
-export * from './events';
-
-// Exploration system
-export * from './exploration';
+// Exploration system (exploration events, capture event)
+export * from './exploration/events';
+export * from './exploration/capture';
 
 // Task system
 export * from './tasks';
