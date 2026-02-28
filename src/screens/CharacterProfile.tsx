@@ -66,19 +66,21 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     extraSections,
     assignedRole,    archetypeTraits, titleColor, canRegenerate = false,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
+    const [avatarOverride, setAvatarOverride] = React.useState<string | null>(null);
 
     if (showGallery) {
         return (
             <CharacterGallery
                 stage={stage}
                 charName={character.name}
-                charAvatar={character.avatar}
+                charAvatar={avatarOverride || character.avatar}
                 charSpecies={character.details['Species'] || 'character'}
                 charColor={character.color}
                 charClass={character.title || 'adventurer'}
                 charGender={character.details['Gender']?.includes('Male') ? 'Male' : 'Female'}
                 canRegenerate={canRegenerate}
                 onClose={() => setShowGallery(false)}
+                onAvatarChange={setAvatarOverride}
             />
         );
     }
@@ -97,8 +99,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                 {/* ── Left: Card ── */}
                 <div className="char-card">
                     <div className="char-avatar-frame">
-                        {character.avatar ? (
-                            <img src={character.avatar} alt={character.name} />
+                        {(avatarOverride || character.avatar) ? (
+                            <img src={avatarOverride || character.avatar} alt={character.name} />
                         ) : (
                             <div className="avatar-placeholder avatar-placeholder-large">
                                 <GameIcon icon="user" size={48} />

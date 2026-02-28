@@ -87,6 +87,7 @@ interface CharacterGalleryProps {
     charGender?: string;
     canRegenerate?: boolean;
     onClose: () => void;
+    onAvatarChange?: (url: string) => void;
 }
 
 export const CharacterGallery: FC<CharacterGalleryProps> = ({
@@ -99,6 +100,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
     charGender = 'Female',
     canRegenerate = false,
     onClose,
+    onAvatarChange,
 }) => {
     // Track generated image URLs: type -> url
     const [generatedImages, setGeneratedImages] = useState<Record<string, string>>(() => {
@@ -175,6 +177,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     if (!chatState.generatedImages) chatState.generatedImages = {};
                     if (!chatState.generatedImages[charName]) chatState.generatedImages[charName] = {};
                     chatState.generatedImages[charName]['portrait'] = result.url;
+                    if (typeof onAvatarChange === 'function') onAvatarChange(result.url);
                 } else {
                     setError('No image returned from generation.');
                 }
@@ -233,6 +236,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
         if (!chatState.generatedImages) chatState.generatedImages = {};
         if (!chatState.generatedImages[charName]) chatState.generatedImages[charName] = {};
         chatState.generatedImages[charName]['portrait'] = url;
+        if (typeof onAvatarChange === 'function') onAvatarChange(url);
         setShowUrlInput(false);
         setManualUrl('');
     };
