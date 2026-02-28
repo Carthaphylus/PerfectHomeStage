@@ -46,6 +46,8 @@ import {
     Sunrise, Sunset, CheckCircle, Sofa, ArrowUp, ArrowDown,
     // Start menu
     Play,
+    // Event display icons
+    BarChart2,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -263,6 +265,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     'arrow-up': ArrowUp,
     'arrow-down': ArrowDown,
     play: Play,
+
+    // ── Event Display ──
+    chart: BarChart2,
 };
 
 export interface GameIconProps {

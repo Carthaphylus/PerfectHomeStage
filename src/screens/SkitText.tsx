@@ -1,22 +1,24 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
+import { GameIcon } from './GameIcon';
 
 // ============================================================
 // TEXT FORMATTING
 // ============================================================
 // *text* → action/emote (muted, darker)
 // "text" → dialogue (character color)
+// [icon:name] → inline lucide icon
 // Everything else → narration (default text color)
 
 interface TextSegment {
-    type: 'narration' | 'action' | 'dialogue';
+    type: 'narration' | 'action' | 'dialogue' | 'icon';
     text: string;
 }
 
 /** Parse raw text into formatted segments */
 function parseSkitText(raw: string): TextSegment[] {
     const segments: TextSegment[] = [];
-    // Regex: **bold/action** first, then *action*, then "dialogue"
-    const pattern = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")/g;
+    // Regex: **bold/action**, *action*, "dialogue", and [icon:name]
+    const pattern = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")|(\[icon:[^\]]+\])/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -41,6 +43,10 @@ function parseSkitText(raw: string): TextSegment[] {
         } else if (match[3]) {
             // "dialogue" — strip the quotes
             segments.push({ type: 'dialogue', text: match[3].slice(1, -1) });
+        } else if (match[4]) {
+            // [icon:name] — extract the icon name
+            const iconName = match[4].slice(6, -1); // strip [icon: and ]
+            segments.push({ type: 'icon', text: iconName });
         }
 
         lastIndex = match.index + match[0].length;
@@ -72,6 +78,8 @@ export const FormattedText: FC<FormattedTextProps> = ({ text }) => {
                         return <span key={i} className="skit-fmt-action">{seg.text}</span>;
                     case 'dialogue':
                         return <span key={i} className="skit-fmt-dialogue">{seg.text}</span>;
+                    case 'icon':
+                        return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom', margin: '0 2px' }}><GameIcon icon={seg.text} size={16} /></span>;
                     default:
                         return <span key={i} className="skit-fmt-narration">{seg.text}</span>;
                 }

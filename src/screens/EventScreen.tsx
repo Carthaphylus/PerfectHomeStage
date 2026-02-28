@@ -236,15 +236,15 @@ function interpolate(text: string, target?: string, pcName?: string): string {
     return result;
 }
 
-/** Parse narrative text into styled segments (actions in *, dialogue in "") */
+/** Parse narrative text into styled segments (actions in *, dialogue in "", icons in [icon:name]) */
 function renderNarrative(text: string): React.ReactNode[] {
     const lines = text.split('\n');
     return lines.map((line, li) => {
         if (!line.trim()) return <br key={li} />;
 
         const parts: React.ReactNode[] = [];
-        // Match *actions* and "dialogue"
-        const regex = /(\*[^*]+\*)|("[^"]*")/g;
+        // Match *actions*, "dialogue", and [icon:name]
+        const regex = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")|(\[icon:[^\]]+\])/g;
         let lastIndex = 0;
         let match: RegExpExecArray | null;
 
@@ -254,17 +254,32 @@ function renderNarrative(text: string): React.ReactNode[] {
                 parts.push(<span key={`${li}-${lastIndex}`}>{line.slice(lastIndex, match.index)}</span>);
             }
             if (match[1]) {
-                // Action in asterisks
+                // **Bold action**
                 parts.push(
-                    <em key={`${li}-${match.index}`} className="event-action">
-                        {match[1].slice(1, -1)}
+                    <em key={`${li}-${match.index}`} className="event-action event-action-bold">
+                        {match[1].slice(2, -2)}
                     </em>
                 );
             } else if (match[2]) {
+                // *Action* in asterisks
+                parts.push(
+                    <em key={`${li}-${match.index}`} className="event-action">
+                        {match[2].slice(1, -1)}
+                    </em>
+                );
+            } else if (match[3]) {
                 // Dialogue in quotes
                 parts.push(
                     <span key={`${li}-${match.index}`} className="event-dialogue">
-                        {match[2]}
+                        {match[3]}
+                    </span>
+                );
+            } else if (match[4]) {
+                // [icon:name]
+                const iconName = match[4].slice(6, -1); // strip [icon: and ]
+                parts.push(
+                    <span key={`${li}-${match.index}`} style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom', margin: '0 2px' }}>
+                        <GameIcon icon={iconName} size={16} />
                     </span>
                 );
             }

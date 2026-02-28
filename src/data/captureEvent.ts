@@ -267,7 +267,7 @@ export function buildCaptureEvent(): EventDefinition {
             const styleInfo = getCombatStyleInfo(npc.combatStyle);
             const def = ctx.stage.getEventDefinition('explore_woods_capture');
             if (def) {
-                def.steps['intro'].text = `*Deep in the ancient woods, you sense a presence among the trees. Your magical instincts tingle — someone is nearby, and they would make a fine addition to your household.*\n\n*Through the foliage, you catch a glimpse of your quarry:*\n\n**${npc.name}** — *${npc.className}*\n*${npc.description}*\n\n📋 **Combat Style: ${styleInfo.label}** — ${styleInfo.description}\n💡 *Effective approaches: ${styleInfo.strongAgainst}*`;
+                def.steps['intro'].text = `*Deep in the ancient woods, you sense a presence among the trees. Your magical instincts tingle — someone is nearby, and they would make a fine addition to your household.*\n\n*Through the foliage, you catch a glimpse of your quarry:*\n\n**${npc.name}** — *${npc.className}*\n*${npc.description}*\n\n[icon:clipboard-list] **Combat Style: ${styleInfo.label}** — ${styleInfo.description}\n[icon:lightbulb] *Effective approaches: ${styleInfo.strongAgainst}*`;
             }
         },
         nextStep: 'tracking_phase',
@@ -333,17 +333,17 @@ export function buildCaptureEvent(): EventDefinition {
                 if (result.success) {
                     ctx.vars.captureScore += 2; // Bonus for good tracking
                     const successTexts: Record<string, string> = {
-                        speed: `*Your feet are swift and sure — you close the distance in moments, appearing before ${npc.name} like a shadow made flesh. ${npc.gender === 'Male' ? 'He' : 'She'} startles, caught off guard.*\n\n✅ **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
-                        wisdom: `*You read the broken twigs and subtle tracks like a book, anticipating ${npc.name}'s path perfectly. When ${npc.gender === 'Male' ? 'he' : 'she'} rounds the next oak, you're already there, waiting.*\n\n✅ **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
-                        charm: `*A shimmer of gold light drifts through the trees, carrying with it a whispered promise of warmth and safety. ${npc.name} follows it, curiosity overriding caution — right into your waiting presence.*\n\n✅ **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
+                        speed: `*Your feet are swift and sure — you close the distance in moments, appearing before ${npc.name} like a shadow made flesh. ${npc.gender === 'Male' ? 'He' : 'She'} startles, caught off guard.*\n\n[icon:check] **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
+                        wisdom: `*You read the broken twigs and subtle tracks like a book, anticipating ${npc.name}'s path perfectly. When ${npc.gender === 'Male' ? 'he' : 'she'} rounds the next oak, you're already there, waiting.*\n\n[icon:check] **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
+                        charm: `*A shimmer of gold light drifts through the trees, carrying with it a whispered promise of warmth and safety. ${npc.name} follows it, curiosity overriding caution — right into your waiting presence.*\n\n[icon:check] **Tracking Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})* — +2 bonus capture score\n\nYou've cornered your prey. Now comes the confrontation.`,
                     };
                     def.steps[`tracking_resolve_${approach}`].text = successTexts[approach];
                     def.steps[`tracking_resolve_${approach}`].nextStep = 'confrontation_intro';
                 } else {
                     const failTexts: Record<string, string> = {
-                        speed: `*You dart through the trees, but a snapping branch gives you away. ${npc.name} bolts deeper into the woods.*\n\n❌ **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nYou lose the trail, but stumble upon something useful in the undergrowth.`,
-                        wisdom: `*You follow what you think is ${npc.name}'s trail, but your quarry is cannier than expected. The tracks loop back on themselves — a false trail.*\n\n❌ **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nThe prey escapes, but the effort wasn't entirely wasted.`,
-                        charm: `*The magical lure drifts through the trees, but ${npc.name} senses the enchantment and flees in the opposite direction.*\n\n❌ **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nYou lose them, but the ambient mana in the forest replenishes you slightly.`,
+                        speed: `*You dart through the trees, but a snapping branch gives you away. ${npc.name} bolts deeper into the woods.*\n\n[icon:x] **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nYou lose the trail, but stumble upon something useful in the undergrowth.`,
+                        wisdom: `*You follow what you think is ${npc.name}'s trail, but your quarry is cannier than expected. The tracks loop back on themselves — a false trail.*\n\n[icon:x] **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nThe prey escapes, but the effort wasn't entirely wasted.`,
+                        charm: `*The magical lure drifts through the trees, but ${npc.name} senses the enchantment and flees in the opposite direction.*\n\n[icon:x] **Tracking Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*\n\nYou lose them, but the ambient mana in the forest replenishes you slightly.`,
                     };
                     def.steps[`tracking_resolve_${approach}`].text = failTexts[approach];
                     def.steps[`tracking_resolve_${approach}`].nextStep = 'tracking_failed';
@@ -372,7 +372,7 @@ export function buildCaptureEvent(): EventDefinition {
             const styleInfo = getCombatStyleInfo(npc.combatStyle);
             const def = ctx.stage.getEventDefinition('explore_woods_capture');
             if (def) {
-                def.steps['confrontation_intro'].text = `${npc.captureFlavorText}\n\n*The confrontation begins. You have **${TOTAL_ROUNDS} rounds** to wear down ${npc.name}'s resistance and prepare them for capture. Choose your actions wisely — some approaches work better against ${npc.gender === 'Male' ? 'his' : 'her'} **${styleInfo.label}** fighting style than others.*\n\n📊 **Capture Progress:** ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
+                def.steps['confrontation_intro'].text = `${npc.captureFlavorText}\n\n*The confrontation begins. You have **${TOTAL_ROUNDS} rounds** to wear down ${npc.name}'s resistance and prepare them for capture. Choose your actions wisely — some approaches work better against ${npc.gender === 'Male' ? 'his' : 'her'} **${styleInfo.label}** fighting style than others.*\n\n[icon:chart] **Capture Progress:** ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
             }
         },
         nextStep: 'round_1',
@@ -389,7 +389,7 @@ export function buildCaptureEvent(): EventDefinition {
                 const styleInfo = getCombatStyleInfo(npc.combatStyle);
                 const def = ctx.stage.getEventDefinition('explore_woods_capture');
                 if (def) {
-                    def.steps[`round_${round}`].text = `**— Round ${round} of ${TOTAL_ROUNDS} —**\n\n*${npc.name} ${round === 1 ? 'faces you' : 'is still standing'}, ${npc.combatStyle === 'panicked' ? 'trembling with fear' : npc.combatStyle === 'aggressive' ? 'teeth gritted with defiance' : npc.combatStyle === 'evasive' ? 'poised to flee' : npc.combatStyle === 'defensive' ? 'hunkered down stubbornly' : 'watching you with calculating eyes'}.*\n\n📊 **Capture Progress:** ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)\n💡 **Style:** ${styleInfo.label} — *weak to ${styleInfo.strongAgainst}*\n\nWhat do you do?`;
+                    def.steps[`round_${round}`].text = `**— Round ${round} of ${TOTAL_ROUNDS} —**\n\n*${npc.name} ${round === 1 ? 'faces you' : 'is still standing'}, ${npc.combatStyle === 'panicked' ? 'trembling with fear' : npc.combatStyle === 'aggressive' ? 'teeth gritted with defiance' : npc.combatStyle === 'evasive' ? 'poised to flee' : npc.combatStyle === 'defensive' ? 'hunkered down stubbornly' : 'watching you with calculating eyes'}.*\n\n[icon:chart] **Capture Progress:** ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)\n[icon:lightbulb] **Style:** ${styleInfo.label} — *weak to ${styleInfo.strongAgainst}*\n\nWhat do you do?`;
                 }
             },
             choices: buildRoundChoices(round),
@@ -426,18 +426,18 @@ export function buildCaptureEvent(): EventDefinition {
                         if (scoreResult.isBonus) {
                             text += '\n\n' + narrate(action.bonusNarrative, npc);
                         }
-                        text += `\n\n✅ **${action.label} — Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*`;
-                        text += `\n📊 **+${scoreResult.score} capture progress** → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
+                        text += `\n\n[icon:check] **${action.label} — Success!** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*`;
+                        text += `\n[icon:chart] **+${scoreResult.score} capture progress** → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
                     } else {
                         text = narrate(action.failNarrative, npc);
-                        text += `\n\n❌ **${action.label} — Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*`;
+                        text += `\n\n[icon:x] **${action.label} — Failed** *(Roll: ${result.roll} + ${Math.floor(skill/2)} = ${result.total} vs DC ${dc})*`;
                         if (scoreResult.score < 0) {
-                            text += `\n📊 **${scoreResult.score} capture progress** → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
+                            text += `\n[icon:chart] **${scoreResult.score} capture progress** → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
                         } else {
-                            text += `\n📊 Capture progress unchanged → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
+                            text += `\n[icon:chart] Capture progress unchanged → ${scoreDisplay(ctx.vars.captureScore, 12)}  (${ctx.vars.captureScore}/12)`;
                         }
                         if (scoreResult.isPenalty) {
-                            text += `\n⚠️ *This approach is less effective against ${npc.name}'s ${npc.combatStyle} style.*`;
+                            text += `\n[icon:alert-triangle] *This approach is less effective against ${npc.name}'s ${npc.combatStyle} style.*`;
                         }
                     }
 
@@ -470,15 +470,15 @@ export function buildCaptureEvent(): EventDefinition {
             // 0-3 = guaranteed escape
 
             if (score >= 8) {
-                def.steps['binding_attempt'].text = `*${npc.name} sinks to ${npc.gender === 'Male' ? 'his' : 'her'} knees, resistance utterly shattered. Your approaches have left ${npc.gender === 'Male' ? 'him' : 'her'} dazed, confused, and unable to muster the will to flee.*\n\n📊 **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *Overwhelming success!*\n\n*The binding is almost a formality.*`;
+                def.steps['binding_attempt'].text = `*${npc.name} sinks to ${npc.gender === 'Male' ? 'his' : 'her'} knees, resistance utterly shattered. Your approaches have left ${npc.gender === 'Male' ? 'him' : 'her'} dazed, confused, and unable to muster the will to flee.*\n\n[icon:chart] **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *Overwhelming success!*\n\n*The binding is almost a formality.*`;
                 def.steps['binding_attempt'].nextStep = 'capture_success';
             } else if (score <= 3) {
-                def.steps['binding_attempt'].text = `*${npc.name} gathers ${npc.gender === 'Male' ? 'his' : 'her'} remaining strength, finding a reserve of defiance you failed to break. With a desperate surge, ${npc.gender === 'Male' ? 'he' : 'she'} breaks free of your encirclement.*\n\n📊 **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *Insufficient — the prey escapes!*\n\n*The ${npc.className.toLowerCase()} vanishes into the deep woods, leaving you empty-handed.*`;
+                def.steps['binding_attempt'].text = `*${npc.name} gathers ${npc.gender === 'Male' ? 'his' : 'her'} remaining strength, finding a reserve of defiance you failed to break. With a desperate surge, ${npc.gender === 'Male' ? 'he' : 'she'} breaks free of your encirclement.*\n\n[icon:chart] **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *Insufficient — the prey escapes!*\n\n*The ${npc.className.toLowerCase()} vanishes into the deep woods, leaving you empty-handed.*`;
                 def.steps['binding_attempt'].nextStep = 'capture_fail';
             } else {
                 // Medium score → final check
                 const finalDC = 60 - (score * 3); // Higher score = easier final check
-                def.steps['binding_attempt'].text = `*${npc.name} is weakened but not yet broken. ${npc.gender === 'Male' ? 'He' : 'She'} makes one last desperate bid for freedom — this is your final chance to secure the capture!*\n\n📊 **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *One final check to seal the binding! (DC ${finalDC})*`;
+                def.steps['binding_attempt'].text = `*${npc.name} is weakened but not yet broken. ${npc.gender === 'Male' ? 'He' : 'She'} makes one last desperate bid for freedom — this is your final chance to secure the capture!*\n\n[icon:chart] **Final Score: ${scoreDisplay(score, 12)}  (${score}/12)** — *One final check to seal the binding! (DC ${finalDC})*`;
                 def.steps['binding_attempt'].choices = [
                     {
                         id: 'final_bind',
@@ -506,10 +506,10 @@ export function buildCaptureEvent(): EventDefinition {
             if (!def) return;
 
             if (result.success) {
-                def.steps['final_binding_check'].text = `*You summon every ounce of your enchantress's will and channel it into a binding spiral. Golden light wraps around ${npc.name} like silken chains, and ${npc.gender === 'Male' ? 'his' : 'her'} eyes glaze with enforced submission.*\n\n✅ **Binding Successful!** *(Roll: ${result.roll} + ${Math.floor(wisdom/2)} = ${result.total} vs DC ${finalDC})*\n\n*${npc.name} is yours.*`;
+                def.steps['final_binding_check'].text = `*You summon every ounce of your enchantress's will and channel it into a binding spiral. Golden light wraps around ${npc.name} like silken chains, and ${npc.gender === 'Male' ? 'his' : 'her'} eyes glaze with enforced submission.*\n\n[icon:check] **Binding Successful!** *(Roll: ${result.roll} + ${Math.floor(wisdom/2)} = ${result.total} vs DC ${finalDC})*\n\n*${npc.name} is yours.*`;
                 def.steps['final_binding_check'].nextStep = 'capture_success';
             } else {
-                def.steps['final_binding_check'].text = `*You reach out with your binding magic, but ${npc.name} summons a final reserve of willpower. The golden spiral shatters, and ${npc.gender === 'Male' ? 'he' : 'she'} tears free, stumbling into the undergrowth.*\n\n❌ **Binding Failed** *(Roll: ${result.roll} + ${Math.floor(wisdom/2)} = ${result.total} vs DC ${finalDC})*\n\n*So close... but the prey escapes. Perhaps next time.*`;
+                def.steps['final_binding_check'].text = `*You reach out with your binding magic, but ${npc.name} summons a final reserve of willpower. The golden spiral shatters, and ${npc.gender === 'Male' ? 'he' : 'she'} tears free, stumbling into the undergrowth.*\n\n[icon:x] **Binding Failed** *(Roll: ${result.roll} + ${Math.floor(wisdom/2)} = ${result.total} vs DC ${finalDC})*\n\n*So close... but the prey escapes. Perhaps next time.*`;
                 def.steps['final_binding_check'].nextStep = 'capture_fail';
             }
         },
@@ -544,10 +544,10 @@ export function buildCaptureEvent(): EventDefinition {
             const def = ctx.stage.getEventDefinition('explore_woods_capture');
             if (def) {
                 const roundSummary = (ctx.vars.roundResults as any[]).map((r: any, i: number) =>
-                    `  Round ${i + 1}: ${CAPTURE_ACTIONS[r.action]?.label || r.action} — ${r.success ? '✅' : '❌'} (${r.score >= 0 ? '+' : ''}${r.score})`
+                    `  Round ${i + 1}: ${CAPTURE_ACTIONS[r.action]?.label || r.action} — ${r.success ? '[icon:check]' : '[icon:x]'} (${r.score >= 0 ? '+' : ''}${r.score})`
                 ).join('\n');
 
-                def.steps['capture_success'].text = `*${npc.name} slumps, all fight gone, eyes unfocused and glassy. Your enchantments hold firm — the ${npc.className.toLowerCase()} is thoroughly captured.*\n\n*You bind ${npc.gender === 'Male' ? 'his' : 'her'} wrists with enchanted cord and lead your new acquisition back toward the manor. Another soul for the household.*\n\n🏆 **Capture Complete!**\n\n**${npc.name}** — ${npc.className}\n${roundSummary}\n\n*${npc.name} has been added to your **Captives**. Visit the dungeon to begin conditioning.*`;
+                def.steps['capture_success'].text = `*${npc.name} slumps, all fight gone, eyes unfocused and glassy. Your enchantments hold firm — the ${npc.className.toLowerCase()} is thoroughly captured.*\n\n*You bind ${npc.gender === 'Male' ? 'his' : 'her'} wrists with enchanted cord and lead your new acquisition back toward the manor. Another soul for the household.*\n\n[icon:trophy] **Capture Complete!**\n\n**${npc.name}** — ${npc.className}\n${roundSummary}\n\n*${npc.name} has been added to your **Captives**. Visit the dungeon to begin conditioning.*`;
             }
         },
         effects: [
@@ -566,10 +566,10 @@ export function buildCaptureEvent(): EventDefinition {
             const def = ctx.stage.getEventDefinition('explore_woods_capture');
             if (def) {
                 const roundSummary = (ctx.vars.roundResults as any[]).map((r: any, i: number) =>
-                    `  Round ${i + 1}: ${CAPTURE_ACTIONS[r.action]?.label || r.action} — ${r.success ? '✅' : '❌'} (${r.score >= 0 ? '+' : ''}${r.score})`
+                    `  Round ${i + 1}: ${CAPTURE_ACTIONS[r.action]?.label || r.action} — ${r.success ? '[icon:check]' : '[icon:x]'} (${r.score >= 0 ? '+' : ''}${r.score})`
                 ).join('\n');
 
-                def.steps['capture_fail'].text = `*${npc.name} disappears into the depths of the forest, leaving you alone among the ancient trees. A frustrating outcome — but not a total loss.*\n\n*The pursuit has sharpened your instincts and you found some useful materials scattered along the trail.*\n\n📋 **Hunt Summary:**\n${roundSummary}\n\n*Better luck next time. The woods always have new wanderers...*`;
+                def.steps['capture_fail'].text = `*${npc.name} disappears into the depths of the forest, leaving you alone among the ancient trees. A frustrating outcome — but not a total loss.*\n\n*The pursuit has sharpened your instincts and you found some useful materials scattered along the trail.*\n\n[icon:clipboard-list] **Hunt Summary:**\n${roundSummary}\n\n*Better luck next time. The woods always have new wanderers...*`;
             }
         },
         effects: [
