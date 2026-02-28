@@ -91,7 +91,14 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                 {/* ── Left: Card ── */}
                 <div className="char-card">
                     <div className="char-avatar-frame">
-                        <img src={character.avatar} alt={character.name} />
+                        {character.avatar ? (
+                            <img src={character.avatar} alt={character.name} />
+                        ) : (
+                            <div className="avatar-placeholder avatar-placeholder-large">
+                                <GameIcon icon="user" size={48} />
+                                <span className="avatar-generating">Portrait generating...</span>
+                            </div>
+                        )}
                     </div>
                     <div className="char-info">
                         <h3 className="char-name">{character.name}</h3>

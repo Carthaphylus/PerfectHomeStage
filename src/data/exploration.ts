@@ -79,6 +79,13 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 tooltip: 'Track game through the underbrush.',
                 eventId: 'explore_woods_hunt',
             },
+            {
+                id: 'woods_capture',
+                label: 'Stalk Prey',
+                icon: 'crosshair',
+                tooltip: 'Hunt for a wanderer to capture for your household.',
+                eventId: 'explore_woods_capture',
+            },
         ],
     },
     Ruins: {
@@ -711,6 +718,9 @@ const EXPLORE_CIRCUS_BACKSTAGE: EventDefinition = {
 
 // ── All Explore Events (exported as an array for easy registration) ──
 
+// Import the capture event
+import { EXPLORE_WOODS_CAPTURE } from './captureEvent';
+
 export const EXPLORE_EVENTS: EventDefinition[] = [
     // Town
     EXPLORE_TOWN_MARKET,
@@ -720,6 +730,7 @@ export const EXPLORE_EVENTS: EventDefinition[] = [
     EXPLORE_WOODS_HERBS,
     EXPLORE_WOODS_TRAIL,
     EXPLORE_WOODS_HUNT,
+    EXPLORE_WOODS_CAPTURE,
     // Ruins
     EXPLORE_RUINS_EXCAVATE,
     EXPLORE_RUINS_INSCRIPTIONS,

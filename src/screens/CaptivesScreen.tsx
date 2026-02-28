@@ -177,7 +177,14 @@ export const CaptivesScreen: FC<CaptivesScreenProps> = ({ stage, setScreenType, 
                                 onClick={() => setSelectedCaptive(hero)}
                             >
                                 <div className="captive-card-avatar">
-                                    <img src={hero.avatar} alt={hero.name} />
+                                    {hero.avatar ? (
+                                        <img src={hero.avatar} alt={hero.name} />
+                                    ) : (
+                                        <div className="avatar-placeholder">
+                                            <GameIcon icon="user" size={24} />
+                                            <span className="avatar-generating">Generating...</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="captive-card-info">
                                     <span className="captive-card-name">{hero.name}</span>

@@ -1,5 +1,5 @@
 import {ReactElement} from "react";
-import {StageBase, StageResponse, InitialData, Message} from "@chub-ai/stages-ts";
+import {StageBase, StageResponse, InitialData, Message, AspectRatio} from "@chub-ai/stages-ts";
 import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
 import { BaseScreen } from "./screens/BaseScreen";
 
@@ -51,6 +51,8 @@ import {
     ChatChangeCategory, ChatChangeScope, ChatChangeScopeEntry, AIChatChange, AIChatJudgment,
     SERVANT_CHAT_SCOPE, MULTI_CHAT_SCOPE, EVENT_CHAT_FULL_SCOPE,
     getScopeEntry, clampToScope, describeScopeForPrompt,
+    // NPC Generation
+    GeneratedNPC, EXPLORE_WOODS_CAPTURE,
 } from './data';
 
 
@@ -70,6 +72,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private _activeScene: SceneData | null = null;
     private _sceneMessages: SceneMessage[] = [];
     private _sceneIdCounter: number = 0;
+
+    // Pending NPC async generation results
+    private _pendingNPCPortraits: Record<string, string> = {};
+    private _pendingNPCBackstories: Record<string, string> = {};
 
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         super(data);
@@ -2783,6 +2789,119 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** Get event chat messages (read-only copy) */
     getEventMessages(): SceneMessage[] {
         return [...this._eventMessages];
+    }
+
+    // ============================
+    // NPC Generation (Async Portrait & Backstory)
+    // ============================
+
+    /**
+     * Fire-and-forget portrait generation for a generated NPC.
+     * Stores result in _pendingNPCPortraits when complete.
+     */
+    generateNPCPortraitAsync(npc: GeneratedNPC): void {
+        const genderAdj = npc.gender === 'Male' ? 'male' : 'female';
+        const prompt = [
+            `fantasy character portrait, ${genderAdj} anthropomorphic ${npc.species.toLowerCase()},`,
+            `${npc.className.toLowerCase()} class, medieval fantasy setting,`,
+            `${npc.traits.join(', ').toLowerCase()} personality,`,
+            `detailed face and upper body, dramatic lighting, painterly style,`,
+            `high quality, no text, no watermark`,
+        ].join(' ');
+
+        this.generator.makeImage({
+            prompt,
+            negative_prompt: 'blurry, low quality, text, watermark, modern, realistic photo',
+            aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+            remove_background: true,
+        }).then((response) => {
+            if (response?.url) {
+                this._pendingNPCPortraits[npc.name] = response.url;
+                // Also apply to hero if already created
+                const hero = this.currentState.heroes[npc.name];
+                if (hero && !hero.avatar) {
+                    hero.avatar = response.url;
+                }
+                // Store in generatedImages for persistence
+                if (!this.chatState.generatedImages) {
+                    this.chatState.generatedImages = {};
+                }
+                if (!this.chatState.generatedImages[npc.name]) {
+                    this.chatState.generatedImages[npc.name] = {};
+                }
+                this.chatState.generatedImages[npc.name]['portrait'] = response.url;
+                console.log(`[NPC] Portrait generated for ${npc.name}`);
+            }
+        }).catch((err) => {
+            console.error(`[NPC] Portrait generation failed for ${npc.name}:`, err);
+        });
+    }
+
+    /**
+     * Fire-and-forget backstory generation for a generated NPC.
+     * Stores result in _pendingNPCBackstories when complete.
+     */
+    generateNPCBackstoryAsync(npc: GeneratedNPC): void {
+        const genderStr = npc.gender === 'Male' ? 'male' : 'female';
+        const pronouns = npc.gender === 'Male'
+            ? { pronoun: 'he', possessive: 'his', object: 'him' }
+            : { pronoun: 'she', possessive: 'her', object: 'her' };
+
+        const prompt = [
+            `[SYSTEM] Write a SHORT BACKSTORY for this NPC character.`,
+            ``,
+            `[CHARACTER]`,
+            `Name: ${npc.name}`,
+            `Species: ${npc.species}`,
+            `Gender: ${genderStr}`,
+            `Class: ${npc.className}`,
+            `Description: ${npc.description}`,
+            `Traits: ${npc.traits.join(', ')}`,
+            `Details: ${Object.entries(npc.details).map(([k, v]) => `${k}: ${v}`).join(', ')}`,
+            ``,
+            `[RULES]`,
+            `- Write 3-4 sentences about ${npc.name}'s past BEFORE being found in the woods.`,
+            `- Include where ${pronouns.pronoun} grew up, what shaped ${pronouns.object}, and why ${pronouns.pronoun} is now wandering the forest.`,
+            `- Reference ${pronouns.possessive} personality traits naturally.`,
+            `- Use third person, past tense. Correct pronouns for ${genderStr}.`,
+            `- Do NOT mention game mechanics, the player, or capture.`,
+            `- Keep it concise and atmospheric.`,
+            ``,
+            `[BACKSTORY]:`,
+        ].filter(Boolean).join('\n');
+
+        this.generator.textGen({
+            prompt,
+            include_history: false,
+            max_tokens: 250,
+            stop: [],
+            template: '',
+            context_length: null,
+            min_tokens: null,
+        }).then((response) => {
+            const backstory = response?.result?.trim();
+            if (backstory) {
+                this._pendingNPCBackstories[npc.name] = backstory;
+                // Also apply to hero if already created
+                const hero = this.currentState.heroes[npc.name];
+                if (hero && !hero.backstory) {
+                    hero.backstory = backstory;
+                }
+                console.log(`[NPC] Backstory generated for ${npc.name}`);
+            }
+        }).catch((err) => {
+            console.error(`[NPC] Backstory generation failed for ${npc.name}:`, err);
+        });
+    }
+
+    /** Get a pending NPC portrait (may be null if still generating) */
+    getPendingNPCPortrait(name: string): string | null {
+        return this._pendingNPCPortraits[name] || null;
+    }
+
+    /** Get a pending NPC backstory (may be null if still generating) */
+    getPendingNPCBackstory(name: string): string | null {
+        return this._pendingNPCBackstories[name] || null;
     }
 
     /** Replace all event messages (for edit/regenerate support) */
