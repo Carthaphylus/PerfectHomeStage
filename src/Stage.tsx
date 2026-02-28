@@ -2803,17 +2803,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     static buildPortraitPrompt(species: string, className: string, gender: string): string {
         const genderAdj = gender === 'Male' ? 'male' : 'female';
         return [
-            `1girl, solo,` ,
-            `${genderAdj} furry ${species.toLowerCase()},`,
-            `fur covered body, animal head, animal ears, colored fur, animal nose,`,
-            `${className.toLowerCase()}, medieval fantasy outfit,`,
-            `anime, kemono, furry, high quality, detailed,`,
+            `furry, anthro, ${species.toLowerCase()}, feral face, muzzle, snout,`,
+            `fur-covered skin, digitigrade, paws, animal face, no human skin,`,
+            `${genderAdj}, ${className.toLowerCase()}, medieval fantasy outfit,`,
+            `full body fur, whiskers, beast ears, tail,`,
             `upper body portrait, looking at viewer,`,
-            `dark background, soft lighting, vibrant colors`,
+            `dark background, soft lighting, vibrant colors, high quality, detailed`,
         ].join(' ');
     }
 
-    static readonly PORTRAIT_NEGATIVE = 'human, human face, human skin, realistic, photorealistic, 3d render, nekomimi, cat ears only, human with animal ears, blurry, low quality, text, watermark';
+    static readonly PORTRAIT_NEGATIVE = 'human, human face, human skin, smooth skin, nekomimi, girl with ears, boy with ears, realistic, photorealistic, 3d render, catgirl, kemonomimi, blurry, low quality, text, watermark';
 
     generateNPCPortraitAsync(npc: GeneratedNPC): void {
         const prompt = Stage.buildPortraitPrompt(npc.species, npc.className, npc.gender);
