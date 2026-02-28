@@ -1,22 +1,7 @@
 // ──────────────────────────────────────────
-// EVENT SYSTEM — Event Definitions & Helpers
+// BRAINWASHING EVENT
 // ──────────────────────────────────────────
-import type { EventDefinition, SkillStats } from './types';
-
-/** Roll a skill check: d100 + skill/2 + modifier vs difficulty */
-export function rollSkillCheck(
-    playerSkill: number,
-    difficulty: number,
-    modifier: number = 0
-): { roll: number; total: number; success: boolean } {
-    const roll = Math.floor(Math.random() * 100) + 1;
-    const total = roll + Math.floor(playerSkill / 2) + modifier;
-    return { roll, total, success: total >= difficulty };
-}
-
-// ==========================================
-// Event Registry
-// ==========================================
+import type { EventDefinition } from '../../types';
 
 /**
  * Brainwashing Session event — the core conditioning event for captives.

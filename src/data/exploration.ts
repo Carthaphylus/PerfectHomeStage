@@ -719,7 +719,7 @@ const EXPLORE_CIRCUS_BACKSTAGE: EventDefinition = {
 // ── All Explore Events (exported as an array for easy registration) ──
 
 // Import the capture event
-import { EXPLORE_WOODS_CAPTURE } from './captureEvent';
+import { EXPLORE_WOODS_CAPTURE } from './events';
 
 export const EXPLORE_EVENTS: EventDefinition[] = [
     // Town
