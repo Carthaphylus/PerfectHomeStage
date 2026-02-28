@@ -68,6 +68,10 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     const [regenPrompt, setRegenPrompt] = React.useState('');
     const [regenLoading, setRegenLoading] = React.useState(false);
     const [regenError, setRegenError] = React.useState<string | null>(null);
+    const [avatarOverride, setAvatarOverride] = React.useState<string | null>(null);
+
+    // Use local override if we regenerated, otherwise use the prop
+    const displayAvatar = avatarOverride || character.avatar;
 
     // Build default prompt when opening the editor
     const openRegenEditor = () => {
@@ -87,7 +91,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
         try {
             const result = await stage().regeneratePortrait(character.name, regenPrompt || undefined);
             if (result) {
-                character.avatar = result;
+                setAvatarOverride(result);
                 setShowRegenPrompt(false);
             } else {
                 setRegenError('No image returned. Try adjusting the prompt.');
@@ -126,8 +130,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                 {/* ── Left: Card ── */}
                 <div className="char-card">
                     <div className="char-avatar-frame">
-                        {character.avatar ? (
-                            <img src={character.avatar} alt={character.name} />
+                        {displayAvatar ? (
+                            <img src={displayAvatar} alt={character.name} />
                         ) : (
                             <div className="avatar-placeholder avatar-placeholder-large">
                                 <GameIcon icon="user" size={48} />
