@@ -286,7 +286,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     <div className="gallery-prompt-popup" onClick={e => e.stopPropagation()}>
                         <div className="prompt-popup-header">
                             <GameIcon icon="link" size={14} />
-                            <span>Set Portrait Image URL</span>
+                            <span>Set Portrait Image URL or Upload</span>
                         </div>
                         <input
                             className="prompt-popup-url-input"
@@ -294,6 +294,23 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                             placeholder="Paste image URL here..."
                             value={manualUrl}
                             onChange={e => setManualUrl(e.target.value)}
+                        />
+                        <input
+                            className="prompt-popup-file-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = ev => {
+                                        if (typeof ev.target?.result === 'string') {
+                                            setManualUrl(ev.target.result);
+                                        }
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
                         />
                         {manualUrl.trim() && (
                             <div className="prompt-popup-preview">
@@ -361,9 +378,9 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     <div className="page-corner page-corner-br"></div>
 
                     <div className="page-title">
-                        <span className="page-title-ornament">⸾</span>
+                        <span className="page-title-ornament">----------</span>
                         Gallery
-                        <span className="page-title-ornament">⸾</span>
+                        <span className="page-title-ornament">----------</span>
                     </div>
 
                     <div className="gallery-grid">
