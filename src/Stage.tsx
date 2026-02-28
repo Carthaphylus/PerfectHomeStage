@@ -2802,16 +2802,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     generateNPCPortraitAsync(npc: GeneratedNPC): void {
         const genderAdj = npc.gender === 'Male' ? 'male' : 'female';
         const prompt = [
-            `${genderAdj} anthropomorphic ${npc.species.toLowerCase()},`,
-            `${npc.className.toLowerCase()}, medieval fantasy,`,
-            `anime style, high quality, detailed,`,
+            `${genderAdj} furry anthro ${npc.species.toLowerCase()},`,
+            `full fur body, animal face, animal snout, paws,`,
+            `${npc.className.toLowerCase()}, medieval fantasy outfit,`,
+            `kemono, anime furry, high quality, detailed,`,
             `upper body portrait, looking at viewer,`,
             `soft lighting, vibrant colors`,
         ].join(' ');
 
         this.generator.makeImage({
             prompt,
-            negative_prompt: 'blurry, low quality, text, watermark, realistic, photorealistic, 3d render, western art, painterly',
+            negative_prompt: 'blurry, low quality, text, watermark, realistic, photorealistic, 3d render, human face, human skin, nekomimi, cat ears only, human with animal ears',
             aspect_ratio: AspectRatio.PHOTO_VERTICAL,
             remove_background: true,
         }).then((response) => {
