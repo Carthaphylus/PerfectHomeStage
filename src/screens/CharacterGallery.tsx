@@ -110,6 +110,14 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
+    // Prompt editor state
+    const [editingSlot, setEditingSlot] = useState<GenerationSlot | null>(null);
+    const [editPrompt, setEditPrompt] = useState('');
+
+    // Manual image URL state
+    const [showUrlInput, setShowUrlInput] = useState(false);
+    const [manualUrl, setManualUrl] = useState('');
+
     const saveImage = (slotType: GenerationSlotType, url: string) => {
         // Update local state
         const updated = { ...generatedImages, [slotType]: url };
@@ -123,7 +131,24 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
         chatState.generatedImages[charName] = updated;
     };
 
-    const handleGenerate = async (slot: GenerationSlot) => {
+    /** Open the prompt editor popup for a slot (instead of generating immediately) */
+    const openPromptEditor = (slot: GenerationSlot) => {
+        let defaultPrompt: string;
+        if (slot.type === 'portrait_regen') {
+            defaultPrompt = StageClass.buildPortraitPrompt(charSpecies, charClass, charGender);
+        } else if (slot.type === 'bg_removed') {
+            defaultPrompt = ''; // bg_removed doesn't use a prompt
+        } else {
+            defaultPrompt = buildPrompt(slot.type, charName, charSpecies);
+        }
+        setEditPrompt(defaultPrompt);
+        setEditingSlot(slot);
+        setError(null);
+    };
+
+    /** Generate with the (possibly edited) prompt */
+    const handleGenerate = async (slot: GenerationSlot, customPrompt?: string) => {
+        setEditingSlot(null);
         setLoadingSlot(slot.type);
         setError(null);
 
@@ -132,7 +157,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
 
             if (slot.type === 'portrait_regen') {
                 // Generate a brand new portrait using makeImage (same as initial NPC generation)
-                const prompt = StageClass.buildPortraitPrompt(charSpecies, charClass, charGender);
+                const prompt = customPrompt || StageClass.buildPortraitPrompt(charSpecies, charClass, charGender);
                 const result = await gen.makeImage({
                     prompt,
                     negative_prompt: StageClass.PORTRAIT_NEGATIVE,
@@ -167,7 +192,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                 // - transfer_type: 'edit' is required
                 // - minimal payload (no aspect_ratio, seed, item_id, etc.)
                 // - remove_background done as separate step after img2img
-                const prompt = buildPrompt(slot.type, charName, charSpecies);
+                const prompt = customPrompt || buildPrompt(slot.type, charName, charSpecies);
 
                 const result = await gen.imageToImage({
                     image: charAvatar,
@@ -195,6 +220,23 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
         }
     };
 
+    /** Apply a manually entered image URL as the character's portrait */
+    const handleApplyManualUrl = () => {
+        const url = manualUrl.trim();
+        if (!url) return;
+        // Update avatar on the character object
+        const st = stage().currentState;
+        const target = st.heroes[charName] || st.servants?.[charName];
+        if (target) target.avatar = url;
+        // Persist
+        const chatState = stage().chatState;
+        if (!chatState.generatedImages) chatState.generatedImages = {};
+        if (!chatState.generatedImages[charName]) chatState.generatedImages[charName] = {};
+        chatState.generatedImages[charName]['portrait'] = url;
+        setShowUrlInput(false);
+        setManualUrl('');
+    };
+
     return (
         <div className="char-gallery-overlay" style={{ '--char-color': charColor } as React.CSSProperties}>
             {/* Expanded image viewer */}
@@ -202,6 +244,78 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                 <div className="gallery-lightbox" onClick={() => setExpandedImage(null)}>
                     <img src={expandedImage} alt="Expanded" />
                     <div className="lightbox-close"><GameIcon icon="x" size={14} /></div>
+                </div>
+            )}
+
+            {/* Prompt editor popup */}
+            {editingSlot && (
+                <div className="gallery-prompt-overlay" onClick={() => setEditingSlot(null)}>
+                    <div className="gallery-prompt-popup" onClick={e => e.stopPropagation()}>
+                        <div className="prompt-popup-header">
+                            <GameIcon icon={editingSlot.icon} size={14} />
+                            <span>{editingSlot.label} — Edit Prompt</span>
+                        </div>
+                        <textarea
+                            className="prompt-popup-textarea"
+                            value={editPrompt}
+                            onChange={e => setEditPrompt(e.target.value)}
+                            rows={6}
+                        />
+                        <div className="prompt-popup-actions">
+                            <button
+                                className="prompt-popup-generate"
+                                onClick={() => handleGenerate(editingSlot, editPrompt || undefined)}
+                                disabled={!editPrompt.trim()}
+                            >
+                                <GameIcon icon="sparkle" size={12} /> Generate
+                            </button>
+                            <button
+                                className="prompt-popup-cancel"
+                                onClick={() => setEditingSlot(null)}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Manual URL input popup */}
+            {showUrlInput && (
+                <div className="gallery-prompt-overlay" onClick={() => setShowUrlInput(false)}>
+                    <div className="gallery-prompt-popup" onClick={e => e.stopPropagation()}>
+                        <div className="prompt-popup-header">
+                            <GameIcon icon="link" size={14} />
+                            <span>Set Portrait Image URL</span>
+                        </div>
+                        <input
+                            className="prompt-popup-url-input"
+                            type="text"
+                            placeholder="Paste image URL here..."
+                            value={manualUrl}
+                            onChange={e => setManualUrl(e.target.value)}
+                        />
+                        {manualUrl.trim() && (
+                            <div className="prompt-popup-preview">
+                                <img src={manualUrl.trim()} alt="Preview" onError={e => (e.currentTarget.style.display = 'none')} />
+                            </div>
+                        )}
+                        <div className="prompt-popup-actions">
+                            <button
+                                className="prompt-popup-generate"
+                                onClick={handleApplyManualUrl}
+                                disabled={!manualUrl.trim()}
+                            >
+                                <GameIcon icon="check" size={12} /> Apply
+                            </button>
+                            <button
+                                className="prompt-popup-cancel"
+                                onClick={() => setShowUrlInput(false)}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -232,6 +346,12 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
 
                     {error && (
                         <div className="gallery-error">{error}</div>
+                    )}
+
+                    {canRegenerate && (
+                        <button className="gallery-url-btn" onClick={() => setShowUrlInput(true)}>
+                            <GameIcon icon="link" size={12} /> Set Image URL
+                        </button>
                     )}
                 </div>
 
@@ -281,13 +401,27 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                                         {slot.label}
                                     </div>
 
-                                    <button
-                                        className="gallery-gen-btn"
-                                        onClick={() => handleGenerate(slot)}
-                                        disabled={isAnyLoading}
-                                    >
-                                        {isLoading ? <><GameIcon icon="sparkle" size={12} /> Conjuring...</> : imageUrl ? <><GameIcon icon="refresh-cw" size={12} /> Redo</> : <><GameIcon icon="sparkle" size={12} /> Conjure</>}
-                                    </button>
+                                    <div className="gallery-slot-btns">
+                                        {/* Quick generate with default prompt */}
+                                        <button
+                                            className="gallery-gen-btn"
+                                            onClick={() => handleGenerate(slot)}
+                                            disabled={isAnyLoading}
+                                        >
+                                            {isLoading ? <><GameIcon icon="sparkle" size={12} /> Conjuring...</> : imageUrl ? <><GameIcon icon="refresh-cw" size={12} /> Redo</> : <><GameIcon icon="sparkle" size={12} /> Conjure</>}
+                                        </button>
+                                        {/* Edit prompt before generating (not for bg_removed which has no prompt) */}
+                                        {slot.type !== 'bg_removed' && (
+                                            <button
+                                                className="gallery-edit-btn"
+                                                onClick={() => openPromptEditor(slot)}
+                                                disabled={isAnyLoading}
+                                                title="Edit prompt before generating"
+                                            >
+                                                <GameIcon icon="pencil" size={10} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}

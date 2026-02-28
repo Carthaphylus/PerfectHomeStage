@@ -379,7 +379,7 @@
       }
 
       .gallery-gen-btn {
-        width: 100%;
+        flex: 1;
         background: rgba(200, 170, 110, 0.06);
         color: rgba(200, 170, 110, 0.6);
         border: 1px solid rgba(200, 170, 110, 0.18);
@@ -402,6 +402,35 @@
           cursor: not-allowed;
         }
       }
+
+      .gallery-slot-btns {
+        display: flex;
+        gap: 3px;
+        width: 100%;
+      }
+
+      .gallery-edit-btn {
+        background: rgba(170, 140, 220, 0.06);
+        color: rgba(170, 140, 220, 0.6);
+        border: 1px solid rgba(170, 140, 220, 0.18);
+        padding: 4px 6px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 7px;
+        transition: all 0.25s;
+        flex-shrink: 0;
+
+        &:hover:not(:disabled) {
+          background: rgba(170, 140, 220, 0.15);
+          border-color: rgba(170, 140, 220, 0.4);
+          color: rgba(170, 140, 220, 0.9);
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+      }
     }
   }
 
@@ -412,6 +441,173 @@
   @keyframes galleryPulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
+  }
+
+  // ── Set Image URL button on left page ──
+  .gallery-url-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 80%;
+    margin: 8px auto 0;
+    padding: 5px 10px;
+    background: rgba(120, 180, 160, 0.06);
+    color: rgba(120, 180, 160, 0.7);
+    border: 1px solid rgba(120, 180, 160, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 8px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    transition: all 0.25s;
+
+    &:hover {
+      background: rgba(120, 180, 160, 0.12);
+      border-color: rgba(120, 180, 160, 0.5);
+      color: rgba(120, 180, 160, 1);
+    }
+  }
+
+  // ── Prompt Editor & URL Popup Overlay ──
+  .gallery-prompt-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .gallery-prompt-popup {
+    width: min(420px, 90vw);
+    background: linear-gradient(160deg, rgba(30, 25, 40, 0.98), rgba(20, 16, 28, 0.98));
+    border: 1px solid rgba(200, 170, 110, 0.25);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    .prompt-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(200, 170, 110, 0.9);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .prompt-popup-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      background: rgba(10, 8, 15, 0.6);
+      border: 1px solid rgba(200, 170, 110, 0.15);
+      border-radius: 5px;
+      color: rgba(220, 210, 230, 0.9);
+      font-family: inherit;
+      font-size: 11px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: rgba(200, 170, 110, 0.4);
+      }
+    }
+
+    .prompt-popup-url-input {
+      width: 100%;
+      padding: 10px;
+      background: rgba(10, 8, 15, 0.6);
+      border: 1px solid rgba(120, 180, 160, 0.2);
+      border-radius: 5px;
+      color: rgba(220, 210, 230, 0.9);
+      font-family: inherit;
+      font-size: 11px;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: rgba(120, 180, 160, 0.5);
+      }
+
+      &::placeholder {
+        color: rgba(160, 150, 170, 0.4);
+      }
+    }
+
+    .prompt-popup-preview {
+      max-height: 160px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(120, 180, 160, 0.15);
+
+      img {
+        width: 100%;
+        max-height: 160px;
+        object-fit: contain;
+        display: block;
+      }
+    }
+
+    .prompt-popup-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .prompt-popup-generate {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(200, 170, 110, 0.12);
+      color: rgba(200, 170, 110, 0.9);
+      border: 1px solid rgba(200, 170, 110, 0.3);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.25s;
+
+      &:hover:not(:disabled) {
+        background: rgba(200, 170, 110, 0.22);
+        border-color: rgba(200, 170, 110, 0.6);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+
+    .prompt-popup-cancel {
+      padding: 8px 14px;
+      background: rgba(80, 70, 90, 0.15);
+      color: rgba(180, 170, 190, 0.7);
+      border: 1px solid rgba(180, 170, 190, 0.15);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.25s;
+
+      &:hover {
+        background: rgba(80, 70, 90, 0.3);
+        border-color: rgba(180, 170, 190, 0.3);
+      }
+    }
   }
 }
 
