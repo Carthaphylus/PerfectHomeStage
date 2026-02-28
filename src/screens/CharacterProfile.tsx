@@ -52,6 +52,9 @@ export interface CharacterProfileProps {
 
     /** Color for the title text (e.g. servant title color) */
     titleColor?: string;
+
+    /** Whether the portrait regenerate button is shown (only for generated characters) */
+    canRegenerate?: boolean;
 }
 
 export const CharacterProfile: FC<CharacterProfileProps> = ({
@@ -62,7 +65,7 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     statusBadge,
     extraActions,
     extraSections,
-    assignedRole,    archetypeTraits, titleColor,}) => {
+    assignedRole,    archetypeTraits, titleColor, canRegenerate = false,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
     const [showRegenPrompt, setShowRegenPrompt] = React.useState(false);
     const [regenPrompt, setRegenPrompt] = React.useState('');
@@ -148,13 +151,15 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                         <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
                             <GameIcon icon="image" size={12} /> Gallery
                         </button>
-                        <button
-                            className="gallery-open-btn regen-btn"
-                            onClick={openRegenEditor}
-                            disabled={regenLoading}
-                        >
-                            <GameIcon icon="refresh-cw" size={12} /> {regenLoading ? 'Generating...' : 'Regenerate'}
-                        </button>
+                        {canRegenerate && (
+                            <button
+                                className="gallery-open-btn regen-btn"
+                                onClick={openRegenEditor}
+                                disabled={regenLoading}
+                            >
+                                <GameIcon icon="refresh-cw" size={12} /> {regenLoading ? 'Generating...' : 'Regenerate'}
+                            </button>
+                        )}
                         {extraActions}
                     </div>
 

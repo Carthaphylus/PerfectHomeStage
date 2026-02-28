@@ -2850,13 +2850,29 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
      * Returns a promise so the UI can show loading state.
      */
     async regeneratePortrait(heroName: string, customPrompt?: string): Promise<string | null> {
+        // Look up the character across all stores: heroes, servants, and playerCharacter
+        let character: { avatar: string; details: Record<string, string>; heroClass?: string; formerClass?: string; title?: string } | null = null;
         const hero = this.currentState.heroes[heroName];
-        if (!hero) return null;
+        const servant = this.currentState.servants?.[heroName];
+        const pc = this.currentState.playerCharacter;
 
+        if (hero) {
+            character = hero;
+        } else if (servant) {
+            character = servant;
+        } else if (pc && pc.name === heroName) {
+            character = pc;
+        }
+        if (!character) {
+            console.warn(`[NPC] regeneratePortrait: character "${heroName}" not found in heroes, servants, or playerCharacter`);
+            return null;
+        }
+
+        const classLabel = (character as any).heroClass || (character as any).formerClass || (character as any).title || 'adventurer';
         const prompt = customPrompt || Stage.buildPortraitPrompt(
-            hero.details['Species'] || 'animal',
-            hero.heroClass || 'adventurer',
-            hero.details['Gender']?.includes('Male') ? 'Male' : 'Female',
+            character.details['Species'] || 'animal',
+            classLabel,
+            character.details['Gender']?.includes('Male') ? 'Male' : 'Female',
         );
 
         try {
@@ -2867,7 +2883,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 remove_background: false,
             });
             if (response?.url) {
-                hero.avatar = response.url;
+                character.avatar = response.url;
                 if (!this.chatState.generatedImages) this.chatState.generatedImages = {};
                 if (!this.chatState.generatedImages[heroName]) this.chatState.generatedImages[heroName] = {};
                 this.chatState.generatedImages[heroName]['portrait'] = response.url;

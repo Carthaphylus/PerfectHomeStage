@@ -8,6 +8,7 @@ import {
     isTaskRoomBuilt,
 } from '../data';
 import type { Servant, Role, TaskDefinition, TaskOutcome, TaskCategory, TaskReward } from '../data';
+import { CHARACTER_DATA } from '../data/characters';
 import { CharacterProfile } from './CharacterProfile';
 import { TraitChip } from './TraitChip';
 import { GameIcon } from './GameIcon';
@@ -160,6 +161,7 @@ export const ServantsScreen: FC<ServantsScreenProps> = ({ stage, setScreenType, 
                         details: s.details,
                         stats: s.stats || { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 },
                     }}
+                    canRegenerate={!(s.name in CHARACTER_DATA)}
                     onBack={() => setSelectedServant(null)}
                     archetypeTraits={s.archetypeTraits}
                     titleColor={s.servantTitleColor}

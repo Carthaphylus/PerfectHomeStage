@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { ScreenType } from './screenTypes';
 import type { Stage } from '../Stage';
 import type { Hero } from '../data';
+import { CHARACTER_DATA } from '../data/characters';
 import { CharacterProfile } from './CharacterProfile';
 import { GameIcon } from './GameIcon';
 import { CharacterEditor } from './CharacterEditor';
@@ -44,6 +45,7 @@ export const HeroesScreen: FC<HeroesScreenProps> = ({ stage, setScreenType }) =>
                     details: h.details,
                     stats: h.stats || { prowess: 50, expertise: 50, attunement: 50, presence: 50, discipline: 50, insight: 50 },
                 }}
+                canRegenerate={!(h.name in CHARACTER_DATA)}
                 onBack={() => setSelectedHero(null)}
                 statusBadge={
                     <span className={`char-status-badge status-${h.status}`}>{h.status}</span>
