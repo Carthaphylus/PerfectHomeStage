@@ -1,7 +1,5 @@
 import React, { FC, ReactNode } from 'react';
 import type { Stage } from '../Stage';
-import { Stage as StageClass } from '../Stage';
-import { AspectRatio } from '@chub-ai/stages-ts';
 import { STAT_DEFINITIONS, numberToGrade, getGradeColor, getStatColor } from '../data';
 import type { StatName } from '../data';
 import { CharacterGallery } from './CharacterGallery';
@@ -54,7 +52,7 @@ export interface CharacterProfileProps {
     /** Color for the title text (e.g. servant title color) */
     titleColor?: string;
 
-    /** Whether the portrait regenerate button is shown (only for generated characters) */
+    /** Whether this is a generated (non-predefined) character — passed to gallery */
     canRegenerate?: boolean;
 }
 
@@ -68,72 +66,6 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
     extraSections,
     assignedRole,    archetypeTraits, titleColor, canRegenerate = false,}) => {
     const [showGallery, setShowGallery] = React.useState(false);
-    const [showRegenPrompt, setShowRegenPrompt] = React.useState(false);
-    const [regenPrompt, setRegenPrompt] = React.useState('');
-    const [regenLoading, setRegenLoading] = React.useState(false);
-    const [regenError, setRegenError] = React.useState<string | null>(null);
-    const [avatarOverride, setAvatarOverride] = React.useState<string | null>(null);
-
-    // Use local override if we regenerated, otherwise use the prop
-    const displayAvatar = avatarOverride || character.avatar;
-
-    // Build default prompt when opening the editor
-    const openRegenEditor = () => {
-        const defaultPrompt = StageClass.buildPortraitPrompt(
-            character.details['Species'] || 'animal',
-            character.title || 'adventurer',
-            character.details['Gender']?.includes('Male') ? 'Male' : 'Female',
-        );
-        setRegenPrompt(defaultPrompt);
-        setRegenError(null);
-        setShowRegenPrompt(true);
-    };
-
-    const handleRegenerate = async () => {
-        setRegenLoading(true);
-        setRegenError(null);
-        try {
-            // Call generator directly like the gallery does — avoids Stage method binding issues
-            const gen = stage().generator;
-            const prompt = regenPrompt || StageClass.buildPortraitPrompt(
-                character.details['Species'] || 'animal',
-                character.title || 'adventurer',
-                character.details['Gender']?.includes('Male') ? 'Male' : 'Female',
-            );
-
-            console.log('[Regen] Starting portrait regeneration for', character.name);
-            const response = await gen.makeImage({
-                prompt,
-                negative_prompt: StageClass.PORTRAIT_NEGATIVE,
-                aspect_ratio: AspectRatio.PHOTO_VERTICAL,
-                remove_background: false,
-            });
-            console.log('[Regen] Response:', response);
-
-            if (response?.url) {
-                setAvatarOverride(response.url);
-                setShowRegenPrompt(false);
-
-                // Persist to chatState like gallery does
-                const chatState = stage().chatState;
-                if (!chatState.generatedImages) chatState.generatedImages = {};
-                if (!chatState.generatedImages[character.name]) chatState.generatedImages[character.name] = {};
-                chatState.generatedImages[character.name]['portrait'] = response.url;
-
-                // Also update the hero/servant object directly
-                const st = stage().currentState;
-                const target = st.heroes[character.name] || st.servants?.[character.name];
-                if (target) target.avatar = response.url;
-            } else {
-                setRegenError('No image returned. Try adjusting the prompt.');
-            }
-        } catch (err: any) {
-            console.error('[Regen] Error:', err);
-            setRegenError(err?.message || 'Generation failed.');
-        } finally {
-            setRegenLoading(false);
-        }
-    };
 
     if (showGallery) {
         return (
@@ -143,6 +75,9 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                 charAvatar={character.avatar}
                 charSpecies={character.details['Species'] || 'character'}
                 charColor={character.color}
+                charClass={character.title || 'adventurer'}
+                charGender={character.details['Gender']?.includes('Male') ? 'Male' : 'Female'}
+                canRegenerate={canRegenerate}
                 onClose={() => setShowGallery(false)}
             />
         );
@@ -162,8 +97,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                 {/* ── Left: Card ── */}
                 <div className="char-card">
                     <div className="char-avatar-frame">
-                        {displayAvatar ? (
-                            <img src={displayAvatar} alt={character.name} />
+                        {character.avatar ? (
+                            <img src={character.avatar} alt={character.name} />
                         ) : (
                             <div className="avatar-placeholder avatar-placeholder-large">
                                 <GameIcon icon="user" size={48} />
@@ -180,48 +115,8 @@ export const CharacterProfile: FC<CharacterProfileProps> = ({
                         <button className="gallery-open-btn" onClick={() => setShowGallery(true)}>
                             <GameIcon icon="image" size={12} /> Gallery
                         </button>
-                        {canRegenerate && (
-                            <button
-                                className="gallery-open-btn regen-btn"
-                                onClick={openRegenEditor}
-                                disabled={regenLoading}
-                            >
-                                <GameIcon icon="refresh-cw" size={12} /> {regenLoading ? 'Generating...' : 'Regenerate'}
-                            </button>
-                        )}
                         {extraActions}
                     </div>
-
-                    {/* ── Regenerate Prompt Editor ── */}
-                    {showRegenPrompt && (
-                        <div className="regen-prompt-panel">
-                            <label className="regen-label">Image Prompt</label>
-                            <textarea
-                                className="regen-textarea"
-                                value={regenPrompt}
-                                onChange={e => setRegenPrompt(e.target.value)}
-                                rows={5}
-                                disabled={regenLoading}
-                            />
-                            <div className="regen-actions">
-                                <button
-                                    className="regen-generate-btn"
-                                    onClick={handleRegenerate}
-                                    disabled={regenLoading || !regenPrompt.trim()}
-                                >
-                                    {regenLoading ? 'Generating...' : 'Generate'}
-                                </button>
-                                <button
-                                    className="regen-cancel-btn"
-                                    onClick={() => setShowRegenPrompt(false)}
-                                    disabled={regenLoading}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                            {regenError && <span className="regen-error">{regenError}</span>}
-                        </div>
-                    )}
                 </div>
 
                 {/* ── Right: Bio Panel ── */}

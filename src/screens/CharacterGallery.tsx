@@ -1,9 +1,12 @@
 import React, { FC, useState } from 'react';
 import type { Stage } from '../Stage';
+import { Stage as StageClass } from '../Stage';
+import { AspectRatio } from '@chub-ai/stages-ts';
 import { GameIcon } from './GameIcon';
 
 // Generation slot types
 export type GenerationSlotType =
+    | 'portrait_regen'
     | 'bg_removed'
     | 'hypno_citrine'
     | 'hypno_julian'
@@ -50,6 +53,13 @@ const GENERATION_SLOTS: GenerationSlot[] = [
     },
 ];
 
+const REGEN_SLOT: GenerationSlot = {
+    type: 'portrait_regen',
+    label: 'New Portrait',
+    description: 'Generate a fresh portrait from scratch',
+    icon: 'refresh-cw',
+};
+
 // Prompt builders for each generation type
 function buildPrompt(type: GenerationSlotType, charName: string, charSpecies: string): string {
     const base = `${charName}, ${charSpecies}, anime style, high quality, detailed`;
@@ -73,6 +83,9 @@ interface CharacterGalleryProps {
     charAvatar: string;
     charSpecies: string;
     charColor: string;
+    charClass?: string;
+    charGender?: string;
+    canRegenerate?: boolean;
     onClose: () => void;
 }
 
@@ -82,6 +95,9 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
     charAvatar,
     charSpecies,
     charColor,
+    charClass = 'adventurer',
+    charGender = 'Female',
+    canRegenerate = false,
     onClose,
 }) => {
     // Track generated image URLs: type -> url
@@ -114,7 +130,30 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
         try {
             const gen = stage().generator;
 
-            if (slot.type === 'bg_removed') {
+            if (slot.type === 'portrait_regen') {
+                // Generate a brand new portrait using makeImage (same as initial NPC generation)
+                const prompt = StageClass.buildPortraitPrompt(charSpecies, charClass, charGender);
+                const result = await gen.makeImage({
+                    prompt,
+                    negative_prompt: StageClass.PORTRAIT_NEGATIVE,
+                    aspect_ratio: AspectRatio.PHOTO_VERTICAL,
+                    remove_background: false,
+                });
+                if (result?.url) {
+                    saveImage(slot.type, result.url);
+                    // Also update the character's base avatar
+                    const st = stage().currentState;
+                    const target = st.heroes[charName] || st.servants?.[charName];
+                    if (target) target.avatar = result.url;
+                    // Persist under 'portrait' key for chatState
+                    const chatState = stage().chatState;
+                    if (!chatState.generatedImages) chatState.generatedImages = {};
+                    if (!chatState.generatedImages[charName]) chatState.generatedImages[charName] = {};
+                    chatState.generatedImages[charName]['portrait'] = result.url;
+                } else {
+                    setError('No image returned from generation.');
+                }
+            } else if (slot.type === 'bg_removed') {
                 // Use dedicated removeBackground API
                 const result = await gen.removeBackground({ image: charAvatar });
                 if (result?.url) {
@@ -208,7 +247,7 @@ export const CharacterGallery: FC<CharacterGalleryProps> = ({
                     </div>
 
                     <div className="gallery-grid">
-                        {GENERATION_SLOTS.map((slot) => {
+                        {(canRegenerate ? [REGEN_SLOT, ...GENERATION_SLOTS] : GENERATION_SLOTS).map((slot) => {
                             const imageUrl = generatedImages[slot.type];
                             const isLoading = loadingSlot === slot.type;
                             const isAnyLoading = loadingSlot !== null;
