@@ -6,7 +6,8 @@ import { GameIcon } from './GameIcon';
 // ============================================================
 // *text* → action/emote (muted, darker)
 // "text" → dialogue (character color)
-// [icon:name] → inline lucide icon
+// [icon:name] → inline lucide icon (no color)
+// [icon:name:color] → inline lucide icon with color (hex or named)
 // Everything else → narration (default text color)
 
 interface TextSegment {
@@ -78,8 +79,13 @@ export const FormattedText: FC<FormattedTextProps> = ({ text }) => {
                         return <span key={i} className="skit-fmt-action">{seg.text}</span>;
                     case 'dialogue':
                         return <span key={i} className="skit-fmt-dialogue">{seg.text}</span>;
-                    case 'icon':
-                        return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom', margin: '0 2px' }}><GameIcon icon={seg.text} size={16} /></span>;
+                    case 'icon': {
+                        // seg.text format: "iconName:color?" (color is optional)
+                        const iconParts = seg.text.split(':');
+                        const iconName = iconParts[0];
+                        const iconColor = iconParts[1]; // optional color
+                        return <span key={i} style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom', margin: '0 2px' }}><GameIcon icon={iconName} size={16} color={iconColor} /></span>;
+                    }
                     default:
                         return <span key={i} className="skit-fmt-narration">{seg.text}</span>;
                 }

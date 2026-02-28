@@ -236,14 +236,14 @@ function interpolate(text: string, target?: string, pcName?: string): string {
     return result;
 }
 
-/** Parse narrative text into styled segments (actions in *, dialogue in "", icons in [icon:name]) */
+/** Parse narrative text into styled segments (actions in *, dialogue in "", icons in [icon:name] or [icon:name:color]) */
 function renderNarrative(text: string): React.ReactNode[] {
     const lines = text.split('\n');
     return lines.map((line, li) => {
         if (!line.trim()) return <br key={li} />;
 
         const parts: React.ReactNode[] = [];
-        // Match *actions*, "dialogue", and [icon:name]
+        // Match *actions*, "dialogue", and [icon:name:color?]
         const regex = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|("(?:[^"\\]|\\.)*")|(\[icon:[^\]]+\])/g;
         let lastIndex = 0;
         let match: RegExpExecArray | null;
@@ -275,11 +275,15 @@ function renderNarrative(text: string): React.ReactNode[] {
                     </span>
                 );
             } else if (match[4]) {
-                // [icon:name]
-                const iconName = match[4].slice(6, -1); // strip [icon: and ]
+                // [icon:name:color?] - parse icon spec
+                const iconSpec = match[4].slice(6, -1); // strip [icon: and ]
+                const iconParts = iconSpec.split(':');
+                const iconName = iconParts[0];
+                const iconColor = iconParts[1]; // optional color (hex or name)
+
                 parts.push(
                     <span key={`${li}-${match.index}`} style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'text-bottom', margin: '0 2px' }}>
-                        <GameIcon icon={iconName} size={16} />
+                        <GameIcon icon={iconName} size={16} color={iconColor} />
                     </span>
                 );
             }
