@@ -36,3 +36,6 @@ export * from './chatChanges';
 
 // NPC Generation
 export * from './npcGeneration';
+
+// Quest system
+export * from './events/quests/registry';

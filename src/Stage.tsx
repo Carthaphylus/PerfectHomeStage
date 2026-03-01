@@ -13,6 +13,7 @@ import {
     SavedSlotData, SaveFileSlot, MAX_SAVE_SLOTS, SAVE_VERSION,
     EventEffect, EventSkillCheck, EventChatPhase, ShopItem, EventShopPhase,
     EventChoice, EventStep, EventDefinition, EventContext, ActiveEvent,
+    EventPrerequisite, QuestDefinition, QuestStepDefinition, ActiveQuest,
     ConditioningCategory, ConditioningAction, ActionResult,
     // Turn system
     TurnSummary, TurnChange, TurnTaskResult,
@@ -53,6 +54,8 @@ import {
     getScopeEntry, clampToScope, describeScopeForPrompt,
     // NPC Generation
     GeneratedNPC, EXPLORE_WOODS_CAPTURE,
+    // Quests
+    ALL_HERO_QUESTS, buildQuestEvents,
 } from './data';
 
 
@@ -112,6 +115,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Register explore events
         for (const evt of EXPLORE_EVENTS) {
             this._eventRegistry[evt.id] = evt;
+        }
+
+        // Register quest events
+        for (const evt of buildQuestEvents()) {
+            this._eventRegistry[evt.id] = evt;
+        }
+
+        // Register quests
+        for (const quest of ALL_HERO_QUESTS) {
+            this._questRegistry[quest.id] = quest;
         }
     }
 
@@ -247,6 +260,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 'Dreamcatcher Herb': { name: 'Dreamcatcher Herb', quantity: 12, type: 'material' },
             },
             manorUpgrades: {},
+            completedEvents: [],
+            activeQuests: [],
+            completedQuests: [],
         };
     }
 
@@ -1249,6 +1265,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         [EVENT_BRAINWASHING.id]: EVENT_BRAINWASHING,
     };
 
+    private _questRegistry: Record<string, QuestDefinition> = {};
+
     /** Register a new event definition at runtime */
     registerEvent(def: EventDefinition): void {
         this._eventRegistry[def.id] = def;
@@ -1257,6 +1275,200 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** Get an event definition by ID */
     getEventDefinition(id: string): EventDefinition | null {
         return this._eventRegistry[id] || null;
+    }
+
+    // ============================
+    // Event Prerequisite Engine
+    // ============================
+
+    /** Check if a single prerequisite is satisfied */
+    checkPrerequisite(prereq: EventPrerequisite): boolean {
+        const st = this.currentState;
+        switch (prereq.type) {
+            case 'event_completed':
+                return prereq.eventId ? st.completedEvents.includes(prereq.eventId) : false;
+            case 'hero_captured':
+                return prereq.heroName
+                    ? (st.heroes[prereq.heroName]?.status === 'captured'
+                        || st.heroes[prereq.heroName]?.status === 'converting'
+                        || st.heroes[prereq.heroName]?.status === 'servant'
+                        || !!st.servants[prereq.heroName])
+                    : false;
+            case 'hero_status':
+                return prereq.heroName && prereq.heroStatus
+                    ? st.heroes[prereq.heroName]?.status === prereq.heroStatus
+                    : false;
+            case 'item':
+                return prereq.itemName
+                    ? (st.inventory[prereq.itemName]?.quantity ?? 0) > 0
+                    : false;
+            case 'stat':
+                return prereq.stat && prereq.minValue !== undefined
+                    ? (st.stats.skills[prereq.stat] ?? 0) >= prereq.minValue
+                    : false;
+            case 'gold':
+                return prereq.minValue !== undefined
+                    ? st.stats.gold >= prereq.minValue
+                    : false;
+            case 'quest_complete':
+                return prereq.eventId
+                    ? st.completedQuests.includes(prereq.eventId)
+                    : false;
+            case 'custom':
+                return prereq.check ? prereq.check(this) : false;
+            default:
+                return false;
+        }
+    }
+
+    /** Check if all prerequisites for an event are satisfied */
+    checkEventPrerequisites(eventId: string): boolean {
+        const def = this._eventRegistry[eventId];
+        if (!def?.prerequisites || def.prerequisites.length === 0) return true;
+        return def.prerequisites.every(p => this.checkPrerequisite(p));
+    }
+
+    /** Mark an event as completed */
+    markEventCompleted(eventId: string): void {
+        if (!this.currentState.completedEvents.includes(eventId)) {
+            this.currentState.completedEvents.push(eventId);
+            console.log(`[Event] Marked "${eventId}" as completed`);
+            // Check if this advances any active quests
+            this._checkQuestAdvancement(eventId);
+        }
+    }
+
+    /** Get events whose prerequisites are met for a given location */
+    getAvailableEventsForLocation(location: Location): EventDefinition[] {
+        return Object.values(this._eventRegistry).filter(def =>
+            def.location === location
+            && def.prerequisites && def.prerequisites.length > 0
+            && !this.currentState.completedEvents.includes(def.id)
+            && this.checkEventPrerequisites(def.id)
+        );
+    }
+
+    // ============================
+    // Quest Tracking Engine
+    // ============================
+
+    /** Register a quest definition */
+    registerQuest(def: QuestDefinition): void {
+        this._questRegistry[def.id] = def;
+        // Also register all quest step events
+        for (const step of def.steps) {
+            const eventDef = this._eventRegistry[step.eventId];
+            if (eventDef) {
+                eventDef.location = eventDef.location || step.location;
+            }
+        }
+    }
+
+    /** Get a quest definition by ID */
+    getQuestDefinition(id: string): QuestDefinition | null {
+        return this._questRegistry[id] || null;
+    }
+
+    /** Get all registered quest definitions */
+    getAllQuests(): QuestDefinition[] {
+        return Object.values(this._questRegistry);
+    }
+
+    /** Get quests that are available to start (prerequisites met, not started/complete) */
+    getAvailableQuests(): QuestDefinition[] {
+        const st = this.currentState;
+        return Object.values(this._questRegistry).filter(def => {
+            // Already active or complete
+            if (st.activeQuests.some(aq => aq.questId === def.id)) return false;
+            if (st.completedQuests.includes(def.id)) return false;
+            // Check prerequisites
+            if (def.prerequisites && def.prerequisites.length > 0) {
+                return def.prerequisites.every(p => this.checkPrerequisite(p));
+            }
+            return true;
+        });
+    }
+
+    /** Get all currently active quests */
+    getActiveQuests(): ActiveQuest[] {
+        return this.currentState.activeQuests.filter(aq => !aq.completed);
+    }
+
+    /** Start a quest */
+    startQuest(questId: string): ActiveQuest | null {
+        const def = this._questRegistry[questId];
+        if (!def) {
+            console.error(`[Quest] Unknown quest: ${questId}`);
+            return null;
+        }
+        const st = this.currentState;
+        if (st.activeQuests.some(aq => aq.questId === questId)) {
+            console.warn(`[Quest] Quest "${questId}" already active`);
+            return st.activeQuests.find(aq => aq.questId === questId) || null;
+        }
+        if (st.completedQuests.includes(questId)) {
+            console.warn(`[Quest] Quest "${questId}" already completed`);
+            return null;
+        }
+
+        const quest: ActiveQuest = {
+            questId,
+            currentStep: 0,
+            startedDay: st.stats.day,
+            completedSteps: [],
+            data: {},
+            completed: false,
+        };
+        st.activeQuests.push(quest);
+        console.log(`[Quest] Started quest "${def.name}"`);
+        return quest;
+    }
+
+    /** Get the current step definition for an active quest */
+    getQuestCurrentStep(questId: string): QuestStepDefinition | null {
+        const def = this._questRegistry[questId];
+        const active = this.currentState.activeQuests.find(aq => aq.questId === questId);
+        if (!def || !active || active.completed) return null;
+        return def.steps[active.currentStep] || null;
+    }
+
+    /** Internal: check if a completed event advances any active quest */
+    private _checkQuestAdvancement(completedEventId: string): void {
+        const st = this.currentState;
+        for (const active of st.activeQuests) {
+            if (active.completed) continue;
+            const def = this._questRegistry[active.questId];
+            if (!def) continue;
+
+            const currentStep = def.steps[active.currentStep];
+            if (currentStep && currentStep.eventId === completedEventId) {
+                active.completedSteps.push(active.currentStep);
+                active.currentStep++;
+                console.log(`[Quest] Advanced "${def.name}" to step ${active.currentStep}`);
+
+                // Check if quest is now complete
+                if (active.currentStep >= def.steps.length) {
+                    active.completed = true;
+                    st.completedQuests.push(active.questId);
+                    console.log(`[Quest] Completed quest "${def.name}"!`);
+                    // Apply quest completion rewards (create a minimal dummy event for effect application)
+                    if (def.rewards && def.rewards.length > 0) {
+                        const dummyEvent = {
+                            definitionId: active.questId,
+                            currentStepId: '',
+                            vars: {},
+                            log: [],
+                            appliedEffects: [],
+                            chatPhaseActive: false,
+                            chatMessageCount: 0,
+                            actionCooldowns: {},
+                            actionResults: [],
+                        };
+                        this.applyEffects(def.rewards, dummyEvent as any);
+                    }
+                }
+            }
+        }
     }
 
     /** Start an event. Returns the initial ActiveEvent state (React should own this). */
@@ -1426,7 +1638,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     /** End/cleanup the current event */
     endEvent(): void {
         if (this._activeEvent) {
-            console.log(`[Event] Ended event "${this._activeEvent.definitionId}"`);
+            const eventId = this._activeEvent.definitionId;
+            console.log(`[Event] Ended event "${eventId}"`);
+            // Mark event as completed for prerequisite tracking
+            this.markEventCompleted(eventId);
             this._activeEvent = null;
         }
     }
@@ -3657,6 +3872,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (save.nsfwMode !== undefined) {
             this.currentState.nsfwMode = save.nsfwMode;
         }
+
+        // Event & Quest tracking
+        this.currentState.completedEvents = save.completedEvents || [];
+        this.currentState.activeQuests = save.activeQuests
+            ? JSON.parse(JSON.stringify(save.activeQuests))
+            : [];
+        this.currentState.completedQuests = save.completedQuests || [];
     }
 
     /** Build a save name from current state */
@@ -3716,8 +3938,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 dungeonProgress: st.dungeonProgress ? JSON.parse(JSON.stringify(st.dungeonProgress)) : undefined,
                 nsfwMode: st.nsfwMode,
 
-                // Quests placeholder — will be populated once quest system is implemented
-                activeQuests: undefined,
+                completedEvents: [...st.completedEvents],
+                activeQuests: JSON.parse(JSON.stringify(st.activeQuests)),
+                completedQuests: [...st.completedQuests],
             };
 
             localStorage.setItem(key, JSON.stringify(saveFile));

@@ -209,6 +209,9 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                 maxFloor: 10,
                 lastBoss: 'Shadow Serpent',
             },
+            completedEvents: [],
+            activeQuests: [],
+            completedQuests: [],
         });
         refresh();
 

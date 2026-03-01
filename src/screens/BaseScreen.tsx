@@ -16,6 +16,7 @@ import { EventScreen } from './EventScreen';
 import { ConversionScreen } from './ConversionScreen';
 import { ExploreScreen } from './ExploreScreen';
 import { TurnSummaryScreen } from './TurnSummaryScreen';
+import { QuestScreen } from './QuestScreen';
 import { StatBar } from './StatBar';
 import { ScreenType } from './screenTypes';
 
@@ -160,6 +161,11 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             )}
             {screenType === ScreenType.ITEM_LIBRARY && (
                 <ItemLibrary stage={stage} onClose={() => setScreenType(ScreenType.INVENTORY)} />
+            )}
+
+            {/* Quest screen */}
+            {screenType === ScreenType.QUESTS && (
+                <QuestScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} />
             )}
 
             {/* Explore screen */}

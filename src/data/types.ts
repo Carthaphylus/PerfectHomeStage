@@ -326,6 +326,57 @@ export interface EventDefinition {
     category: 'brainwashing' | 'social' | 'exploration' | 'combat' | 'manor' | 'misc';
     steps: Record<string, EventStep>;
     startStep: string;
+    prerequisites?: EventPrerequisite[];
+    location?: Location;
+}
+
+// ── Event Prerequisite System ──
+
+/** Generic condition for unlocking any event */
+export interface EventPrerequisite {
+    type: 'event_completed' | 'hero_captured' | 'hero_status' | 'item'
+        | 'stat' | 'gold' | 'quest_complete' | 'custom';
+    eventId?: string;
+    heroName?: string;
+    heroStatus?: HeroStatus;
+    itemName?: string;
+    stat?: keyof SkillStats;
+    minValue?: number;
+    check?: (stage: any) => boolean;
+}
+
+// ── Quest System ──
+
+/** A single step in a quest chain */
+export interface QuestStepDefinition {
+    id: string;
+    name: string;
+    description: string;
+    eventId: string;
+    location: Location;
+    icon: string;
+}
+
+/** Full quest definition */
+export interface QuestDefinition {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    heroName?: string;
+    steps: QuestStepDefinition[];
+    prerequisites?: EventPrerequisite[];
+    rewards?: EventEffect[];
+}
+
+/** Runtime state of an active quest */
+export interface ActiveQuest {
+    questId: string;
+    currentStep: number;
+    startedDay: number;
+    completedSteps: number[];
+    data?: Record<string, any>;
+    completed: boolean;
 }
 
 /**
@@ -435,7 +486,9 @@ export type MessageStateType = {
     inventory: { [itemName: string]: InventoryItem };
     manorUpgrades: { [upgradeName: string]: ManorUpgrade };
     dungeonProgress?: DungeonProgress;
-    currentQuest?: string;
+    completedEvents: string[];
+    activeQuests: ActiveQuest[];
+    completedQuests: string[];
     nsfwMode?: boolean;
 };
 
@@ -520,13 +573,12 @@ export interface SaveFileSlot {
     /** Dungeon state */
     dungeonProgress?: DungeonProgress;
 
-    /** Quest state (placeholder for future quest system) */
-    activeQuests?: {
-        questId: string;
-        currentStep: number;
-        startedDay: number;
-        data?: Record<string, any>;
-    }[];
+    /** Event completion tracking */
+    completedEvents: string[];
+
+    /** Quest state */
+    activeQuests: ActiveQuest[];
+    completedQuests: string[];
 
     /** Misc flags */
     nsfwMode?: boolean;

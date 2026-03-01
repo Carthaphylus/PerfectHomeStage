@@ -13,5 +13,6 @@ export enum ScreenType {
     PC_PROFILE = 'pc_profile',
     CONVERSION = 'conversion',
     EXPLORE = 'explore',
+    QUESTS = 'quests',
     TURN_SUMMARY = 'turn_summary',
 }

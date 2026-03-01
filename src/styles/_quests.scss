@@ -1,0 +1,291 @@
+// Quest Screen
+// ==========================================
+.quests-screen {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at center, rgba(30, 25, 45, 0.97) 0%, rgba(14, 10, 22, 0.99) 100%) !important;
+
+  .quests-content {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .quest-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .quest-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-primary);
+    border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+    padding-bottom: 8px;
+    margin: 0;
+
+    &.quest-completed-title {
+      color: var(--text-muted);
+    }
+  }
+
+  .quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .quest-card {
+    background: linear-gradient(180deg, rgba(40, 32, 55, 0.95) 0%, rgba(30, 24, 42, 0.95) 100%);
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &.quest-active {
+      border-color: rgba(200, 170, 110, 0.3);
+      box-shadow: 0 0 12px rgba(200, 170, 110, 0.06);
+    }
+
+    &.quest-available {
+      border-color: rgba(100, 160, 200, 0.25);
+      background: linear-gradient(180deg, rgba(30, 40, 55, 0.95) 0%, rgba(22, 30, 42, 0.95) 100%);
+    }
+
+    &.quest-completed {
+      border-color: rgba(90, 170, 90, 0.15);
+      background: linear-gradient(180deg, rgba(30, 40, 32, 0.7) 0%, rgba(22, 30, 24, 0.7) 100%);
+      opacity: 0.75;
+    }
+
+    .quest-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .quest-hero-avatar {
+        width: 48px;
+        height: 60px;
+        flex-shrink: 0;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(200, 170, 110, 0.2);
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .quest-card-title {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .quest-name {
+          font-weight: bold;
+          font-size: 12px;
+          color: var(--text-primary);
+        }
+
+        .quest-desc {
+          font-size: 9px;
+          color: var(--text-muted);
+          line-height: 1.5;
+        }
+      }
+
+      .quest-icon {
+        color: var(--accent-primary);
+        opacity: 0.7;
+        flex-shrink: 0;
+      }
+
+      .quest-complete-icon {
+        color: #5aaa5a;
+        flex-shrink: 0;
+      }
+    }
+
+    .quest-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 4px;
+    }
+
+    .quest-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+
+      &.completed {
+        opacity: 0.5;
+        .quest-step-marker { color: #5aaa5a; }
+        .quest-step-name { text-decoration: line-through; }
+      }
+
+      &.current {
+        background: rgba(200, 170, 110, 0.06);
+        border: 1px solid rgba(200, 170, 110, 0.12);
+        .quest-step-marker { color: var(--accent-primary); }
+        .quest-step-name { color: var(--text-primary); font-weight: bold; }
+      }
+
+      &.locked {
+        opacity: 0.35;
+        .quest-step-marker { color: var(--text-muted); }
+      }
+
+      .quest-step-marker {
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid currentColor;
+        margin-top: 1px;
+      }
+
+      .quest-step-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .quest-step-name {
+        font-size: 10px;
+        color: var(--text-secondary);
+      }
+
+      .quest-step-desc {
+        font-size: 9px;
+        color: var(--text-muted);
+        line-height: 1.4;
+        font-style: italic;
+      }
+
+      .quest-step-location {
+        font-size: 8px;
+        color: var(--accent-secondary, #8a9abf);
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+    }
+
+    .quest-progress-bar {
+      height: 8px;
+      background: rgba(20, 15, 30, 0.6);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+
+      .quest-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-primary), #d4aa50);
+        border-radius: 4px;
+        transition: width 0.4s ease;
+      }
+
+      .quest-progress-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 6px;
+        font-weight: bold;
+        color: rgba(255,255,255,0.7);
+      }
+    }
+
+    .quest-begin-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(180, 145, 80, 0.08) 100%);
+      border: 1px solid rgba(200, 170, 110, 0.35);
+      border-radius: 4px;
+      color: var(--accent-primary);
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(180, 145, 80, 0.15) 100%);
+        border-color: rgba(200, 170, 110, 0.6);
+        box-shadow: 0 0 8px rgba(200, 170, 110, 0.15);
+      }
+
+      &.quest-accept-btn {
+        background: linear-gradient(135deg, rgba(100, 160, 200, 0.12) 0%, rgba(80, 130, 170, 0.06) 100%);
+        border-color: rgba(100, 160, 200, 0.3);
+        color: #80b8d4;
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(100, 160, 200, 0.22) 0%, rgba(80, 130, 170, 0.14) 100%);
+          border-color: rgba(100, 160, 200, 0.5);
+        }
+      }
+    }
+
+    .quest-step-preview {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+  }
+
+  .quest-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-muted);
+    padding: 60px 20px;
+
+    p {
+      margin: 0;
+      font-size: 11px;
+    }
+
+    .quest-empty-hint {
+      font-size: 9px;
+      font-style: italic;
+    }
+  }
+}

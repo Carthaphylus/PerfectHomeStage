@@ -31,6 +31,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType, endDay }
     const worldOptions = [
         { label: 'World Map', icon: 'map', screen: ScreenType.WORLD_MAP, desc: 'Explore the realm' },
         { label: 'Heroes', icon: 'target', screen: ScreenType.HEROES, desc: 'Known adventurers' },
+        { label: 'Quests', icon: 'scroll', screen: ScreenType.QUESTS, desc: 'Active questlines' },
     ];
 
     return (
