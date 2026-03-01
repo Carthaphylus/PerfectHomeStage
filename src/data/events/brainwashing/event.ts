@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // BRAINWASHING EVENT
 // ──────────────────────────────────────────
-import type { EventDefinition } from '../../../types';
+import type { EventDefinition } from '../../types';
 
 /**
  * Brainwashing Session event — the core conditioning event for captives.

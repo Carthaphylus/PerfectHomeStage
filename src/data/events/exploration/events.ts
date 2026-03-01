@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition, EventShopPhase } from '../../../types';
+import type { Location, EventDefinition, EventShopPhase } from '../../types';
 
 // ── Location Explore Data ──
 

@@ -3405,7 +3405,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         // Skill check
         if (action.skillCheck) {
-            const playerSkillValue = this.currentState.stats.skills[action.skillCheck.skill] || 0;
+            const playerSkillValue = this.currentState.stats.skills[action.skillCheck.skill as keyof SkillStats] || 0;
             const bonus = (strategy?.skillBonus?.skill === action.skillCheck.skill ? strategy.skillBonus.bonus : 0);
             const result = rollSkillCheck(playerSkillValue, action.skillCheck.difficulty, bonus);
 
