@@ -1,17 +1,15 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import { ScreenType } from './screenTypes';
 import type { Stage } from '../Stage';
-import type { QuestDefinition, ActiveQuest } from '../data';
+import type { QuestDefinition } from '../data';
 import { GameIcon } from './GameIcon';
 
 interface QuestScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
-    startEvent: (eventId: string, target?: string) => void;
 }
 
-export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startEvent }) => {
-    const [, forceUpdate] = useState(0);
+export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType }) => {
     const s = stage();
     const st = s.currentState;
 
@@ -19,29 +17,15 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
     const availableQuests = s.getAvailableQuests();
     const completedQuestIds = st.completedQuests;
 
-    // Get completed quest definitions for display
     const completedQuests = completedQuestIds
         .map(id => s.getQuestDefinition(id))
         .filter((q): q is QuestDefinition => q !== null);
-
-    const handleStartQuest = (questId: string) => {
-        s.startQuest(questId);
-        forceUpdate(n => n + 1);
-    };
-
-    const handleBeginStep = (quest: ActiveQuest) => {
-        const def = s.getQuestDefinition(quest.questId);
-        if (!def) return;
-        const step = def.steps[quest.currentStep];
-        if (!step) return;
-        startEvent(step.eventId);
-    };
 
     return (
         <div className="quests-screen">
             <div className="screen-header">
                 <button className="back-button" onClick={() => setScreenType(ScreenType.MENU)}>
-                    &lt; Menu
+                    <GameIcon icon="chevron-left" size={10} /> Menu
                 </button>
                 <h2>Quests</h2>
                 <div className="header-spacer"></div>
@@ -59,8 +43,8 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                             {activeQuests.map(aq => {
                                 const def = s.getQuestDefinition(aq.questId);
                                 if (!def) return null;
-                                const currentStep = def.steps[aq.currentStep];
                                 const hero = def.heroName ? st.heroes[def.heroName] : null;
+                                const currentStep = def.steps[aq.currentStep];
                                 return (
                                     <div key={aq.questId} className="quest-card quest-active">
                                         <div className="quest-card-header">
@@ -76,7 +60,6 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                             <GameIcon icon={def.icon} size={20} className="quest-icon" />
                                         </div>
 
-                                        {/* Step progress */}
                                         <div className="quest-steps">
                                             {def.steps.map((step, i) => {
                                                 const isCompleted = aq.completedSteps.includes(i);
@@ -110,7 +93,6 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                             })}
                                         </div>
 
-                                        {/* Progress bar */}
                                         <div className="quest-progress-bar">
                                             <div
                                                 className="quest-progress-fill"
@@ -121,15 +103,11 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                             </span>
                                         </div>
 
-                                        {/* Begin step button */}
                                         {currentStep && (
-                                            <button
-                                                className="quest-begin-btn"
-                                                onClick={() => handleBeginStep(aq)}
-                                            >
-                                                <GameIcon icon="play" size={12} />
-                                                {aq.completedSteps.length === 0 ? 'Begin' : 'Continue'}: {currentStep.name}
-                                            </button>
+                                            <div className="quest-next-hint">
+                                                <GameIcon icon="compass" size={10} />
+                                                <span>Head to <strong>{currentStep.location}</strong> to continue</span>
+                                            </div>
                                         )}
                                     </div>
                                 );
@@ -138,12 +116,12 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                     </div>
                 )}
 
-                {/* Available Quests */}
+                {/* Leads — quests available but not yet started */}
                 {availableQuests.length > 0 && (
                     <div className="quest-section">
-                        <h3 className="quest-section-title">
+                        <h3 className="quest-section-title quest-leads-title">
                             <GameIcon icon="compass" size={14} />
-                            Available Quests
+                            Leads
                         </h3>
                         <div className="quest-list">
                             {availableQuests.map(def => {
@@ -162,19 +140,10 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                             </div>
                                             <GameIcon icon={def.icon} size={20} className="quest-icon" />
                                         </div>
-
-                                        <div className="quest-step-preview">
+                                        <div className="quest-next-hint">
                                             <GameIcon icon="map-pin" size={10} />
-                                            <span>Starts in: {def.steps[0]?.location}</span>
+                                            <span>Look for leads in <strong>{def.steps[0]?.location}</strong></span>
                                         </div>
-
-                                        <button
-                                            className="quest-begin-btn quest-accept-btn"
-                                            onClick={() => handleStartQuest(def.id)}
-                                        >
-                                            <GameIcon icon="plus" size={12} />
-                                            Accept Quest
-                                        </button>
                                     </div>
                                 );
                             })}
@@ -209,8 +178,8 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                 {activeQuests.length === 0 && availableQuests.length === 0 && completedQuests.length === 0 && (
                     <div className="quest-empty">
                         <GameIcon icon="scroll" size={32} />
-                        <p>No quests available yet.</p>
-                        <p className="quest-empty-hint">Explore the world to discover questlines.</p>
+                        <p>No quests discovered yet.</p>
+                        <p className="quest-empty-hint">Explore the world to uncover new questlines.</p>
                     </div>
                 )}
             </div>

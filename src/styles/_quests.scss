@@ -225,47 +225,24 @@
       }
     }
 
-    .quest-begin-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(180, 145, 80, 0.08) 100%);
-      border: 1px solid rgba(200, 170, 110, 0.35);
-      border-radius: 4px;
-      color: var(--accent-primary);
-      font-size: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.5px;
-
-      &:hover {
-        background: linear-gradient(135deg, rgba(200, 170, 110, 0.25) 0%, rgba(180, 145, 80, 0.15) 100%);
-        border-color: rgba(200, 170, 110, 0.6);
-        box-shadow: 0 0 8px rgba(200, 170, 110, 0.15);
-      }
-
-      &.quest-accept-btn {
-        background: linear-gradient(135deg, rgba(100, 160, 200, 0.12) 0%, rgba(80, 130, 170, 0.06) 100%);
-        border-color: rgba(100, 160, 200, 0.3);
-        color: #80b8d4;
-
-        &:hover {
-          background: linear-gradient(135deg, rgba(100, 160, 200, 0.22) 0%, rgba(80, 130, 170, 0.14) 100%);
-          border-color: rgba(100, 160, 200, 0.5);
-        }
-      }
-    }
-
-    .quest-step-preview {
+    .quest-next-hint {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 9px;
-      color: var(--text-muted);
+      color: var(--accent-secondary, #8a9abf);
+      font-style: italic;
+      padding: 4px 0;
+
+      strong {
+        font-style: normal;
+        color: var(--text-secondary);
+      }
     }
+  }
+
+  .quest-section-title.quest-leads-title {
+    color: var(--accent-secondary, #8a9abf);
   }
 
   .quest-empty {

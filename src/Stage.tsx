@@ -1432,9 +1432,32 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return def.steps[active.currentStep] || null;
     }
 
-    /** Internal: check if a completed event advances any active quest */
+    /** Internal: check if a completed event advances any active quest, or auto-starts a new one */
     private _checkQuestAdvancement(completedEventId: string): void {
         const st = this.currentState;
+
+        // Auto-start quests organically when their first step's event is completed
+        for (const def of Object.values(this._questRegistry)) {
+            if (st.activeQuests.some(aq => aq.questId === def.id)) continue;
+            if (st.completedQuests.includes(def.id)) continue;
+            if (def.prerequisites && def.prerequisites.length > 0) {
+                if (!def.prerequisites.every(p => this.checkPrerequisite(p))) continue;
+            }
+            if (def.steps[0]?.eventId === completedEventId) {
+                const quest = this.startQuest(def.id);
+                if (quest) {
+                    quest.completedSteps.push(0);
+                    quest.currentStep = 1;
+                    console.log(`[Quest] Auto-started "${def.name}" (step 1 of ${def.steps.length})`);
+                    if (quest.currentStep >= def.steps.length) {
+                        quest.completed = true;
+                        st.completedQuests.push(def.id);
+                        console.log(`[Quest] Completed quest "${def.name}"!`);
+                    }
+                }
+            }
+        }
+
         for (const active of st.activeQuests) {
             if (active.completed) continue;
             const def = this._questRegistry[active.questId];
