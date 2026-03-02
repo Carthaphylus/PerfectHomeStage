@@ -345,7 +345,39 @@ export interface EventPrerequisite {
     check?: (stage: any) => boolean;
 }
 
+// ── Exploration Activity ──
+
+/** A clickable activity shown at an exploration location */
+export interface LocationActivity {
+    id: string;
+    label: string;
+    icon: string;
+    tooltip: string;
+    eventId: string;
+    /** True for activities injected dynamically by the quest system */
+    isQuestActivity?: boolean;
+    /** The static activity ID this replaces while active (used internally by ExploreScreen) */
+    overridesActivityId?: string;
+}
+
 // ── Quest System ──
+
+/** How a quest step appears as an activity on the exploration screen */
+export interface QuestStepActivity {
+    label: string;
+    icon: string;
+    tooltip: string;
+    /** If set, this quest activity replaces the static activity with this ID while the step is active */
+    overridesActivityId?: string;
+    /** If true, this activity persists at the location after the step is complete */
+    persistent?: boolean;
+    /** Event to use for the activity in its post-completion (persistent) state */
+    completedEventId?: string;
+    /** Label override for the persistent state */
+    completedLabel?: string;
+    /** Tooltip override for the persistent state */
+    completedTooltip?: string;
+}
 
 /** A single step in a quest chain */
 export interface QuestStepDefinition {
@@ -355,6 +387,8 @@ export interface QuestStepDefinition {
     eventId: string;
     location: Location;
     icon: string;
+    /** How this step appears as a clickable activity on the exploration screen */
+    activity?: QuestStepActivity;
 }
 
 /** Full quest definition */

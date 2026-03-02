@@ -1494,6 +1494,57 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
     }
 
+    /**
+     * Returns dynamic activities for a location, injected by the quest system.
+     * - Current-step activities: shown while that step is the active quest step.
+     * - Persistent activities: shown after step completion when persistent + completedEventId are set.
+     */
+    getQuestActivitiesForLocation(location: Location): LocationActivity[] {
+        const st = this.currentState;
+        const result: LocationActivity[] = [];
+
+        // Activities for each active quest's current step
+        for (const aq of this.getActiveQuests()) {
+            const def = this._questRegistry[aq.questId];
+            if (!def) continue;
+            const step = def.steps[aq.currentStep];
+            if (!step || step.location !== location || !step.activity) continue;
+            result.push({
+                id: `quest_${aq.questId}_step_${aq.currentStep}`,
+                label: step.activity.label,
+                icon: step.activity.icon,
+                tooltip: step.activity.tooltip,
+                eventId: step.eventId,
+                isQuestActivity: true,
+                overridesActivityId: step.activity.overridesActivityId,
+            });
+        }
+
+        // Persistent activities from completed steps (e.g. a location unlocked after a quest stage)
+        for (const aq of st.activeQuests) {
+            const def = this._questRegistry[aq.questId];
+            if (!def) continue;
+            for (const stepIdx of aq.completedSteps) {
+                const step = def.steps[stepIdx];
+                if (!step || step.location !== location) continue;
+                const act = step.activity;
+                if (!act?.persistent || !act.completedEventId) continue;
+                // Don't show if the follow-up event is also already done
+                if (st.completedEvents.includes(act.completedEventId)) continue;
+                result.push({
+                    id: `quest_${aq.questId}_persistent_${stepIdx}`,
+                    label: act.completedLabel || act.label,
+                    icon: step.icon,
+                    tooltip: act.completedTooltip || act.tooltip,
+                    eventId: act.completedEventId,
+                    isQuestActivity: true,
+                });
+            }
+        }
+
+        return result;
+    }
+
     /** Start an event. Returns the initial ActiveEvent state (React should own this). */
     startEvent(definitionId: string, target?: string): ActiveEvent | null {
         const def = this._eventRegistry[definitionId];

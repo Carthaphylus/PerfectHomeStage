@@ -38,6 +38,22 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
     const exploreData = EXPLORE_DATA[location];
     const bgImage = LOCATION_BACKGROUNDS[location] || LOCATION_BACKGROUNDS['Unknown'];
 
+    // Merge static activities with quest-injected ones.
+    // Quest activities that declare overridesActivityId replace the static activity at the same slot;
+    // pure additions are appended at the end.
+    const questActivities = exploreData ? stage().getQuestActivitiesForLocation(location) : [];
+    const overrideMap = new Map(
+        questActivities
+            .filter(a => a.overridesActivityId)
+            .map(a => [a.overridesActivityId as string, a])
+    );
+    const allActivities: LocationActivity[] = exploreData
+        ? [
+            ...exploreData.activities.map(a => overrideMap.get(a.id) ?? a),
+            ...questActivities.filter(a => !a.overridesActivityId),
+          ]
+        : [];
+
     // Set the game location state
     useEffect(() => {
         stage().currentState.location = location;
@@ -47,21 +63,20 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (!exploreData || !introComplete) return;
 
-        const activities = exploreData.activities;
         if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
             e.preventDefault();
-            setSelectedActivity(prev => Math.min(prev + 1, activities.length - 1));
+            setSelectedActivity(prev => Math.min(prev + 1, allActivities.length - 1));
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
             e.preventDefault();
             setSelectedActivity(prev => Math.max(prev - 1, 0));
         } else if (e.key === 'Enter' && selectedActivity >= 0) {
             e.preventDefault();
-            handleActivityClick(activities[selectedActivity]);
+            handleActivityClick(allActivities[selectedActivity]);
         } else if (e.key === 'Escape') {
             e.preventDefault();
             setScreenType(ScreenType.WORLD_MAP);
         }
-    }, [exploreData, introComplete, selectedActivity]);
+    }, [exploreData, introComplete, selectedActivity, allActivities]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
@@ -141,10 +156,10 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
                         <span className="activities-label">What would you like to do?</span>
                     </div>
                     <div className="activities-list">
-                        {exploreData.activities.map((activity, index) => (
+                        {allActivities.map((activity, index) => (
                             <button
                                 key={activity.id}
-                                className={`activity-button ${selectedActivity === index ? 'selected' : ''}`}
+                                className={`activity-button ${selectedActivity === index ? 'selected' : ''} ${activity.isQuestActivity ? 'quest-activity' : ''}`}
                                 onClick={() => handleActivityClick(activity)}
                                 onMouseEnter={() => setSelectedActivity(index)}
                             >

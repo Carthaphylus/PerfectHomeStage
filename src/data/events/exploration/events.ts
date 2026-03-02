@@ -1,18 +1,12 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition, EventShopPhase } from '../../types';
+import type { Location, EventDefinition, EventShopPhase, LocationActivity } from '../../types';
+
+// Re-export so ExploreScreen can keep its existing import path
+export type { LocationActivity };
 
 // ── Location Explore Data ──
-
-/** A clickable activity at an exploration location */
-export interface LocationActivity {
-    id: string;
-    label: string;
-    icon: string;
-    tooltip: string;
-    eventId: string;
-}
 
 /** Hub configuration for a single explorable location */
 export interface LocationExploreData {
