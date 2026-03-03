@@ -440,14 +440,21 @@ export const EventScreen: FC<EventScreenProps> = ({ stage, event, setScreenType,
     const currentStep: EventStep = def.steps[event.currentStepId];
     const pcName = stage().currentState.playerCharacter.name;
 
-    // Resolve visible choices (filter by item requirements)
+    // Resolve visible choices (filter by item requirements and optional condition callback)
     const visibleChoices: EventChoice[] = useMemo(() => {
         if (!currentStep?.choices) return [];
+        const ctx = {
+            stage: stage(),
+            target: event.target,
+            eventId: event.definitionId,
+            vars: event.vars,
+        };
         return currentStep.choices.filter(c => {
             if (c.requiresItem && !stage().hasItem(c.requiresItem)) return false;
+            if (c.condition && !c.condition(ctx)) return false;
             return true;
         });
-    }, [currentStep, event.currentStepId]);
+    }, [currentStep, event.currentStepId, event.vars]);
 
     // Get character portrait
     const speakerAvatar = currentStep?.speaker

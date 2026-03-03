@@ -38,6 +38,12 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
     const exploreData = EXPLORE_DATA[location];
     const bgImage = LOCATION_BACKGROUNDS[location] || LOCATION_BACKGROUNDS['Unknown'];
 
+    // Filter activities whose prerequisites (if any) are currently satisfied.
+    const visibleActivities = exploreData?.activities.filter(a => {
+        if (!a.prerequisites || a.prerequisites.length === 0) return true;
+        return a.prerequisites.every(p => stage().checkPrerequisite(p));
+    }) ?? [];
+
     // Set the game location state
     useEffect(() => {
         stage().currentState.location = location;
@@ -47,16 +53,15 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (!exploreData || !introComplete) return;
 
-        const activities = exploreData.activities;
         if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
             e.preventDefault();
-            setSelectedActivity(prev => Math.min(prev + 1, activities.length - 1));
+            setSelectedActivity(prev => Math.min(prev + 1, visibleActivities.length - 1));
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
             e.preventDefault();
             setSelectedActivity(prev => Math.max(prev - 1, 0));
         } else if (e.key === 'Enter' && selectedActivity >= 0) {
             e.preventDefault();
-            handleActivityClick(activities[selectedActivity]);
+            handleActivityClick(visibleActivities[selectedActivity]);
         } else if (e.key === 'Escape') {
             e.preventDefault();
             setScreenType(ScreenType.WORLD_MAP);
@@ -141,7 +146,7 @@ export const ExploreScreen: FC<ExploreScreenProps> = ({ stage, location, setScre
                         <span className="activities-label">What would you like to do?</span>
                     </div>
                     <div className="activities-list">
-                        {exploreData.activities.map((activity, index) => (
+                        {visibleActivities.map((activity, index) => (
                             <button
                                 key={activity.id}
                                 className={`activity-button ${selectedActivity === index ? 'selected' : ''}`}

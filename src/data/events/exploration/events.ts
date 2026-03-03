@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition, EventShopPhase } from '../../types';
+import type { Location, EventDefinition, EventShopPhase, EventPrerequisite } from '../../types';
 
 // ── Location Explore Data ──
 
@@ -12,6 +12,12 @@ export interface LocationActivity {
     icon: string;
     tooltip: string;
     eventId: string;
+    /**
+     * Optional gate conditions. If set, the activity is only shown when ALL
+     * prerequisites pass. Evaluated live against the current stage state.
+     * Use `custom` prerequisites for quest-step checks.
+     */
+    prerequisites?: EventPrerequisite[];
 }
 
 /** Hub configuration for a single explorable location */
@@ -24,12 +30,26 @@ export interface LocationExploreData {
 
 // ── Location Hub Definitions ──
 
+// ── Quest prerequisite helpers ──
+
+/** Returns a prerequisite that passes only while the given quest is active on the given step index. */
+function questStepActive(questId: string, stepIndex: number): EventPrerequisite {
+    return {
+        type: 'custom',
+        check: (stage: any) => {
+            const aq = stage.currentState.activeQuests.find((q: any) => q.questId === questId);
+            return aq != null && !aq.completed && aq.currentStep === stepIndex;
+        },
+    };
+}
+
 export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
     Town: {
         location: 'Town',
         name: 'Town',
         intro: '*You arrive at the bustling town square. Merchants hawk their wares, townsfolk hurry about their errands, and the scent of fresh bread mingles with wood-smoke in the air. Somewhere amid the stalls, you can hear a bright, squeaky voice advertising "Pip\'s Emporium of Wonders and Sundries!" — a familiar haunt for anyone with gold to spend and discretion to spare.*',
         activities: [
+            // ── Permanent activities ──
             {
                 id: 'town_market',
                 label: 'Visit Pip\'s Emporium',
@@ -50,6 +70,50 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 icon: 'wine',
                 tooltip: 'Rest and listen for rumors at the local inn.',
                 eventId: 'explore_town_tavern',
+            },
+            // ── Temporary quest activities — The Shadow's Trail (quest_sable) ──
+            // Each activity is only visible while the matching quest step is current.
+            // It disappears automatically once the step is completed because
+            // currentStep advances and the prerequisite no longer passes.
+            {
+                id: 'sable_q1_rumors',
+                label: 'Inquire About the Phantom Thief',
+                icon: 'message-circle',
+                tooltip: '[Quest] The barkeep mentioned a cat burglar working the district. Follow up on those leads.',
+                eventId: 'quest_sable_01_rumors',
+                prerequisites: [questStepActive('quest_sable', 0)],
+            },
+            {
+                id: 'sable_q2_stakeout',
+                label: 'Stake Out the Market District',
+                icon: 'eye',
+                tooltip: '[Quest] Wait by the evening market and watch for the thief\'s tell-tale patterns.',
+                eventId: 'quest_sable_02_stakeout',
+                prerequisites: [questStepActive('quest_sable', 1)],
+            },
+            {
+                id: 'sable_q3_chase',
+                label: 'Give Chase — Sable\'s Been Spotted!',
+                icon: 'zap',
+                tooltip: '[Quest] The phantom thief has been sighted. Sprint across rooftops and alleys before he vanishes.',
+                eventId: 'quest_sable_03_chase',
+                prerequisites: [questStepActive('quest_sable', 2)],
+            },
+            {
+                id: 'sable_q4_den',
+                label: 'Search for Sable\'s Hidden Den',
+                icon: 'door-open',
+                tooltip: '[Quest] Comb the warehouse district for signs of the thief\'s lair.',
+                eventId: 'quest_sable_04_den',
+                prerequisites: [questStepActive('quest_sable', 3)],
+            },
+            {
+                id: 'sable_q5_confrontation',
+                label: 'Storm the Den — Final Confrontation',
+                icon: 'crosshair',
+                tooltip: '[Quest] You know where Sable is hiding. Move in and corner him before he can run.',
+                eventId: 'quest_sable_05_confrontation',
+                prerequisites: [questStepActive('quest_sable', 4)],
             },
         ],
     },
@@ -239,6 +303,28 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
                     tooltip: 'See what\'s hidden beneath.',
                     nextStep: 'found_stash',
                 },
+                // ── PERMANENT — visible during quest step 4 (Den), lets player scout the warehouse district ──
+                {
+                    id: 'scout_warehouses',
+                    label: 'Head to the Warehouse District',
+                    tooltip: '[Quest] The barkeep mentioned the east-side grain storage. Sable\'s den is somewhere around there.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && !aq.completed && aq.currentStep === 3;
+                    },
+                    nextStep: 'warehouse_scout',
+                },
+                // ── PERMANENT — visible after step 4 (Den) completed, post-quest flavor ──
+                {
+                    id: 'pass_den',
+                    label: 'Walk Past the Old Warehouse',
+                    tooltip: 'You know what\'s in there now. Hard not to think about it.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && aq.currentStep > 3;
+                    },
+                    nextStep: 'den_recall',
+                },
                 {
                     id: 'ignore',
                     label: 'Keep Walking',
@@ -257,6 +343,23 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
             id: 'keep_walking',
             text: '*You continue your walk, enjoying the relative anonymity of the crowded streets. Near the town gate, a merchant offers you a sample of an herbal tea — not bad. The warmth settles your nerves and sharpens your focus.*\n\n*A pleasant enough outing.*',
             effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — appear during step 4 of The Shadow's Trail ──
+        warehouse_scout: {
+            id: 'warehouse_scout',
+            text: '*You cut through the market alley and into the warren of narrow lanes that border the east-side docks. The afternoon air smells of brine and sawdust. Boarded-up storefronts and stacked crates crowd the passages.*\n\n*You slow your pace, scanning each building face. Old grain storage, the barkeep said. You count the loading bays, reading the rust patterns on the iron rings.*\n\n*There — a section of wall where the mortar is slightly too fresh. A replaced stone, recently disturbed. You crouch and examine the base of the door beside it: faint scratch marks on the flagstone, the kind a lock-pick leaves.*\n\n*You\'ve found the entrance.*\n\n*You memorize the location — the cracked sign of a defunct chandler\'s shop, two crates branded with a saltfish merchant\'s mark. You can find this again. Tonight.*',
+            onEnter: (ctx) => {
+                // Scouting the warehouse district organically completes the Den step
+                ctx.stage.markEventCompleted('quest_sable_04_den');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT post-quest flavor — appears after step 4 is done ──
+        den_recall: {
+            id: 'den_recall',
+            text: '*You pass the old chandler\'s sign without breaking stride, hands in your pockets.*\n\n*The entrance is barely visible if you know what to look for — that too-fresh mortar, the faint scratch-marks. Someone has been here since you last visited; there\'s a new scuff on the flagstone, a small feather lodged in the door-crack.*\n\n*You file it away and keep walking. The city has a short memory. But you don\'t.*',
             isEnding: true,
         },
     },
@@ -280,6 +383,28 @@ const EXPLORE_TOWN_TAVERN: EventDefinition = {
                     tooltip: 'What\'s the word around town?',
                     nextStep: 'rumors',
                 },
+                // ── PERMANENT — visible during quest step 1, leads to organic quest completion ──
+                {
+                    id: 'ask_sable_rumors',
+                    label: 'Press Her on the Phantom Thief',
+                    tooltip: '[Quest] You\'ve accepted a hunt for an elusive cat burglar. The barkeep might know something.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && !aq.completed && aq.currentStep === 0;
+                    },
+                    nextStep: 'sable_barkeep_lead',
+                },
+                // ── PERMANENT — visible after quest step 1, post-quest flavor ──
+                {
+                    id: 'recall_phantom',
+                    label: 'Ask If There\'s Any Word on That Thief',
+                    tooltip: 'You remember those early leads — curious if the barkeep has heard anything since.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && aq.currentStep > 0;
+                    },
+                    nextStep: 'sable_followup_flavor',
+                },
                 {
                     id: 'drink',
                     label: 'Just Drink',
@@ -301,6 +426,26 @@ const EXPLORE_TOWN_TAVERN: EventDefinition = {
             id: 'relax',
             text: '*You lean back and nurse your ale, letting the ambient warmth of the tavern wash over you. There\'s something restorative about simply sitting and breathing. The tension drains from your shoulders.*\n\n*When you finally leave, you feel refreshed — your magical reserves subtly replenished.*',
             effects: [{ type: 'custom', target: 'mana', value: 15 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — appear during step 1 of The Shadow's Trail ──
+        sable_barkeep_lead: {
+            id: 'sable_barkeep_lead',
+            text: '*You lower your voice and lean across the bar.*\n\n"I\'m looking for a particular thief. Goes by nothing, leaves calling cards — small silver cat silhouettes. Works the market district after dark."\n\n*The barmaid\'s expression shifts. She sets down her rag and studies you for a moment.*\n\n"Oh, *that* one." *She glances around the room, then drops her voice.* "Half the merchants are terrified of him. Quick as smoke, quiet as a shadow. Calls himself Sable — I heard that from Garren the fishmonger, who lost a pouch of silver to him last week."\n\n*She leans closer.* "Word is he keeps to the warehouse district on the east side. Has a den tucked in somewhere around the old grain storage. Hasn\'t been spotted in a week, but the calling cards keep showing up."\n\n*She straightens and picks up her rag again.* "You didn\'t hear any of that from me."',
+            onEnter: (ctx) => {
+                // Completing this path grants the same quest advancement as the full step 1 event
+                ctx.stage.markEventCompleted('quest_sable_01_rumors');
+            },
+            effects: [
+                { type: 'modify_gold', value: -10 },
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+            ],
+            isEnding: true,
+        },
+        // ── PERMANENT post-quest flavor — appears after step 1 is done ──
+        sable_followup_flavor: {
+            id: 'sable_followup_flavor',
+            text: '*The barmaid glances up at you.*\n\n"The phantom thief? Oh, people are still talking about him." *She shrugs, polishing a glass.* "Though the calling cards have slowed down lately. Some say he\'s gone to ground — knows someone is on to him."\n\n*She gives you a knowing look.* "You wouldn\'t know anything about that, would you?"\n\n*You smile and say nothing. She laughs.*\n\n"Thought so."',
             isEnding: true,
         },
     },
