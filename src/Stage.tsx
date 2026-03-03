@@ -1432,32 +1432,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return def.steps[active.currentStep] || null;
     }
 
-    /** Internal: check if a completed event advances any active quest, or auto-starts a new one */
+    /** Internal: check if a completed event advances any active quest */
     private _checkQuestAdvancement(completedEventId: string): void {
         const st = this.currentState;
-
-        // Auto-start quests organically when their first step's event is completed
-        for (const def of Object.values(this._questRegistry)) {
-            if (st.activeQuests.some(aq => aq.questId === def.id)) continue;
-            if (st.completedQuests.includes(def.id)) continue;
-            if (def.prerequisites && def.prerequisites.length > 0) {
-                if (!def.prerequisites.every(p => this.checkPrerequisite(p))) continue;
-            }
-            if (def.steps[0]?.eventId === completedEventId) {
-                const quest = this.startQuest(def.id);
-                if (quest) {
-                    quest.completedSteps.push(0);
-                    quest.currentStep = 1;
-                    console.log(`[Quest] Auto-started "${def.name}" (step 1 of ${def.steps.length})`);
-                    if (quest.currentStep >= def.steps.length) {
-                        quest.completed = true;
-                        st.completedQuests.push(def.id);
-                        console.log(`[Quest] Completed quest "${def.name}"!`);
-                    }
-                }
-            }
-        }
-
         for (const active of st.activeQuests) {
             if (active.completed) continue;
             const def = this._questRegistry[active.questId];
@@ -1492,58 +1469,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }
             }
         }
-    }
-
-    /**
-     * Returns dynamic activities for a location, injected by the quest system.
-     * - Current-step activities: shown while that step is the active quest step.
-     * - Persistent activities: shown after step completion when persistent + completedEventId are set.
-     */
-    getQuestActivitiesForLocation(location: Location): LocationActivity[] {
-        const st = this.currentState;
-        const result: LocationActivity[] = [];
-
-        // Activities for each active quest's current step
-        for (const aq of this.getActiveQuests()) {
-            const def = this._questRegistry[aq.questId];
-            if (!def) continue;
-            const step = def.steps[aq.currentStep];
-            if (!step || step.location !== location || !step.activity) continue;
-            result.push({
-                id: `quest_${aq.questId}_step_${aq.currentStep}`,
-                label: step.activity.label,
-                icon: step.activity.icon,
-                tooltip: step.activity.tooltip,
-                eventId: step.eventId,
-                isQuestActivity: true,
-                overridesActivityId: step.activity.overridesActivityId,
-                parentActivityId: step.activity.parentActivityId,
-            });
-        }
-
-        // Persistent activities from completed steps (e.g. a location unlocked after a quest stage)
-        for (const aq of st.activeQuests) {
-            const def = this._questRegistry[aq.questId];
-            if (!def) continue;
-            for (const stepIdx of aq.completedSteps) {
-                const step = def.steps[stepIdx];
-                if (!step || step.location !== location) continue;
-                const act = step.activity;
-                if (!act?.persistent || !act.completedEventId) continue;
-                // Don't show if the follow-up event is also already done
-                if (st.completedEvents.includes(act.completedEventId)) continue;
-                result.push({
-                    id: `quest_${aq.questId}_persistent_${stepIdx}`,
-                    label: act.completedLabel || act.label,
-                    icon: step.icon,
-                    tooltip: act.completedTooltip || act.tooltip,
-                    eventId: act.completedEventId,
-                    isQuestActivity: true,
-                });
-            }
-        }
-
-        return result;
     }
 
     /** Start an event. Returns the initial ActiveEvent state (React should own this). */

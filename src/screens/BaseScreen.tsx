@@ -165,7 +165,7 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
 
             {/* Quest screen */}
             {screenType === ScreenType.QUESTS && (
-                <QuestScreen stage={stage} setScreenType={setScreenType} />
+                <QuestScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} />
             )}
 
             {/* Explore screen */}

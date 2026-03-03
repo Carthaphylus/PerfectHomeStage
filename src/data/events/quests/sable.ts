@@ -921,13 +921,6 @@ export const SABLE_QUEST: QuestDefinition = {
             eventId: 'quest_sable_01_rumors',
             location: 'Town',
             icon: 'message-circle',
-            // Adds a quest sub-choice inside the tavern ("Just Drink" / "Ask about a Thief")
-            activity: {
-                label: 'Ask about a Thief',
-                icon: 'message-circle',
-                tooltip: 'Probe the barkeep about the mysterious phantom thief haunting the market.',
-                parentActivityId: 'town_tavern',
-            },
         },
         {
             id: 'stakeout',
@@ -936,12 +929,6 @@ export const SABLE_QUEST: QuestDefinition = {
             eventId: 'quest_sable_02_stakeout',
             location: 'Town',
             icon: 'eye',
-            // New temporary activity — disappears once the step is done
-            activity: {
-                label: 'Stake Out the Market',
-                icon: 'eye',
-                tooltip: 'Watch the night market from the shadows — look for patterns in the crowd.',
-            },
         },
         {
             id: 'chase',
@@ -950,11 +937,6 @@ export const SABLE_QUEST: QuestDefinition = {
             eventId: 'quest_sable_03_chase',
             location: 'Town',
             icon: 'zap',
-            activity: {
-                label: 'Follow the Shadow',
-                icon: 'zap',
-                tooltip: 'A figure was spotted fleeing across the rooftops — pursue before he disappears.',
-            },
         },
         {
             id: 'den',
@@ -962,17 +944,7 @@ export const SABLE_QUEST: QuestDefinition = {
             description: 'Find and breach Sable\'s hidden den in the warehouse district.',
             eventId: 'quest_sable_04_den',
             location: 'Town',
-            icon: 'search',
-            activity: {
-                label: "Search for the Den",
-                icon: 'search',
-                tooltip: 'Track Sable to his hidden base somewhere in the warehouse district.',
-                // After this step completes, the den remains as a permanent location leading to the confrontation
-                persistent: true,
-                completedEventId: 'quest_sable_05_confrontation',
-                completedLabel: 'Enter the Den',
-                completedTooltip: "You know where Sable's den is. Time to end this.",
-            },
+            icon: 'door-open',
         },
         {
             id: 'confrontation',
@@ -981,7 +953,6 @@ export const SABLE_QUEST: QuestDefinition = {
             eventId: 'quest_sable_05_confrontation',
             location: 'Town',
             icon: 'crosshair',
-            // No separate activity — accessed via the persistent "Enter the Den" from step 4
         },
     ],
 };

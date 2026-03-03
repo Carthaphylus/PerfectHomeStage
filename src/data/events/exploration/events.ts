@@ -1,12 +1,18 @@
 // ──────────────────────────────────────────
 // EXPLORATION SYSTEM — Location Activities & Events
 // ──────────────────────────────────────────
-import type { Location, EventDefinition, EventShopPhase, LocationActivity } from '../../types';
-
-// Re-export so ExploreScreen can keep its existing import path
-export type { LocationActivity };
+import type { Location, EventDefinition, EventShopPhase } from '../../types';
 
 // ── Location Explore Data ──
+
+/** A clickable activity at an exploration location */
+export interface LocationActivity {
+    id: string;
+    label: string;
+    icon: string;
+    tooltip: string;
+    eventId: string;
+}
 
 /** Hub configuration for a single explorable location */
 export interface LocationExploreData {
@@ -41,7 +47,6 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
             {
                 id: 'town_tavern',
                 label: 'Visit the Tavern',
-                subLabel: 'Just Drink',
                 icon: 'wine',
                 tooltip: 'Rest and listen for rumors at the local inn.',
                 eventId: 'explore_town_tavern',
