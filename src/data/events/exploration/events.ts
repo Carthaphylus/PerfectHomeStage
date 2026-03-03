@@ -291,6 +291,17 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
                     },
                     nextStep: 'den_recall',
                 },
+                // ── Veridian quest step 1 — spot her preaching in the square ──
+                {
+                    id: 'veridian_sermon',
+                    label: 'A Crowd is Gathered Around a Preacher',
+                    tooltip: '[Quest] A traveling cleric has drawn a crowd in the square. Could be worth a listen.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_veridian');
+                        return aq != null && !aq.completed && aq.currentStep === 0;
+                    },
+                    nextStep: 'veridian_sermon_encounter',
+                },
                 {
                     id: 'ignore',
                     label: 'Keep Walking',
@@ -348,6 +359,16 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
             text: '*You pass the old chandler\'s sign without breaking stride, hands in your pockets.*\n\n*The entrance is barely visible if you know what to look for — that too-fresh mortar, the faint scratch-marks. Someone has been here since you last visited; there\'s a new scuff on the flagstone, a small feather lodged in the door-crack.*\n\n*You file it away and keep walking. The city has a short memory. But you don\'t.*',
             isEnding: true,
         },
+        // ── PERMANENT quest step — Veridian step 1 (sermon) ──
+        veridian_sermon_encounter: {
+            id: 'veridian_sermon_encounter',
+            text: '*The small crowd parts enough for you to hear her clearly — a doe with dappled brown fur and a travelling staff, standing on the low fountain wall.*\n\n*"...and fear is a choice. It masquerades as wisdom, but it is not wisdom — it is the absence of it. The manor on the hill has not harmed you. Your fear of it has."*\n\n*A few people grumble. A few nod. She steps down when the energy shifts, and catches your eye with quiet directness.*\n\n*"You were listening," she says. "Most people aren\'t."*\n\n*She introduces herself as Veridian — a cleric of the Forest Shrine, passing through to study the local spiritual disturbance. Principled, practical, and clearly unafraid of you.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_veridian_01_sermon');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
     },
 };
 
@@ -391,6 +412,28 @@ const EXPLORE_TOWN_TAVERN: EventDefinition = {
                     },
                     nextStep: 'sable_followup_flavor',
                 },
+                // ── Veridian quest step 2 — find her in the tavern mid-debate ──
+                {
+                    id: 'veridian_debate',
+                    label: 'A Cleric is Arguing With Someone',
+                    tooltip: '[Quest] A heated theological debate is happening in the corner. The deer looks like she could use backup.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_veridian');
+                        return aq != null && !aq.completed && aq.currentStep === 1;
+                    },
+                    nextStep: 'veridian_debate_encounter',
+                },
+                // ── Pervis quest step 1 — gather intel about the ruins encampment ──
+                {
+                    id: 'pervis_intel',
+                    label: 'Listen for Word About the Ruins',
+                    tooltip: '[Quest] Merchants have been avoiding the northern road. Someone at this bar knows why.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_pervis');
+                        return aq != null && !aq.completed && aq.currentStep === 0;
+                    },
+                    nextStep: 'pervis_intel_gather',
+                },
                 {
                     id: 'drink',
                     label: 'Just Drink',
@@ -432,6 +475,29 @@ const EXPLORE_TOWN_TAVERN: EventDefinition = {
         sable_followup_flavor: {
             id: 'sable_followup_flavor',
             text: '*The barmaid glances up at you.*\n\n"The phantom thief? Oh, people are still talking about him." *She shrugs, polishing a glass.* "Though the calling cards have slowed down lately. Some say he\'s gone to ground — knows someone is on to him."\n\n*She gives you a knowing look.* "You wouldn\'t know anything about that, would you?"\n\n*You smile and say nothing. She laughs.*\n\n"Thought so."',
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Veridian step 2 (debate) ──
+        veridian_debate_encounter: {
+            id: 'veridian_debate_encounter',
+            text: '*In the far corner, a doe in traveling clothes is deep in argument with a red-faced merchant. Her staff is propped against the wall; her hands are folded with careful patience on the table.*\n\n*"...burning the manor doesn\'t solve the problem," she\'s saying. "It relocates it. You cannot defeat something by giving it a reason to return angry."*\n\n*The merchant splutters. She spots you and, for just a moment, her expression asks a question.*\n\n*You sit down. Between the two of you, the argument winds down in a few minutes. When the merchant leaves, she lets out a long breath.*\n\n*"Veridian," she says. "Thank you. He\'s been at this for an hour." She tilts her head. "You\'re the one from the square, aren\'t you? I thought you might show up here."*\n\n*She mentions her plans: Forest Shrine, two days from now. A spiritual disturbance she needs to investigate directly.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_veridian_02_debate');
+            },
+            effects: [
+                { type: 'modify_skill', target: 'charm', value: 1 },
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+            ],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Pervis step 1 (intel) ──
+        pervis_intel_gather: {
+            id: 'pervis_intel_gather',
+            text: '*You lean back and let the conversation flow around you. Three separate threads confirm the same picture: a small force has occupied the old ruins, turned back two trading convoys, and set perimeter markers along the northern access roads.*\n\n*A carter who tried the route last week shakes his head over his ale. "Polite about it. Very polite. But not moving, either. Their commander — some composed rabbit fellow — just looked at you until you decided to turn around. Didn\'t say a word."*\n\n*You buy him another drink and let him keep talking. By the end of the evening, you have a solid picture: organized, patient, methodical. A full tactical setup, not a simple bandit camp.*\n\n*Whoever is in those ruins planned this carefully.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_pervis_01_intel');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
             isEnding: true,
         },
     },
@@ -485,6 +551,39 @@ const EXPLORE_WOODS_TRAIL: EventDefinition = {
                     tooltip: 'Better safe than sorry.',
                     nextStep: 'retreat',
                 },
+                // ── Kova quest step 1 — find wolf territorial markers ──
+                {
+                    id: 'kova_wolf_signs',
+                    label: 'Examine the Claw Marks on the Trees',
+                    tooltip: '[Quest] These aren\'t ordinary animal scratches — they\'re arranged too precisely.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_kova');
+                        return aq != null && !aq.completed && aq.currentStep === 0;
+                    },
+                    nextStep: 'kova_wolfpack_signs',
+                },
+                // ── Kova quest step 3 — spot Kova from cover ──
+                {
+                    id: 'kova_alpha_watch',
+                    label: 'Observe the Clearing Ahead',
+                    tooltip: '[Quest] You can hear the pack moving beyond the next ridge. Worth taking a careful look.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_kova');
+                        return aq != null && !aq.completed && aq.currentStep === 2;
+                    },
+                    nextStep: 'kova_sighting_encounter',
+                },
+                // ── Veridian quest step 3 — find her trail into the woods ──
+                {
+                    id: 'veridian_trail_marks',
+                    label: 'These Marks Look Navigational, Not Territorial',
+                    tooltip: '[Quest] Small carved marks on the bark — someone is leaving themselves a path to follow back.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_veridian');
+                        return aq != null && !aq.completed && aq.currentStep === 2;
+                    },
+                    nextStep: 'veridian_trail_found',
+                },
             ],
         },
         deeper: {
@@ -500,6 +599,39 @@ const EXPLORE_WOODS_TRAIL: EventDefinition = {
             id: 'retreat',
             text: '*Discretion being the better part of valor, you decide not to follow the unknown trail. On the way back, you spot a patch of useful herbs growing beside the path — not a wasted trip after all.*',
             effects: [{ type: 'add_item', target: 'Dreamcatcher Herb', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Kova step 1 (wolfpack) ──
+        kova_wolfpack_signs: {
+            id: 'kova_wolfpack_signs',
+            text: '*You crouch beside the marked oak and study the gouges — not random scratches, but deliberate notches cut at precise heights and intervals. You follow the line to a second tree, then a third. A perimeter.*\n\n*Someone is mapping territory the way a general maps a battlefield. The woodsmen\'s stories about an organized wolf pack suddenly seem a great deal more credible.*\n\n*You note the bearing and back away quietly. Whatever is out here, it watches its own borders.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_kova_01_wolfpack');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Kova step 3 (sighting) ──
+        kova_sighting_encounter: {
+            id: 'kova_sighting_encounter',
+            text: '*You move carefully to the ridge and find cover in the canopy above. Below, in a wide clearing, a wolf pack runs its afternoon routines — patrol rotations, drills, a brief disciplinary moment dispatched with one sharp sound.*\n\n*Then she comes out.*\n\n*Kova. Exactly as described: massive, scarred, moving like something that has never been unsure of its footing. She surveys the camp and every wolf in it straightens. She says nothing. She doesn\'t need to.*\n\n*You watch her for twenty minutes. Impulsive in bursts, controlled in aggregate. Leads through display. Her weakness is pride — you can see it in the way she absorbs each acknowledgment from the pack.*\n\n*That\'s the key. File it away.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_kova_03_sighting');
+            },
+            effects: [
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+                { type: 'modify_skill', target: 'charm', value: 1 },
+            ],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Veridian step 3 (trail) ──
+        veridian_trail_found: {
+            id: 'veridian_trail_found',
+            text: '*You follow the navigational marks through the undergrowth — carved at eye level, subtle enough to miss if you weren\'t looking. They lead you to a small sunny clearing where Veridian is sitting against a tree, staff across her knees, apparently at rest.*\n\n*She opens her eyes before you\'re within ten meters.*\n\n*"I left those marks in case I needed to find my way back," she says. "I didn\'t expect anyone to follow them." A pause. "Though I suppose I\'m not surprised it was you."*\n\n*She explains what she\'s heading toward: the Forest Shrine, an hour north. A spiritual resonance disturbance she needs to examine directly. She mentions it the way someone mentions the weather — as plain fact, plainly concerning.*\n\n*"You\'re welcome to come," she says. "I\'d rather not walk alone into the deep woods."*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_veridian_03_trail');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
             isEnding: true,
         },
     },
@@ -535,6 +667,39 @@ const EXPLORE_WOODS_HUNT: EventDefinition = {
                     tooltip: 'Lay a trap and wait. Slower but more reliable.',
                     nextStep: 'snare_result',
                 },
+                // ── Kova quest step 2 — map the pack's territory ──
+                {
+                    id: 'kova_territory',
+                    label: 'These Aren\'t Deer Tracks',
+                    tooltip: '[Quest] Wolf prints — large ones, in disciplined formation. This is pack territory.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_kova');
+                        return aq != null && !aq.completed && aq.currentStep === 1;
+                    },
+                    nextStep: 'kova_territory_tracks',
+                },
+                // ── Kova quest step 4 — encounter the lieutenant ──
+                {
+                    id: 'kova_lieutenant',
+                    label: 'Something is Tracking You',
+                    tooltip: '[Quest] You\'ve been in the pack\'s territory long enough — they\'ve noticed.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_kova');
+                        return aq != null && !aq.completed && aq.currentStep === 3;
+                    },
+                    nextStep: 'kova_lieutenant_encounter',
+                },
+                // ── Veridian quest step 4 — find her at the shrine ──
+                {
+                    id: 'veridian_shrine',
+                    label: 'A Soft Glow Through the Trees',
+                    tooltip: '[Quest] Light that isn\'t sunlight. Someone is working at the old standing stones.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_veridian');
+                        return aq != null && !aq.completed && aq.currentStep === 3;
+                    },
+                    nextStep: 'veridian_shrine_found',
+                },
             ],
         },
         hunt_success: {
@@ -558,6 +723,39 @@ const EXPLORE_WOODS_HUNT: EventDefinition = {
             id: 'snare_result',
             text: '*You fashion a simple snare from vine and cord, placing it along the trail. After a patient wait, you\'re rewarded — a plump rabbit, tangled in the line.*\n\n*You trade it at the woodsman\'s hut for a few coins. Modest, but reliable.*',
             effects: [{ type: 'modify_gold', value: 15 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Kova step 2 (territory) ──
+        kova_territory_tracks: {
+            id: 'kova_territory_tracks',
+            text: '*You crouch beside the tracks and study them: large, widely-spaced wolf prints — but what stops you is the pattern. Three sets of tracks, parallel, all moving the same direction at what must have been the same pace. A formation.*\n\n*You follow them cautiously for twenty minutes. They lead you to the edge of a wide clearing backed against a rocky ridge — a natural stronghold, with the sightlines cleared and two dens dug into the hillside.*\n\n*You\'ve found Kova\'s camp. The pack moves through its routines below with military precision, and at the center, a massive gray wolf watches it all with the calm of absolute authority.*\n\n*You back away before they catch your scent. Enough.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_kova_02_territory');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Kova step 4 (challenge) ──
+        kova_lieutenant_encounter: {
+            id: 'kova_lieutenant_encounter',
+            text: '*Three wolves step out of the undergrowth — not attacking. Herding. They move with practiced efficiency, steering you into a small clearing.*\n\n*Waiting there: a wolf almost as large as Kova, with a scar running through one eye. A lieutenant.*\n\n*"Alpha knows you\'ve been in her territory," she says. Flat, factual. "She wants to see if you\'re worth her time. Fight me. Win — you get an audience. Lose — we escort you out."*\n\n*The fight is brutal and short. She\'s formidable, but you\'ve been learning from watching the pack. You find the gaps.*\n\n*When it\'s over, she studies you with something that might be approval.*\n\n*"Come on," she says. "The alpha will want to see this."*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_kova_04_challenge');
+            },
+            effects: [{ type: 'modify_skill', target: 'power', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Veridian step 4 (shrine) ──
+        veridian_shrine_found: {
+            id: 'veridian_shrine_found',
+            text: '*The light leads you to the standing stones — a circle of ancient moss-covered columns with a shallow basin at the center. The air hums faintly.*\n\n*Veridian is at the basin, staff raised, deep in a resonance ritual. Her wards are open; her concentration is absolute.*\n\n*You wait until she lowers her staff and opens her eyes. She\'s paler than when you last saw her.*\n\n*"It\'s worse than I thought," she says. "There\'s a focal point — something concentrating the imbalance. Not just the manor. Something older."*\n\n*She turns to you, and her eyes are tired and very direct.* "You know more than you\'re saying. About the manor, about what\'s happening here."*\n\n*She waits.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_veridian_04_shrine');
+            },
+            effects: [
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+                { type: 'custom', target: 'mana', value: 15 },
+            ],
             isEnding: true,
         },
     },
@@ -589,6 +787,28 @@ const EXPLORE_RUINS_EXCAVATE: EventDefinition = {
                     tooltip: 'A strange, iridescent shard that pulses with memory.',
                     nextStep: 'take_fragment',
                 },
+                // ── Pervis quest step 2 — scout the ruins perimeter ──
+                {
+                    id: 'pervis_perimeter',
+                    label: 'Study the Cleared Sightlines',
+                    tooltip: '[Quest] This rubble has been moved deliberately — someone is creating defensive positions.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_pervis');
+                        return aq != null && !aq.completed && aq.currentStep === 1;
+                    },
+                    nextStep: 'pervis_perimeter_scout',
+                },
+                // ── Pervis quest step 5 — breach the inner keep ──
+                {
+                    id: 'pervis_inner_keep',
+                    label: 'The Eastern Rubble Pile Has a Gap',
+                    tooltip: '[Quest] The supply sabotage has pulled guards away. There\'s a window now.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_pervis');
+                        return aq != null && !aq.completed && aq.currentStep === 4;
+                    },
+                    nextStep: 'pervis_inner_advance',
+                },
             ],
         },
         take_crystal: {
@@ -601,6 +821,29 @@ const EXPLORE_RUINS_EXCAVATE: EventDefinition = {
             id: 'take_fragment',
             text: '*You pry the iridescent shard free. The moment your skin touches it, a flash of alien memory surges through you — a glimpse of a ritual, an ancient name, a spiral of golden light. Then silence.*\n\n*A memory fragment. These are rare and valuable, useful for deepening a servant\'s conditioning... or restoring a captive\'s free will.*',
             effects: [{ type: 'add_item', target: 'Memory Fragment', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Pervis step 2 (perimeter) ──
+        pervis_perimeter_scout: {
+            id: 'pervis_perimeter_scout',
+            text: '*You study the cleared rubble lines carefully. This wasn\'t done by accident — debris has been relocated to create open corridors with no natural cover. Sightlines, you realize. Every approach to the inner ruins is visible from at least two positions.*\n\n*You work around the perimeter for an hour, mapping patrol timing and coverage. Six and a half minutes between guard crossings. One overlap point near the eastern rubble pile has a four-second gap when both sentries face away.*\n\n*Not generous. But workable.*\n\n*Whoever designed this knows what they\'re doing. Military training, no question. You\'ll need to be careful.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_pervis_02_perimeter');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Pervis step 5 (advance) ──
+        pervis_inner_advance: {
+            id: 'pervis_inner_advance',
+            text: '*The supply sabotage worked — the outer perimeter is thinner, forces pulled inward. There\'s a gap in the eastern watch that wasn\'t there before.*\n\n*You move through it fast and quiet, clearing the outer ring and pressing toward the inner keep. A stone alcove in the ruins\' core, well-chosen for sightlines and retreat options.*\n\n*And there he is.*\n\n*A compact rabbit in a commander\'s coat, standing at a stone table covered in maps. He doesn\'t look alarmed. He looks like someone who was expecting company.\n\n*"You\'re thorough," he says. He doesn\'t sound surprised. "I\'ve been watching your approach since the supply route collapsed." He folds his hands. "So. Now that you\'re here — what exactly do you plan to do?"*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_pervis_05_advance');
+            },
+            effects: [
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+                { type: 'modify_skill', target: 'charm', value: 1 },
+            ],
             isEnding: true,
         },
     },
@@ -622,6 +865,14 @@ const EXPLORE_RUINS_INSCRIPTIONS: EventDefinition = {
         insight: {
             id: 'insight',
             text: '*You spend a considerable time absorbing the ancient knowledge. By the time you step away from the wall, the sun has shifted significantly. But you can feel the difference — a deeper well of mana, a sharper instinct for enchantment.*\n\n*Time well spent.*',
+            onEnter: (ctx) => {
+                // Passive: studying the ruins layout grants Pervis step 3 (infiltrate)
+                // — the architectural knowledge reveals the hidden passages needed to bypass guards
+                const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_pervis');
+                if (aq && !aq.completed && aq.currentStep === 2) {
+                    ctx.stage.markEventCompleted('quest_pervis_03_infiltrate');
+                }
+            },
             effects: [
                 { type: 'modify_skill', target: 'wisdom', value: 1 },
                 { type: 'custom', target: 'mana', value: 20 },
@@ -661,6 +912,17 @@ const EXPLORE_RUINS_DELVE: EventDefinition = {
                     tooltip: 'The upper levels have plenty to offer.',
                     nextStep: 'stay_above',
                 },
+                // ── Pervis quest step 4 — use the lower passages to sabotage supply lines ──
+                {
+                    id: 'pervis_sabotage',
+                    label: 'The Supply Cache Is Down Here',
+                    tooltip: "[Quest] The encampment's eastern provisions are stored in these lower passages. Now's your chance.",
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_pervis');
+                        return aq != null && !aq.completed && aq.currentStep === 3;
+                    },
+                    nextStep: 'pervis_supply_sabotage',
+                },
             ],
         },
         descend: {
@@ -687,6 +949,19 @@ const EXPLORE_RUINS_DELVE: EventDefinition = {
             id: 'stay_above',
             text: '*Wisdom dictates caution. You explore the upper levels instead, finding a small cache of coins that some previous explorer overlooked. Not the motherload, but you\'ll live to delve another day.*',
             effects: [{ type: 'modify_gold', value: 15 }],
+            isEnding: true,
+        },
+        // ── PERMANENT quest step — Pervis step 4 (sabotage) ──
+        pervis_supply_sabotage: {
+            id: 'pervis_supply_sabotage',
+            text: '*You descend into the lower passage and find what you were looking for: the eastern supply cache, stacked carefully in an alcove off the main corridor. Provisions for at least two weeks.*\n\n*You work quickly and quietly — nothing as obvious as destruction. Instead, you compromise the stores in ways that won\'t be noticed immediately but will render them unusable within thirty-six hours.*\n\n*On the way back up, you hear a distant shout from somewhere in the encampment above. Not an alarm — a convoy being turned away at the outer perimeter. He\'s already tightening the logistics.*\n\n*Good. A tightening grip creates pressure, and pressure creates gaps.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_pervis_04_sabotage');
+            },
+            effects: [
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+                { type: 'modify_skill', target: 'power', value: 1 },
+            ],
             isEnding: true,
         },
     },
