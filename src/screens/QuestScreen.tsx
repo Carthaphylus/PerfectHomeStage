@@ -65,29 +65,41 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType }) => {
                                                 const isCompleted = aq.completedSteps.includes(i);
                                                 const isCurrent = i === aq.currentStep;
                                                 const isLocked = i > aq.currentStep;
+                                                const isLast = i === def.steps.length - 1;
                                                 return (
                                                     <div
                                                         key={step.id}
                                                         className={`quest-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}`}
                                                     >
-                                                        <div className="quest-step-marker">
-                                                            {isCompleted ? (
-                                                                <GameIcon icon="check" size={10} />
-                                                            ) : isCurrent ? (
-                                                                <GameIcon icon={step.icon} size={10} />
-                                                            ) : (
-                                                                <GameIcon icon="lock" size={10} />
+                                                        {/* Vertical track */}
+                                                        <div className="quest-step-track">
+                                                            <div className="quest-step-marker">
+                                                                {isCompleted ? (
+                                                                    <GameIcon icon="check" size={9} />
+                                                                ) : isCurrent ? (
+                                                                    <GameIcon icon={step.icon} size={9} />
+                                                                ) : (
+                                                                    <span className="quest-step-num">{i + 1}</span>
+                                                                )}
+                                                            </div>
+                                                            {!isLast && <div className="quest-step-line" />}
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="quest-step-info">
+                                                            <div className="quest-step-name-row">
+                                                                <span className="quest-step-name">{step.name}</span>
+                                                                {isCurrent && <span className="quest-step-now-badge">▶ NOW</span>}
+                                                            </div>
+                                                            {isCurrent && (
+                                                                <>
+                                                                    <span className="quest-step-desc">{step.description}</span>
+                                                                    <span className="quest-step-location">
+                                                                        <GameIcon icon="map-pin" size={7} /> {step.location}
+                                                                    </span>
+                                                                </>
                                                             )}
                                                         </div>
-                                                        <div className="quest-step-info">
-                                                            <span className="quest-step-name">{step.name}</span>
-                                                            {isCurrent && <span className="quest-step-desc">{step.description}</span>}
-                                                        </div>
-                                                        {isCurrent && (
-                                                            <span className="quest-step-location">
-                                                                <GameIcon icon="map-pin" size={8} /> {step.location}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 );
                                             })}

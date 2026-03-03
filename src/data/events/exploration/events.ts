@@ -41,6 +41,7 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
             {
                 id: 'town_tavern',
                 label: 'Visit the Tavern',
+                subLabel: 'Just Drink',
                 icon: 'wine',
                 tooltip: 'Rest and listen for rumors at the local inn.',
                 eventId: 'explore_town_tavern',

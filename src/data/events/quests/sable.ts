@@ -921,12 +921,12 @@ export const SABLE_QUEST: QuestDefinition = {
             eventId: 'quest_sable_01_rumors',
             location: 'Town',
             icon: 'message-circle',
-            // Replaces the generic tavern visit while this step is active
+            // Adds a quest sub-choice inside the tavern ("Just Drink" / "Ask about a Thief")
             activity: {
-                label: 'Listen for Rumors',
+                label: 'Ask about a Thief',
                 icon: 'message-circle',
-                tooltip: 'Ask around the tavern about a mysterious thief haunting the market.',
-                overridesActivityId: 'town_tavern',
+                tooltip: 'Probe the barkeep about the mysterious phantom thief haunting the market.',
+                parentActivityId: 'town_tavern',
             },
         },
         {

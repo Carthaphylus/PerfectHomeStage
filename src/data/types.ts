@@ -351,13 +351,17 @@ export interface EventPrerequisite {
 export interface LocationActivity {
     id: string;
     label: string;
+    /** Alternate label shown when this activity appears as a sub-choice inside a group */
+    subLabel?: string;
     icon: string;
     tooltip: string;
     eventId: string;
     /** True for activities injected dynamically by the quest system */
     isQuestActivity?: boolean;
-    /** The static activity ID this replaces while active (used internally by ExploreScreen) */
+    /** The static activity ID this replaces while active */
     overridesActivityId?: string;
+    /** If set, this activity is injected as a sub-choice under the named static activity */
+    parentActivityId?: string;
 }
 
 // ── Quest System ──
@@ -367,8 +371,10 @@ export interface QuestStepActivity {
     label: string;
     icon: string;
     tooltip: string;
-    /** If set, this quest activity replaces the static activity with this ID while the step is active */
+    /** If set, this quest activity fully replaces the static activity with this ID */
     overridesActivityId?: string;
+    /** If set, this quest activity is injected as a sub-choice inside the named static activity */
+    parentActivityId?: string;
     /** If true, this activity persists at the location after the step is complete */
     persistent?: boolean;
     /** Event to use for the activity in its post-completion (persistent) state */

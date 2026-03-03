@@ -1517,6 +1517,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 eventId: step.eventId,
                 isQuestActivity: true,
                 overridesActivityId: step.activity.overridesActivityId,
+                parentActivityId: step.activity.parentActivityId,
             });
         }
 
