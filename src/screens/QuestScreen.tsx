@@ -122,15 +122,23 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                         </div>
 
                                         {/* Begin step button */}
-                                        {currentStep && (
-                                            <button
-                                                className="quest-begin-btn"
-                                                onClick={() => handleBeginStep(aq)}
-                                            >
-                                                <GameIcon icon="play" size={12} />
-                                                {aq.completedSteps.length === 0 ? 'Begin' : 'Continue'}: {currentStep.name}
-                                            </button>
-                                        )}
+                                        {currentStep && (() => {
+                                            const isFinalStep = aq.currentStep === def.steps.length - 1;
+                                            const isOrganicOnly = def.captureQuest && !isFinalStep;
+                                            return (
+                                                <button
+                                                    className={`quest-begin-btn${isOrganicOnly ? ' quest-begin-btn--locked' : ''}`}
+                                                    onClick={() => !isOrganicOnly && handleBeginStep(aq)}
+                                                    disabled={isOrganicOnly}
+                                                    title={isOrganicOnly ? `Complete this step by exploring ${currentStep.location}` : undefined}
+                                                >
+                                                    <GameIcon icon={isOrganicOnly ? 'map-pin' : 'play'} size={12} />
+                                                    {isOrganicOnly
+                                                        ? `Explore ${currentStep.location}: ${currentStep.name}`
+                                                        : `${isFinalStep ? 'Begin Confrontation' : aq.completedSteps.length === 0 ? 'Begin' : 'Continue'}: ${currentStep.name}`}
+                                                </button>
+                                            );
+                                        })()}
                                     </div>
                                 );
                             })}

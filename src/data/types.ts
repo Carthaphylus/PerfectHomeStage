@@ -367,6 +367,13 @@ export interface QuestDefinition {
     steps: QuestStepDefinition[];
     prerequisites?: EventPrerequisite[];
     rewards?: EventEffect[];
+    /**
+     * When true the quest is a hero-capture questline.
+     * All steps except the final one must be completed organically through
+     * world events — the Quest panel button is disabled for those steps.
+     * The final step (confrontation / capture) is launched from the Quest panel.
+     */
+    captureQuest?: boolean;
 }
 
 /** Runtime state of an active quest */

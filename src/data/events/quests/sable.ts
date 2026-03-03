@@ -913,6 +913,7 @@ export const SABLE_QUEST: QuestDefinition = {
     description: 'Track down Sable, the elusive tabby thief, through the alleys and rooftops of town.',
     icon: 'eye',
     heroName: 'Sable',
+    captureQuest: true,
     steps: [
         {
             id: 'rumors',

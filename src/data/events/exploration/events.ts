@@ -280,17 +280,6 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
                     },
                     nextStep: 'warehouse_scout',
                 },
-                // ── Quest step 5: Confrontation — move in on the den ──
-                {
-                    id: 'move_on_den',
-                    label: 'Move In on the Den',
-                    tooltip: 'You know where he is. Time to end this.',
-                    condition: (ctx) => {
-                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
-                        return aq != null && !aq.completed && aq.currentStep === 4;
-                    },
-                    nextStep: 'den_assault',
-                },
                 // ── Post-quest flavor — after step 4 is done ──
                 {
                     id: 'pass_den',
@@ -351,15 +340,6 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
                 ctx.stage.markEventCompleted('quest_sable_03_chase');
             },
             effects: [{ type: 'modify_skill', target: 'speed', value: 1 }],
-            isEnding: true,
-        },
-        // ── Quest step 5: Confrontation ──
-        den_assault: {
-            id: 'den_assault',
-            text: '*You return to the chandler\'s sign as the last light drains from the sky. The entrance is unguarded — or appears to be. You ease the door and slip inside.*\n\n*The interior is a maze of stacked crates and low beams, lit by a single oil lamp swinging from an overhead hook. You hear movement above. He\'s here.*\n\n*You take the stairs three at a time.*',
-            onEnter: (ctx) => {
-                ctx.stage.markEventCompleted('quest_sable_05_confrontation');
-            },
             isEnding: true,
         },
         // ── Post-quest flavor — after step 4 is done ──
