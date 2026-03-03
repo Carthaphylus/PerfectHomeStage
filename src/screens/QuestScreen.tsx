@@ -12,6 +12,8 @@ interface QuestScreenProps {
 
 export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startEvent }) => {
     const [, forceUpdate] = useState(0);
+    // Track which active quest cards are expanded; default: all expanded
+    const [expandedQuests, setExpandedQuests] = useState<Set<string>>(() => new Set());
     const s = stage();
     const st = s.currentState;
 
@@ -37,6 +39,18 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
         startEvent(step.eventId);
     };
 
+    const toggleExpanded = (questId: string) => {
+        setExpandedQuests(prev => {
+            const next = new Set(prev);
+            if (next.has(questId)) next.delete(questId);
+            else next.add(questId);
+            return next;
+        });
+    };
+
+    // A quest card is expanded when NOT in the collapsed set (default open)
+    const isExpanded = (questId: string) => !expandedQuests.has(questId);
+
     return (
         <div className="quests-screen">
             <div className="screen-header">
@@ -61,9 +75,16 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                 if (!def) return null;
                                 const currentStep = def.steps[aq.currentStep];
                                 const hero = def.heroName ? st.heroes[def.heroName] : null;
+                                const expanded = isExpanded(aq.questId);
                                 return (
-                                    <div key={aq.questId} className="quest-card quest-active">
-                                        <div className="quest-card-header">
+                                    <div key={aq.questId} className={`quest-card quest-active${expanded ? ' quest-card--expanded' : ''}`}>
+                                        {/* Clickable header — toggles collapse */}
+                                        <div
+                                            className="quest-card-header quest-card-header--toggle"
+                                            onClick={() => toggleExpanded(aq.questId)}
+                                            role="button"
+                                            aria-expanded={expanded}
+                                        >
                                             {hero?.avatar && (
                                                 <div className="quest-hero-avatar">
                                                     <img src={hero.avatar} alt={def.heroName} />
@@ -73,72 +94,81 @@ export const QuestScreen: FC<QuestScreenProps> = ({ stage, setScreenType, startE
                                                 <span className="quest-name">{def.name}</span>
                                                 <span className="quest-desc">{def.description}</span>
                                             </div>
-                                            <GameIcon icon={def.icon} size={20} className="quest-icon" />
-                                        </div>
-
-                                        {/* Step progress */}
-                                        <div className="quest-steps">
-                                            {def.steps.map((step, i) => {
-                                                const isCompleted = aq.completedSteps.includes(i);
-                                                const isCurrent = i === aq.currentStep;
-                                                const isLocked = i > aq.currentStep;
-                                                return (
-                                                    <div
-                                                        key={step.id}
-                                                        className={`quest-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}`}
-                                                    >
-                                                        <div className="quest-step-marker">
-                                                            {isCompleted ? (
-                                                                <GameIcon icon="check" size={10} />
-                                                            ) : isCurrent ? (
-                                                                <GameIcon icon={step.icon} size={10} />
-                                                            ) : (
-                                                                <GameIcon icon="lock" size={10} />
-                                                            )}
-                                                        </div>
-                                                        <div className="quest-step-info">
-                                                            <span className="quest-step-name">{step.name}</span>
-                                                            {isCurrent && <span className="quest-step-desc">{step.description}</span>}
-                                                        </div>
-                                                        {isCurrent && (
-                                                            <span className="quest-step-location">
-                                                                <GameIcon icon="map-pin" size={8} /> {step.location}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Progress bar */}
-                                        <div className="quest-progress-bar">
-                                            <div
-                                                className="quest-progress-fill"
-                                                style={{ width: `${(aq.completedSteps.length / def.steps.length) * 100}%` }}
+                                            <GameIcon
+                                                icon={expanded ? 'chevron-down' : 'chevron-right'}
+                                                size={14}
+                                                className="quest-collapse-chevron"
                                             />
-                                            <span className="quest-progress-text">
-                                                {aq.completedSteps.length}/{def.steps.length}
-                                            </span>
                                         </div>
 
-                                        {/* Begin step button */}
-                                        {currentStep && (() => {
-                                            const isFinalStep = aq.currentStep === def.steps.length - 1;
-                                            const isOrganicOnly = def.captureQuest && !isFinalStep;
-                                            return (
-                                                <button
-                                                    className={`quest-begin-btn${isOrganicOnly ? ' quest-begin-btn--locked' : ''}`}
-                                                    onClick={() => !isOrganicOnly && handleBeginStep(aq)}
-                                                    disabled={isOrganicOnly}
-                                                    title={isOrganicOnly ? `Complete this step by exploring ${currentStep.location}` : undefined}
-                                                >
-                                                    <GameIcon icon={isOrganicOnly ? 'map-pin' : 'play'} size={12} />
-                                                    {isOrganicOnly
-                                                        ? `Explore ${currentStep.location}: ${currentStep.name}`
-                                                        : `${isFinalStep ? 'Begin Confrontation' : aq.completedSteps.length === 0 ? 'Begin' : 'Continue'}: ${currentStep.name}`}
-                                                </button>
-                                            );
-                                        })()}
+                                        {/* Collapsible body */}
+                                        {expanded && (
+                                            <>
+                                                {/* Step progress */}
+                                                <div className="quest-steps">
+                                                    {def.steps.map((step, i) => {
+                                                        const isCompleted = aq.completedSteps.includes(i);
+                                                        const isCurrent = i === aq.currentStep;
+                                                        const isLocked = i > aq.currentStep;
+                                                        return (
+                                                            <div
+                                                                key={step.id}
+                                                                className={`quest-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}`}
+                                                            >
+                                                                <div className="quest-step-marker">
+                                                                    {isCompleted ? (
+                                                                        <GameIcon icon="check" size={10} />
+                                                                    ) : isCurrent ? (
+                                                                        <GameIcon icon={step.icon} size={10} />
+                                                                    ) : (
+                                                                        <GameIcon icon="lock" size={10} />
+                                                                    )}
+                                                                </div>
+                                                                <div className="quest-step-info">
+                                                                    <span className="quest-step-name">{step.name}</span>
+                                                                    {isCurrent && <span className="quest-step-desc">{step.description}</span>}
+                                                                </div>
+                                                                {isCurrent && (
+                                                                    <span className="quest-step-location">
+                                                                        <GameIcon icon="map-pin" size={8} /> {step.location}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* Progress bar */}
+                                                <div className="quest-progress-bar">
+                                                    <div
+                                                        className="quest-progress-fill"
+                                                        style={{ width: `${(aq.completedSteps.length / def.steps.length) * 100}%` }}
+                                                    />
+                                                    <span className="quest-progress-text">
+                                                        {aq.completedSteps.length}/{def.steps.length}
+                                                    </span>
+                                                </div>
+
+                                                {/* Begin step button */}
+                                                {currentStep && (() => {
+                                                    const isFinalStep = aq.currentStep === def.steps.length - 1;
+                                                    const isOrganicOnly = def.captureQuest && !isFinalStep;
+                                                    return (
+                                                        <button
+                                                            className={`quest-begin-btn${isOrganicOnly ? ' quest-begin-btn--locked' : ''}`}
+                                                            onClick={() => !isOrganicOnly && handleBeginStep(aq)}
+                                                            disabled={isOrganicOnly}
+                                                            title={isOrganicOnly ? `Complete this step by exploring ${currentStep.location}` : undefined}
+                                                        >
+                                                            <GameIcon icon={isOrganicOnly ? 'map-pin' : 'play'} size={12} />
+                                                            {isOrganicOnly
+                                                                ? `Explore ${currentStep.location}: ${currentStep.name}`
+                                                                : `${isFinalStep ? 'Begin Confrontation' : aq.completedSteps.length === 0 ? 'Begin' : 'Continue'}: ${currentStep.name}`}
+                                                        </button>
+                                                    );
+                                                })()}
+                                            </>
+                                        )}
                                     </div>
                                 );
                             })}

@@ -192,6 +192,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     coat: Shirt,
     badge: Medal,
     cross: Plus,
+    plus: Plus,
     hearts: HeartHandshake,
     bottle: Wine,
     ring: CircleDot,
