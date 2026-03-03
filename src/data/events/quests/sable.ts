@@ -877,6 +877,11 @@ export function buildSableConfrontation(): EventDefinition {
     steps['narrow_escape'] = {
         id: 'narrow_escape',
         text: `*He slips through — barely. You catch a flash of amber as he scrambles through a gap you hadn't sealed properly, and then he's gone.*\n\n*But he left his dagger behind. And half his coin. He'll be back for both.*\n\n*This isn't over — but you learned something today. Next time, there's no gap you haven't checked.*`,
+        onEnter: (ctx: EventContext) => {
+            // Block quest advancement — Sable wasn't captured, so the step
+            // remains open and the confrontation can be attempted again.
+            ctx.vars.blockQuestAdvancement = true;
+        },
         isEnding: true,
     };
 

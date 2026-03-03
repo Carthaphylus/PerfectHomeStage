@@ -1640,8 +1640,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (this._activeEvent) {
             const eventId = this._activeEvent.definitionId;
             console.log(`[Event] Ended event "${eventId}"`);
-            // Mark event as completed for prerequisite tracking
-            this.markEventCompleted(eventId);
+            // Events can set vars.blockQuestAdvancement = true on failure paths
+            // to prevent the quest from advancing (e.g. failed capture attempt).
+            if (!this._activeEvent.vars?.blockQuestAdvancement) {
+                this.markEventCompleted(eventId);
+            } else {
+                console.log(`[Event] Quest advancement blocked for "${eventId}" (failure path)`);
+            }
             this._activeEvent = null;
         }
     }
