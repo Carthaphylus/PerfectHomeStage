@@ -48,6 +48,8 @@ import {
     Play,
     // Event display icons
     BarChart2,
+    // Quest icons
+    Flag,
 } from 'lucide-react';
 
 /** Master icon map: string key → lucide component */
@@ -231,6 +233,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     unlink: Unlink,
     fingerprint: Fingerprint,
     crosshair: Crosshair,
+    flag: Flag,
     grab: Grab,
     'hand-metal': HandMetal,
     telescope: Telescope,

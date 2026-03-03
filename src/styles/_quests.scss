@@ -11,7 +11,7 @@
   .quests-content {
     flex: 1;
     padding: 16px 20px;
-    overflow-y: auto;
+    overflow-y: auto !important;
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -22,6 +22,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex-shrink: 0;
   }
 
   .quest-section-title {
