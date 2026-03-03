@@ -30,18 +30,6 @@ export interface LocationExploreData {
 
 // ── Location Hub Definitions ──
 
-// ── Quest prerequisite helpers ──
-
-/** Returns a prerequisite that passes only while the given quest is active on the given step index. */
-function questStepActive(questId: string, stepIndex: number): EventPrerequisite {
-    return {
-        type: 'custom',
-        check: (stage: any) => {
-            const aq = stage.currentState.activeQuests.find((q: any) => q.questId === questId);
-            return aq != null && !aq.completed && aq.currentStep === stepIndex;
-        },
-    };
-}
 
 export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
     Town: {
@@ -70,50 +58,6 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 icon: 'wine',
                 tooltip: 'Rest and listen for rumors at the local inn.',
                 eventId: 'explore_town_tavern',
-            },
-            // ── Temporary quest activities — The Shadow's Trail (quest_sable) ──
-            // Each activity is only visible while the matching quest step is current.
-            // It disappears automatically once the step is completed because
-            // currentStep advances and the prerequisite no longer passes.
-            {
-                id: 'sable_q1_rumors',
-                label: 'Inquire About the Phantom Thief',
-                icon: 'message-circle',
-                tooltip: '[Quest] The barkeep mentioned a cat burglar working the district. Follow up on those leads.',
-                eventId: 'quest_sable_01_rumors',
-                prerequisites: [questStepActive('quest_sable', 0)],
-            },
-            {
-                id: 'sable_q2_stakeout',
-                label: 'Stake Out the Market District',
-                icon: 'eye',
-                tooltip: '[Quest] Wait by the evening market and watch for the thief\'s tell-tale patterns.',
-                eventId: 'quest_sable_02_stakeout',
-                prerequisites: [questStepActive('quest_sable', 1)],
-            },
-            {
-                id: 'sable_q3_chase',
-                label: 'Give Chase — Sable\'s Been Spotted!',
-                icon: 'zap',
-                tooltip: '[Quest] The phantom thief has been sighted. Sprint across rooftops and alleys before he vanishes.',
-                eventId: 'quest_sable_03_chase',
-                prerequisites: [questStepActive('quest_sable', 2)],
-            },
-            {
-                id: 'sable_q4_den',
-                label: 'Search for Sable\'s Hidden Den',
-                icon: 'door-open',
-                tooltip: '[Quest] Comb the warehouse district for signs of the thief\'s lair.',
-                eventId: 'quest_sable_04_den',
-                prerequisites: [questStepActive('quest_sable', 3)],
-            },
-            {
-                id: 'sable_q5_confrontation',
-                label: 'Storm the Den — Final Confrontation',
-                icon: 'crosshair',
-                tooltip: '[Quest] You know where Sable is hiding. Move in and corner him before he can run.',
-                eventId: 'quest_sable_05_confrontation',
-                prerequisites: [questStepActive('quest_sable', 4)],
             },
         ],
     },
@@ -303,18 +247,51 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
                     tooltip: 'See what\'s hidden beneath.',
                     nextStep: 'found_stash',
                 },
-                // ── PERMANENT — visible during quest step 4 (Den), lets player scout the warehouse district ──
+                // ── Quest step 2: Stakeout — watch the evening crowd for Sable's patterns ──
+                {
+                    id: 'watch_market',
+                    label: 'Linger by the Evening Market',
+                    tooltip: 'The market thins out at dusk. Worth watching who moves through it.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && !aq.completed && aq.currentStep === 1;
+                    },
+                    nextStep: 'market_stakeout',
+                },
+                // ── Quest step 3: Chase — spot Sable and give chase ──
+                {
+                    id: 'spot_sable',
+                    label: 'A Figure Darts Across the Rooftops',
+                    tooltip: 'Something moves fast overhead — that silhouette is unmistakable.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && !aq.completed && aq.currentStep === 2;
+                    },
+                    nextStep: 'rooftop_chase',
+                },
+                // ── Quest step 4: Den — head to the warehouse district to scout ──
                 {
                     id: 'scout_warehouses',
                     label: 'Head to the Warehouse District',
-                    tooltip: '[Quest] The barkeep mentioned the east-side grain storage. Sable\'s den is somewhere around there.',
+                    tooltip: 'The barkeep mentioned the east-side grain storage. Sable\'s den is somewhere around there.',
                     condition: (ctx) => {
                         const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
                         return aq != null && !aq.completed && aq.currentStep === 3;
                     },
                     nextStep: 'warehouse_scout',
                 },
-                // ── PERMANENT — visible after step 4 (Den) completed, post-quest flavor ──
+                // ── Quest step 5: Confrontation — move in on the den ──
+                {
+                    id: 'move_on_den',
+                    label: 'Move In on the Den',
+                    tooltip: 'You know where he is. Time to end this.',
+                    condition: (ctx) => {
+                        const aq = ctx.stage.currentState.activeQuests.find((q: any) => q.questId === 'quest_sable');
+                        return aq != null && !aq.completed && aq.currentStep === 4;
+                    },
+                    nextStep: 'den_assault',
+                },
+                // ── Post-quest flavor — after step 4 is done ──
                 {
                     id: 'pass_den',
                     label: 'Walk Past the Old Warehouse',
@@ -356,7 +333,36 @@ const EXPLORE_TOWN_STREETS: EventDefinition = {
             effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
             isEnding: true,
         },
-        // ── PERMANENT post-quest flavor — appears after step 4 is done ──
+        // ── Quest step 2: Stakeout ──
+        market_stakeout: {
+            id: 'market_stakeout',
+            text: '*You find a shadow between two locked stalls and settle in, keeping your eyes on the flow of the thinning crowd. Carts trundle home. Lanterns flicker on. The market empties in layers.*\n\n*Then — there. Moving counter to every other person, unhurried but precise. A figure in a grey hood, touching nothing, drawing no eyes. You watch the route: past the fishmonger\'s, along the covered walkway, a deliberate pause at the corner of the cloth-sellers\' row.*\n\n*A pattern. You\'ve seen enough.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_sable_02_stakeout');
+            },
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        // ── Quest step 3: Chase ──
+        rooftop_chase: {
+            id: 'rooftop_chase',
+            text: '*You look up. There — a lean silhouette crosses the gap between two chimneys, moving fast and low. The calling card you\'ve been hunting.*\n\n*You break into a run, cutting through an alley, vaulting a crate. The figure glances back once — just once — and you catch a flash of amber eyes before he drops out of sight over the far edge of the roof.*\n\n*You reach the spot: nothing but a broken weathervane and three rooftop tiles disturbed in a line pointing east. Toward the warehouse district.*\n\n*You didn\'t catch him. But you\'ve rattled him — and he\'s run straight toward his den.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_sable_03_chase');
+            },
+            effects: [{ type: 'modify_skill', target: 'speed', value: 1 }],
+            isEnding: true,
+        },
+        // ── Quest step 5: Confrontation ──
+        den_assault: {
+            id: 'den_assault',
+            text: '*You return to the chandler\'s sign as the last light drains from the sky. The entrance is unguarded — or appears to be. You ease the door and slip inside.*\n\n*The interior is a maze of stacked crates and low beams, lit by a single oil lamp swinging from an overhead hook. You hear movement above. He\'s here.*\n\n*You take the stairs three at a time.*',
+            onEnter: (ctx) => {
+                ctx.stage.markEventCompleted('quest_sable_05_confrontation');
+            },
+            isEnding: true,
+        },
+        // ── Post-quest flavor — after step 4 is done ──
         den_recall: {
             id: 'den_recall',
             text: '*You pass the old chandler\'s sign without breaking stride, hands in your pockets.*\n\n*The entrance is barely visible if you know what to look for — that too-fresh mortar, the faint scratch-marks. Someone has been here since you last visited; there\'s a new scuff on the flagstone, a small feather lodged in the door-crack.*\n\n*You file it away and keep walking. The city has a short memory. But you don\'t.*',
