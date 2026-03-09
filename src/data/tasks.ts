@@ -27,7 +27,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'kitchen',
         primaryStat: 'expertise',
         roleBonus: 'head_cook',
-        requirements: [{ stat: 'expertise', minimum: 30 }],
+        requirements: [{ stat: 'expertise', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'nourishing', effect: 'bonus', magnitude: 15, description: 'Natural gift for nourishing food' },
             { traitKey: 'hardworking', effect: 'bonus', magnitude: 8, description: 'Puts in extra effort in the kitchen' },
@@ -74,7 +74,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'brewing',
         primaryStat: 'attunement',
         roleBonus: 'brewmaster',
-        requirements: [{ stat: 'attunement', minimum: 35 }, { stat: 'expertise', minimum: 25 }],
+        requirements: [{ stat: 'attunement', minimum: 32 }, { stat: 'expertise', minimum: 24 }],
         traitModifiers: [
             { traitKey: 'alchemist', effect: 'bonus', magnitude: 20, description: 'Expert reagent handling' },
             { traitKey: 'meticulous', effect: 'bonus', magnitude: 10, description: 'Precise measurements' },
@@ -98,7 +98,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'brewing',
         primaryStat: 'expertise',
         roleBonus: 'brewmaster',
-        requirements: [{ stat: 'expertise', minimum: 30 }],
+        requirements: [{ stat: 'expertise', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'alchemist', effect: 'bonus', magnitude: 15, description: 'Skilled at extraction' },
             { traitKey: 'disciplined', effect: 'bonus', magnitude: 8, description: 'Patient, careful distillation' },
@@ -121,7 +121,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'classroom',
         primaryStat: 'insight',
         roleBonus: 'instructor',
-        requirements: [{ stat: 'insight', minimum: 40 }, { stat: 'presence', minimum: 30 }],
+        requirements: [{ stat: 'insight', minimum: 36 }, { stat: 'presence', minimum: 32 }],
         traitModifiers: [
             { traitKey: 'educator', effect: 'bonus', magnitude: 20, description: 'Natural teaching ability' },
             { traitKey: 'charismatic', effect: 'bonus', magnitude: 10, description: 'Engaging teaching style' },
@@ -144,7 +144,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'classroom',
         primaryStat: 'insight',
         roleBonus: 'instructor',
-        requirements: [{ stat: 'insight', minimum: 25 }],
+        requirements: [{ stat: 'insight', minimum: 20 }],
         traitModifiers: [
             { traitKey: 'perceptive', effect: 'bonus', magnitude: 12, description: 'Catches details others miss' },
             { traitKey: 'disciplined', effect: 'bonus', magnitude: 8, description: 'Focused study pays off' },
@@ -168,7 +168,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         primaryStat: 'attunement',
         roleBonus: 'ritual_keeper',
         manaCost: 15,
-        requirements: [{ stat: 'attunement', minimum: 50 }, { stat: 'discipline', minimum: 35 }],
+        requirements: [{ stat: 'attunement', minimum: 36 }, { stat: 'discipline', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'occultist', effect: 'bonus', magnitude: 20, description: 'Deep arcane knowledge' },
             { traitKey: 'devout', effect: 'penalty', magnitude: 15, description: 'Faith conflicts with dark magic' },
@@ -192,7 +192,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'ritual',
         primaryStat: 'attunement',
         roleBonus: 'ritual_keeper',
-        requirements: [{ stat: 'attunement', minimum: 25 }],
+        requirements: [{ stat: 'attunement', minimum: 20 }],
         traitModifiers: [
             { traitKey: 'occultist', effect: 'bonus', magnitude: 12, description: 'Attunes to dark energy easily' },
             { traitKey: 'stoic', effect: 'bonus', magnitude: 8, description: 'Endures the corrupting influence' },
@@ -214,7 +214,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'dungeon',
         primaryStat: 'presence',
         roleBonus: 'warden',
-        requirements: [{ stat: 'presence', minimum: 40 }],
+        requirements: [{ stat: 'presence', minimum: 32 }],
         traitModifiers: [
             { traitKey: 'intimidating', effect: 'bonus', magnitude: 20, description: 'Projects terrifying authority' },
             { traitKey: 'fierce', effect: 'bonus', magnitude: 10, description: 'Intensity breaks resistance' },
@@ -238,7 +238,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'cell',
         primaryStat: 'discipline',
         roleBonus: 'jailer',
-        requirements: [{ stat: 'discipline', minimum: 30 }],
+        requirements: [{ stat: 'discipline', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'vigilant', effect: 'bonus', magnitude: 15, description: 'Always alert to trouble' },
             { traitKey: 'relentless', effect: 'bonus', magnitude: 10, description: 'Never lets up surveillance' },
@@ -307,7 +307,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'lounge',
         primaryStat: 'presence',
         roleBonus: 'host',
-        requirements: [{ stat: 'presence', minimum: 35 }],
+        requirements: [{ stat: 'presence', minimum: 32 }],
         traitModifiers: [
             { traitKey: 'charming', effect: 'bonus', magnitude: 18, description: 'Everyone feels welcome' },
             { traitKey: 'charismatic', effect: 'bonus', magnitude: 12, description: 'Life of the party' },
@@ -334,7 +334,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 40,
         location: 'Town',
         primaryStat: 'presence',
-        requirements: [{ stat: 'presence', minimum: 20 }],
+        requirements: [{ stat: 'presence', minimum: 16 }],
         traitModifiers: [
             { traitKey: 'charismatic', effect: 'bonus', magnitude: 15, description: 'Charms better deals from merchants' },
             { traitKey: 'cunning', effect: 'bonus', magnitude: 12, description: 'Negotiates shrewdly' },
@@ -357,7 +357,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 55,
         location: 'Woods',
         primaryStat: 'prowess',
-        requirements: [{ stat: 'prowess', minimum: 30 }],
+        requirements: [{ stat: 'prowess', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'perceptive', effect: 'bonus', magnitude: 15, description: 'Spots hidden trails and rare plants' },
             { traitKey: 'agile', effect: 'bonus', magnitude: 10, description: 'Navigates dense undergrowth easily' },
@@ -381,7 +381,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 70,
         location: 'Ruins',
         primaryStat: 'prowess',
-        requirements: [{ stat: 'prowess', minimum: 40 }, { stat: 'insight', minimum: 30 }],
+        requirements: [{ stat: 'prowess', minimum: 32 }, { stat: 'insight', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'fearless', effect: 'bonus', magnitude: 15, description: 'Delves into dangerous depths' },
             { traitKey: 'resourceful', effect: 'bonus', magnitude: 12, description: 'Improvises through obstacles' },
@@ -405,7 +405,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 35,
         location: 'Circus',
         primaryStat: 'insight',
-        requirements: [{ stat: 'insight', minimum: 30 }, { stat: 'presence', minimum: 25 }],
+        requirements: [{ stat: 'insight', minimum: 28 }, { stat: 'presence', minimum: 20 }],
         traitModifiers: [
             { traitKey: 'cunning', effect: 'bonus', magnitude: 15, description: 'Blends in and extracts secrets' },
             { traitKey: 'elusive', effect: 'bonus', magnitude: 12, description: 'Avoids detection effortlessly' },
@@ -459,7 +459,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         roomType: 'classroom',
         primaryStat: 'attunement',
         roleBonus: 'instructor',
-        requirements: [{ stat: 'attunement', minimum: 15 }],
+        requirements: [{ stat: 'attunement', minimum: 16 }],
         traitModifiers: [
             { traitKey: 'occultist', effect: 'bonus', magnitude: 15, description: 'Innate affinity for magic' },
             { traitKey: 'disciplined', effect: 'bonus', magnitude: 10, description: 'Focuses deeply on study' },
@@ -581,7 +581,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         duration: 2,
         staminaCost: 35,
         primaryStat: 'presence',
-        requirements: [{ stat: 'presence', minimum: 30 }],
+        requirements: [{ stat: 'presence', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'intimidating', effect: 'bonus', magnitude: 15, description: 'Nobody dares withhold payment' },
             { traitKey: 'charismatic', effect: 'bonus', magnitude: 10, description: 'People pay willingly' },
@@ -607,7 +607,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         staminaCost: 20,
         primaryStat: 'discipline',
         roleBonus: 'personal_attendant',
-        requirements: [{ stat: 'discipline', minimum: 30 }],
+        requirements: [{ stat: 'discipline', minimum: 28 }],
         traitModifiers: [
             { traitKey: 'devoted', effect: 'bonus', magnitude: 20, description: 'Lives to serve' },
             { traitKey: 'loyal', effect: 'bonus', magnitude: 12, description: 'Unwavering dedication' },

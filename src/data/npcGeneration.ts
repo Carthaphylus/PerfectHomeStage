@@ -77,8 +77,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['aggressive', 'defensive'],
         traitPool: ['Proud', 'Disciplined', 'Stubborn', 'Fearless', 'Loyal', 'Fierce'],
         statRanges: {
-            prowess: [60, 85], expertise: [40, 60], attunement: [15, 35],
-            presence: [50, 70], discipline: [55, 80], insight: [30, 50],
+            prowess: [30, 43], expertise: [20, 30], attunement: [8, 18],
+            presence: [25, 35], discipline: [28, 40], insight: [15, 25],
         },
         detailTemplates: {
             'Affiliation': ['Order of the Silver Dawn', 'The Crown\'s Guard', 'Independent freelancer', 'A fallen knightly order', 'House of the Iron Rose'],
@@ -98,8 +98,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['panicked', 'defensive'],
         traitPool: ['Hardworking', 'Stubborn', 'Gentle', 'Resourceful', 'Humble', 'Simple'],
         statRanges: {
-            prowess: [30, 55], expertise: [45, 70], attunement: [10, 25],
-            presence: [25, 45], discipline: [40, 65], insight: [25, 45],
+            prowess: [15, 28], expertise: [23, 35], attunement: [5, 13],
+            presence: [13, 23], discipline: [20, 33], insight: [13, 23],
         },
         detailTemplates: {
             'Occupation': ['Wheat farmer', 'Herder', 'Orchardist', 'Beekeeper', 'Market gardener'],
@@ -119,8 +119,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['cunning', 'evasive'],
         traitPool: ['Witty', 'Cunning', 'Charismatic', 'Distrustful', 'Resourceful', 'Perceptive'],
         statRanges: {
-            prowess: [20, 40], expertise: [50, 70], attunement: [20, 40],
-            presence: [55, 75], discipline: [35, 55], insight: [50, 70],
+            prowess: [10, 20], expertise: [25, 35], attunement: [10, 20],
+            presence: [28, 38], discipline: [18, 28], insight: [25, 35],
         },
         detailTemplates: {
             'Trade': ['Spice trader', 'Gem dealer', 'Cloth merchant', 'Exotic goods peddler', 'Weapons dealer'],
@@ -140,8 +140,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['evasive', 'cunning'],
         traitPool: ['Perceptive', 'Resourceful', 'Elusive', 'Stoic', 'Gentle', 'Distrustful'],
         statRanges: {
-            prowess: [25, 45], expertise: [55, 75], attunement: [50, 70],
-            presence: [20, 40], discipline: [45, 65], insight: [60, 80],
+            prowess: [13, 23], expertise: [28, 38], attunement: [25, 35],
+            presence: [10, 20], discipline: [23, 33], insight: [30, 40],
         },
         detailTemplates: {
             'Dwelling': ['A hollow tree', 'A cave network', 'A camouflaged lean-to', 'An abandoned watchtower', 'A treehouse'],
@@ -161,8 +161,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['aggressive', 'cunning'],
         traitPool: ['Fierce', 'Defiant', 'Agile', 'Restless', 'Distrustful', 'Impulsive'],
         statRanges: {
-            prowess: [55, 80], expertise: [35, 55], attunement: [15, 30],
-            presence: [45, 65], discipline: [25, 45], insight: [35, 55],
+            prowess: [28, 40], expertise: [18, 28], attunement: [8, 15],
+            presence: [23, 33], discipline: [13, 23], insight: [18, 28],
         },
         detailTemplates: {
             'Former Company': ['The Red Fang Battalion', 'Independent contract killer', 'Deserter from the King\'s Army', 'Exiled gladiator', 'Forest bandit turned sellsword'],
@@ -182,8 +182,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['panicked', 'cunning'],
         traitPool: ['Proud', 'Charismatic', 'Stubborn', 'Ambitious', 'Perceptive', 'Witty'],
         statRanges: {
-            prowess: [20, 40], expertise: [30, 50], attunement: [30, 50],
-            presence: [65, 85], discipline: [40, 60], insight: [50, 70],
+            prowess: [10, 20], expertise: [15, 25], attunement: [15, 25],
+            presence: [33, 43], discipline: [20, 30], insight: [25, 35],
         },
         detailTemplates: {
             'House': ['House Ashford', 'House Valdris', 'The Thornwall Dynasty', 'An exiled royal line', 'Minor baronetcy'],
@@ -203,8 +203,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['defensive', 'panicked'],
         traitPool: ['Devout', 'Gentle', 'Compassionate', 'Selfless', 'Stubborn', 'Stoic'],
         statRanges: {
-            prowess: [20, 40], expertise: [30, 50], attunement: [55, 75],
-            presence: [40, 60], discipline: [50, 70], insight: [45, 65],
+            prowess: [10, 20], expertise: [15, 25], attunement: [28, 38],
+            presence: [20, 30], discipline: [25, 35], insight: [23, 33],
         },
         detailTemplates: {
             'Faith': ['Follower of the Moon Goddess', 'Seeker of the World-Tree', 'Devotee of the Healing Springs', 'Penitent of the Dawn Temple', 'Wandering mystic'],
@@ -224,8 +224,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['evasive', 'cunning'],
         traitPool: ['Charismatic', 'Witty', 'Elusive', 'Perceptive', 'Impulsive', 'Cheerful'],
         statRanges: {
-            prowess: [20, 40], expertise: [40, 60], attunement: [35, 55],
-            presence: [60, 80], discipline: [25, 45], insight: [45, 65],
+            prowess: [10, 20], expertise: [20, 30], attunement: [18, 28],
+            presence: [30, 40], discipline: [13, 23], insight: [23, 33],
         },
         detailTemplates: {
             'Instrument': ['Lute', 'Fiddle', 'Harp', 'Flute', 'Hand drum'],
@@ -245,8 +245,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['cunning', 'defensive'],
         traitPool: ['Perceptive', 'Resourceful', 'Cunning', 'Distrustful', 'Stoic', 'Territorial'],
         statRanges: {
-            prowess: [20, 35], expertise: [50, 70], attunement: [65, 85],
-            presence: [35, 55], discipline: [40, 60], insight: [55, 75],
+            prowess: [10, 18], expertise: [25, 35], attunement: [33, 43],
+            presence: [18, 28], discipline: [20, 30], insight: [28, 38],
         },
         detailTemplates: {
             'Specialty': ['Herbalism and potion-brewing', 'Curse-weaving', 'Fortune-telling', 'Spirit-binding', 'Weather-calling'],
@@ -266,8 +266,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['evasive', 'aggressive'],
         traitPool: ['Agile', 'Vigilant', 'Perceptive', 'Resourceful', 'Elusive', 'Disciplined'],
         statRanges: {
-            prowess: [40, 60], expertise: [45, 65], attunement: [20, 40],
-            presence: [30, 50], discipline: [50, 70], insight: [55, 75],
+            prowess: [20, 30], expertise: [23, 33], attunement: [10, 20],
+            presence: [15, 25], discipline: [25, 35], insight: [28, 38],
         },
         detailTemplates: {
             'Allegiance': ['Town militia scout', 'Independent ranger', 'Hired pathfinder', 'Border patrol', 'Fugitive tracker'],
@@ -287,8 +287,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['aggressive', 'evasive'],
         traitPool: ['Fierce', 'Defiant', 'Impulsive', 'Distrustful', 'Agile', 'Cunning'],
         statRanges: {
-            prowess: [45, 65], expertise: [30, 50], attunement: [10, 25],
-            presence: [40, 60], discipline: [20, 40], insight: [30, 50],
+            prowess: [23, 33], expertise: [15, 25], attunement: [5, 13],
+            presence: [20, 30], discipline: [10, 20], insight: [15, 25],
         },
         detailTemplates: {
             'Gang': ['Solo operator', 'Ex-member of the Forest Wolves', 'Operates a small crew', 'Highway robber', 'Poacher turned outlaw'],
@@ -308,8 +308,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['panicked', 'evasive'],
         traitPool: ['Gentle', 'Resourceful', 'Compassionate', 'Perceptive', 'Cheerful', 'Selfless'],
         statRanges: {
-            prowess: [20, 35], expertise: [55, 75], attunement: [40, 60],
-            presence: [35, 55], discipline: [40, 60], insight: [50, 70],
+            prowess: [10, 18], expertise: [28, 38], attunement: [20, 30],
+            presence: [18, 28], discipline: [20, 30], insight: [25, 35],
         },
         detailTemplates: {
             'Specialty': ['Healing salves', 'Poisonous compounds', 'Tea blending', 'Aromatherapy', 'Dye-making'],
@@ -329,8 +329,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['defensive', 'panicked'],
         traitPool: ['Loyal', 'Disciplined', 'Humble', 'Stubborn', 'Fearless', 'Devoted'],
         statRanges: {
-            prowess: [35, 55], expertise: [30, 50], attunement: [15, 30],
-            presence: [35, 55], discipline: [50, 70], insight: [30, 50],
+            prowess: [18, 28], expertise: [15, 25], attunement: [8, 15],
+            presence: [18, 28], discipline: [25, 35], insight: [15, 25],
         },
         detailTemplates: {
             'Liege': ['A knight lost in battle', 'A lord of a distant province', 'Nobody — recently dismissed', 'A hedge knight of ill repute', 'Seeking a new master'],
@@ -350,8 +350,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['aggressive', 'defensive'],
         traitPool: ['Hardworking', 'Stubborn', 'Fierce', 'Stoic', 'Proud', 'Resourceful'],
         statRanges: {
-            prowess: [55, 75], expertise: [60, 80], attunement: [10, 25],
-            presence: [35, 55], discipline: [50, 70], insight: [25, 45],
+            prowess: [28, 38], expertise: [30, 40], attunement: [5, 13],
+            presence: [18, 28], discipline: [25, 35], insight: [13, 23],
         },
         detailTemplates: {
             'Specialty': ['Weaponsmith', 'Armorsmith', 'Farrier', 'Locksmith', 'Jeweler-smith'],
@@ -371,8 +371,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['defensive', 'cunning'],
         traitPool: ['Devout', 'Compassionate', 'Perceptive', 'Stubborn', 'Charismatic', 'Stoic'],
         statRanges: {
-            prowess: [20, 35], expertise: [35, 55], attunement: [55, 75],
-            presence: [55, 75], discipline: [55, 75], insight: [50, 70],
+            prowess: [10, 18], expertise: [18, 28], attunement: [28, 38],
+            presence: [28, 38], discipline: [28, 38], insight: [25, 35],
         },
         detailTemplates: {
             'Order': ['Temple of the Golden Spiral', 'Brotherhood of Mercy', 'The Silent Order', 'Wandering preacher', 'Excommunicated cleric'],
@@ -392,8 +392,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['evasive', 'aggressive'],
         traitPool: ['Vigilant', 'Agile', 'Resourceful', 'Stoic', 'Perceptive', 'Fierce'],
         statRanges: {
-            prowess: [50, 70], expertise: [45, 65], attunement: [15, 30],
-            presence: [30, 50], discipline: [40, 60], insight: [50, 70],
+            prowess: [25, 35], expertise: [23, 33], attunement: [8, 15],
+            presence: [15, 25], discipline: [20, 30], insight: [25, 35],
         },
         detailTemplates: {
             'Quarry': ['Big game specialist', 'Trapper and pelter', 'Monster hunter', 'Bounty hunter', 'Poacher'],
@@ -413,8 +413,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['cunning', 'evasive'],
         traitPool: ['Resourceful', 'Cunning', 'Perceptive', 'Distrustful', 'Meticulous', 'Witty'],
         statRanges: {
-            prowess: [20, 35], expertise: [60, 80], attunement: [45, 65],
-            presence: [35, 55], discipline: [45, 65], insight: [55, 75],
+            prowess: [10, 18], expertise: [30, 40], attunement: [23, 33],
+            presence: [18, 28], discipline: [23, 33], insight: [28, 38],
         },
         detailTemplates: {
             'Specialty': ['Antidotes and cures', 'Sleeping draughts', 'Performance enhancers', 'Hallucinogenics', 'Preservation compounds'],
@@ -434,8 +434,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['evasive', 'panicked'],
         traitPool: ['Elusive', 'Distrustful', 'Restless', 'Agile', 'Impulsive', 'Resourceful'],
         statRanges: {
-            prowess: [40, 60], expertise: [30, 50], attunement: [10, 25],
-            presence: [25, 45], discipline: [15, 35], insight: [35, 55],
+            prowess: [20, 30], expertise: [15, 25], attunement: [5, 13],
+            presence: [13, 23], discipline: [8, 18], insight: [18, 28],
         },
         detailTemplates: {
             'Former Unit': ['The King\'s Third Regiment', 'Frontier garrison', 'Mercenary company', 'Town guard', 'Conscript levy'],
@@ -455,8 +455,8 @@ export const NPC_ARCHETYPES: NPCArchetype[] = [
         combatStyles: ['cunning', 'evasive'],
         traitPool: ['Charismatic', 'Witty', 'Impulsive', 'Perceptive', 'Cheerful', 'Elusive'],
         statRanges: {
-            prowess: [25, 40], expertise: [40, 60], attunement: [40, 60],
-            presence: [60, 80], discipline: [20, 40], insight: [45, 65],
+            prowess: [13, 20], expertise: [20, 30], attunement: [20, 30],
+            presence: [30, 40], discipline: [10, 20], insight: [23, 33],
         },
         detailTemplates: {
             'Performance Style': ['Epic ballads', 'Satirical comedy', 'Dramatic monologues', 'Instrumental virtuosity', 'Storytelling and folklore'],

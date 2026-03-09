@@ -47,7 +47,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Gray Cat', 'Gender': '♂ Male', 'Class': 'Witch',
             'Affinity': 'Mind Magic', 'Alignment': 'Lawful Evil', 'Goal': 'Restore the manor to glory',
         },
-        stats: { prowess: 52, expertise: 45, attunement: 88, presence: 82, discipline: 78, insight: 75 },
+        stats: { prowess: 28, expertise: 24, attunement: 48, presence: 44, discipline: 42, insight: 40 },
     },
     Felicity: {
         color: '#e85d9a',
@@ -57,7 +57,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Pink Cat', 'Gender': '♂ Male', 'Former Role': 'Handmaiden',
             'Specialty': 'Household Management', 'Loyalty': 'Absolute', 'Quirk': 'Hums while he cleans',
         },
-        stats: { prowess: 38, expertise: 85, attunement: 28, presence: 58, discipline: 90, insight: 68 },
+        stats: { prowess: 20, expertise: 46, attunement: 15, presence: 31, discipline: 49, insight: 37 },
     },
     Locke: {
         color: '#6a8caf',
@@ -67,7 +67,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Gray Fox', 'Gender': '♂ Male', 'Former Role': 'Butler',
             'Specialty': 'Security & Logistics', 'Loyalty': 'Unwavering', 'Quirk': 'Polishes silverware when thinking',
         },
-        stats: { prowess: 62, expertise: 72, attunement: 32, presence: 66, discipline: 94, insight: 76 },
+        stats: { prowess: 33, expertise: 39, attunement: 17, presence: 35, discipline: 51, insight: 41 },
     },
     Sable: {
         color: '#c4943a',
@@ -77,7 +77,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Tabby Cat', 'Gender': '♂ Male', 'Class': 'Thief',
             'Specialty': 'Stealth & Lockpicking', 'Weakness': 'Overconfidence', 'Quirk': 'Flicks his tail when lying',
         },
-        stats: { prowess: 68, expertise: 74, attunement: 24, presence: 60, discipline: 22, insight: 72 },
+        stats: { prowess: 37, expertise: 40, attunement: 13, presence: 32, discipline: 12, insight: 39 },
     },
     Veridian: {
         color: '#4a9e6a',
@@ -87,7 +87,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Deer', 'Gender': '♀ Female', 'Class': 'Cleric',
             'Specialty': 'Healing & Warding', 'Weakness': 'Trusts too easily', 'Quirk': 'Ears twitch when sensing danger',
         },
-        stats: { prowess: 42, expertise: 50, attunement: 80, presence: 70, discipline: 65, insight: 74 },
+        stats: { prowess: 23, expertise: 27, attunement: 43, presence: 38, discipline: 35, insight: 40 },
     },
     Kova: {
         color: '#b84a4a',
@@ -97,7 +97,7 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Wolf', 'Gender': '♀ Female', 'Class': 'Barbarian',
             'Specialty': 'Raw Strength & Intimidation', 'Weakness': 'Easily provoked', 'Quirk': 'Howls at the moon involuntarily',
         },
-        stats: { prowess: 92, expertise: 32, attunement: 18, presence: 76, discipline: 28, insight: 40 },
+        stats: { prowess: 50, expertise: 17, attunement: 10, presence: 41, discipline: 15, insight: 22 },
     },
     Pervis: {
         color: '#5a6abf',
@@ -107,6 +107,6 @@ export const CHARACTER_DATA: Record<string, {
             'Species': 'Bunny', 'Gender': '♂ Male', 'Class': 'Leader',
             'Specialty': 'Tactics & Inspiration', 'Weakness': 'Cannot abandon allies', 'Quirk': 'Nose wiggles when plotting',
         },
-        stats: { prowess: 58, expertise: 46, attunement: 38, presence: 84, discipline: 70, insight: 82 },
+        stats: { prowess: 31, expertise: 25, attunement: 20, presence: 45, discipline: 38, insight: 44 },
     },
 };

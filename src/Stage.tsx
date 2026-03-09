@@ -801,7 +801,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         // Role bonus
         if (task.roleBonus && servant.assignedRole === task.roleBonus) {
-            score += 15;
+            score += 10;
         }
 
         // Obedience factor
