@@ -201,16 +201,6 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                         {/* Cauldron */}
                         <div className={`pc-cauldron ${cauldronClass}`}>
                             <svg className="cauldron-svg" viewBox="0 40 260 270" xmlns="http://www.w3.org/2000/svg">
-                                {totalIngredients > 0 && (
-                                    <g className="cauldron-steam">
-                                        <path className="steam s1" d="M100,100 Q92,85 102,72 Q110,62 100,52" />
-                                        <path className="steam s2" d="M130,96 Q138,82 128,68 Q120,58 130,48" />
-                                        <path className="steam s3" d="M160,100 Q168,85 158,72 Q150,62 160,52" />
-                                    </g>
-                                )}
-                                <path className="cauldron-handle" d="M48,125 Q22,140 22,160 Q22,180 48,185" />
-                                <path className="cauldron-handle" d="M212,125 Q238,140 238,160 Q238,180 212,185" />
-                                <path className="cauldron-pot" d="M48,110 L48,200 Q48,245 130,245 Q212,245 212,200 L212,110 Z" />
                                 <defs>
                                     <clipPath id="potClip"><path d="M52,114 L52,198 Q52,242 130,242 Q208,242 208,198 L208,114 Z" /></clipPath>
                                     <linearGradient id="liquidGrad" x1="0" y1="0" x2="0" y2="1">
@@ -221,7 +211,99 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                                         <stop offset="60%" stopColor="rgba(200,60,20,0.15)" />
                                         <stop offset="100%" stopColor="rgba(80,20,10,0)" />
                                     </radialGradient>
+                                    {/* 3D shading gradient for pot body — light from upper-left */}
+                                    <linearGradient id="potBodyGrad" x1="0" y1="0" x2="1" y2="0.6">
+                                        <stop offset="0%" stopColor="#2a2040" />
+                                        <stop offset="25%" stopColor="#221835" />
+                                        <stop offset="70%" stopColor="#18102a" />
+                                        <stop offset="100%" stopColor="#0e0a1a" />
+                                    </linearGradient>
+                                    {/* Rim metallic gradient */}
+                                    <linearGradient id="rimGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#6a5a48" />
+                                        <stop offset="30%" stopColor="#4d3e30" />
+                                        <stop offset="70%" stopColor="#3a2e24" />
+                                        <stop offset="100%" stopColor="#4a3a2c" />
+                                    </linearGradient>
+                                    {/* Handle metallic gradient — solid iron tones */}
+                                    <linearGradient id="handleGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#7a6850" />
+                                        <stop offset="40%" stopColor="#5a4a3a" />
+                                        <stop offset="100%" stopColor="#4a3a2c" />
+                                    </linearGradient>
+                                    {/* Subtle specular highlight on pot */}
+                                    <radialGradient id="potHighlight" cx="30%" cy="30%" r="50%">
+                                        <stop offset="0%" stopColor="rgba(255,255,255,0.06)" />
+                                        <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                                    </radialGradient>
                                 </defs>
+
+                                {/* Steam */}
+                                {totalIngredients > 0 && (
+                                    <g className="cauldron-steam">
+                                        <path className="steam s1" d="M100,100 Q92,85 102,72 Q110,62 100,52" />
+                                        <path className="steam s2" d="M130,96 Q138,82 128,68 Q120,58 130,48" />
+                                        <path className="steam s3" d="M160,100 Q168,85 158,72 Q150,62 160,52" />
+                                    </g>
+                                )}
+
+                                {/* Handles — layered for metallic depth */}
+                                <g className="cauldron-handle-group">
+                                    {/* Left handle: dark edge → body → highlight */}
+                                    <path className="handle-shadow" d="M48,130 Q16,146 16,162 Q16,180 48,188" />
+                                    <path className="handle-body" d="M48,130 Q18,145 18,162 Q18,180 48,188" />
+                                    <path className="handle-highlight" d="M48,131 Q22,146 22,162 Q22,178 48,186" />
+                                    {/* Left mounting plates */}
+                                    <rect className="bracket-shadow" x="43" y="126" width="12" height="10" rx="2" />
+                                    <rect className="bracket-body" x="44" y="126" width="10" height="9" rx="2" />
+                                    <rect className="bracket-highlight" x="45" y="127" width="8" height="3" rx="1" />
+                                    <circle className="bracket-rivet" cx="49" cy="131" r="1.5" />
+                                    <rect className="bracket-shadow" x="43" y="184" width="12" height="10" rx="2" />
+                                    <rect className="bracket-body" x="44" y="184" width="10" height="9" rx="2" />
+                                    <rect className="bracket-highlight" x="45" y="185" width="8" height="3" rx="1" />
+                                    <circle className="bracket-rivet" cx="49" cy="189" r="1.5" />
+
+                                    {/* Right handle: dark edge → body → highlight */}
+                                    <path className="handle-shadow" d="M212,130 Q244,146 244,162 Q244,180 212,188" />
+                                    <path className="handle-body" d="M212,130 Q242,145 242,162 Q242,180 212,188" />
+                                    <path className="handle-highlight" d="M212,131 Q238,146 238,162 Q238,178 212,186" />
+                                    {/* Right mounting plates */}
+                                    <rect className="bracket-shadow" x="205" y="126" width="12" height="10" rx="2" />
+                                    <rect className="bracket-body" x="206" y="126" width="10" height="9" rx="2" />
+                                    <rect className="bracket-highlight" x="207" y="127" width="8" height="3" rx="1" />
+                                    <circle className="bracket-rivet" cx="211" cy="131" r="1.5" />
+                                    <rect className="bracket-shadow" x="205" y="184" width="12" height="10" rx="2" />
+                                    <rect className="bracket-body" x="206" y="184" width="10" height="9" rx="2" />
+                                    <rect className="bracket-highlight" x="207" y="185" width="8" height="3" rx="1" />
+                                    <circle className="bracket-rivet" cx="211" cy="189" r="1.5" />
+                                </g>
+
+                                {/* Main pot body — layered edge like handles */}
+                                {/* Outer dark edge */}
+                                <path className="pot-shadow" d="M48,110 L48,200 Q48,245 130,245 Q212,245 212,200 L212,110 Z" />
+                                {/* Pot fill */}
+                                <path className="pot-fill" d="M48,110 L48,200 Q48,245 130,245 Q212,245 212,200 L212,110 Z" fill="url(#potBodyGrad)" />
+                                {/* Specular highlight overlay */}
+                                <path d="M48,110 L48,200 Q48,245 130,245 Q212,245 212,200 L212,110 Z" fill="url(#potHighlight)" />
+
+                                {/* No seam lines — they looked like scratches */}
+
+                                {/* Rivets along the top — just below rim */}
+                                {[70, 90, 110, 130, 150, 170, 190].map(x => (
+                                    <circle key={x} className="cauldron-rivet" cx={x} cy="122" r="2" />
+                                ))}
+
+                                {/* Decorative medallion on front */}
+                                <g className="cauldron-medallion">
+                                    <circle cx="130" cy="178" r="20" className="medallion-outer" />
+                                    <circle cx="130" cy="178" r="16" className="medallion-inner" />
+                                    {/* Simple triskele — three curved arms from center */}
+                                    <path className="medallion-design" d="M130,178 C130,170 124,164 118,166 C124,166 128,170 130,178" />
+                                    <path className="medallion-design" d="M130,178 C136,183 142,184 144,190 C140,185 135,183 130,178" />
+                                    <path className="medallion-design" d="M130,178 C124,183 118,184 116,190 C120,185 125,183 130,178" />
+                                </g>
+
+                                {/* Liquid fill */}
                                 {totalIngredients > 0 && (
                                     <g clipPath="url(#potClip)">
                                         <rect className="cauldron-liquid-fill" x="52" width="156"
@@ -232,6 +314,7 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                                             fill="url(#liquidGrad)" style={{ transition: 'y 0.5s ease, height 0.5s ease' }} />
                                     </g>
                                 )}
+                                {/* Bubbles */}
                                 {totalIngredients > 0 && (
                                     <g clipPath="url(#potClip)" className="cauldron-bubbles">
                                         <circle className="bub b1" cx="90" cy="210" r="4" />
@@ -241,19 +324,38 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                                         <circle className="bub b5" cx="105" cy="230" r="4" />
                                     </g>
                                 )}
+                                {/* Plop */}
                                 {totalIngredients > 0 && (
                                     <g key={plopKey} className="cauldron-plop" clipPath="url(#potClip)">
                                         <circle className="plop-ring" cx="130" cy={242 - (242 - 114) * (liquidLevel / 100) + 5} r="8" style={{ stroke: liquidColor }} />
                                     </g>
                                 )}
-                                <rect className="cauldron-rim" x="38" y="103" width="184" height="14" rx="7" />
-                                <path className="cauldron-rim-inner" d="M52,114 Q130,120 208,114" />
-                                {/* Two stubby curved legs — outside the ember bed */}
-                                <path className="cauldron-leg" d="M78,238 Q62,248 55,260 Q52,268 56,274 L64,274 Q65,267 69,258 Q74,248 82,242 Z" />
-                                <path className="cauldron-leg" d="M182,238 Q198,248 205,260 Q208,268 204,274 L196,274 Q195,267 191,258 Q186,248 178,242 Z" />
-                                {/* Feet */}
-                                <ellipse className="cauldron-foot" cx="60" cy="275" rx="7" ry="3" />
-                                <ellipse className="cauldron-foot" cx="200" cy="275" rx="7" ry="3" />
+
+                                {/* Rim — thick with overhang lip */}
+                                <rect className="cauldron-rim" x="34" y="100" width="192" height="18" rx="4" fill="url(#rimGrad)" />
+                                {/* Rim top highlight */}
+                                <rect className="cauldron-rim-highlight" x="36" y="101" width="188" height="4" rx="2" />
+
+                                {/* Two stubby curved legs — stroke-based like handles */}
+                                <g className="cauldron-legs">
+                                    {/* Left leg: shadow → body → highlight (same technique as handles) */}
+                                    <path className="leg-shadow" d="M82,240 Q58,252 52,272" />
+                                    <path className="leg-body" d="M82,240 Q58,252 52,272" />
+                                    <path className="leg-highlight" d="M84,241 Q62,252 56,270" />
+                                    {/* Left foot */}
+                                    <ellipse className="foot-shadow" cx="52" cy="274" rx="8" ry="4" />
+                                    <ellipse className="foot-body" cx="52" cy="273" rx="7" ry="3.5" />
+                                    <ellipse className="foot-highlight" cx="50" cy="272" rx="3.5" ry="1.5" />
+
+                                    {/* Right leg */}
+                                    <path className="leg-shadow" d="M178,240 Q202,252 208,272" />
+                                    <path className="leg-body" d="M178,240 Q202,252 208,272" />
+                                    <path className="leg-highlight" d="M176,241 Q198,252 204,270" />
+                                    {/* Right foot */}
+                                    <ellipse className="foot-shadow" cx="208" cy="274" rx="8" ry="4" />
+                                    <ellipse className="foot-body" cx="208" cy="273" rx="7" ry="3.5" />
+                                    <ellipse className="foot-highlight" cx="206" cy="272" rx="3.5" ry="1.5" />
+                                </g>
                                 <ellipse className="ember-ambient" cx="130" cy="275" rx="70" ry="18" fill="url(#emberGlow)" />
                                 <g className="ember-bed">
                                     <ellipse className="ember-ash" cx="130" cy="282" rx="62" ry="10" />

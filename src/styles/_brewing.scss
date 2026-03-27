@@ -495,12 +495,52 @@ $panel-border: rgba($gold, 0.15);
   }
 
   .cauldron-svg { width: 100%; height: auto; display: block; overflow: visible; }
-  .cauldron-pot { fill: #1a1225; stroke: rgba($gold, 0.35); stroke-width: 3; }
-  .cauldron-rim { fill: #2a2035; stroke: rgba($gold, 0.5); stroke-width: 2.5; }
-  .cauldron-rim-inner { fill: none; stroke: rgba($gold, 0.15); stroke-width: 1.5; }
-  .cauldron-handle { fill: none; stroke: rgba($gold, 0.4); stroke-width: 4; stroke-linecap: round; }
-  .cauldron-leg { fill: #4a3d52; stroke: rgba($gold, 0.45); stroke-width: 2; }
-  .cauldron-foot { fill: #4a3d52; stroke: rgba($gold, 0.4); stroke-width: 1.5; }
+
+  // Pot body — layered edges for metallic look
+  .pot-shadow { fill: none; stroke: #1a1210; stroke-width: 5; }
+  .pot-fill { stroke: #4a3a2c; stroke-width: 3; }
+  .pot-highlight-left { fill: none; stroke: #6a5a48; stroke-width: 1.5; stroke-linecap: round; opacity: 0.4; }
+  .pot-edge-right { fill: none; stroke: #0e0a08; stroke-width: 1.5; stroke-linecap: round; opacity: 0.3; }
+
+  // Seam lines on pot surface — solid, very faint
+  .cauldron-seam { stroke: rgba($gold, 0.05); stroke-width: 0.6; }
+
+  // Rivets
+  .cauldron-rivet { fill: #3a2e42; stroke: rgba($gold, 0.2); stroke-width: 0.8; }
+
+  // Medallion
+  .medallion-outer { fill: none; stroke: rgba($gold, 0.25); stroke-width: 1.5; }
+  .medallion-inner { fill: rgba(0,0,0,0.15); stroke: rgba($gold, 0.18); stroke-width: 1; }
+  .medallion-design { fill: none; stroke: rgba($gold, 0.3); stroke-width: 1.8; stroke-linecap: round; }
+  .medallion-spiral { fill: none; stroke: rgba($gold, 0.22); stroke-width: 1.2; stroke-linecap: round; }
+
+  // Rim — thick metallic with gradient
+  .cauldron-rim { stroke: rgba($gold, 0.45); stroke-width: 2; }
+  .cauldron-rim-highlight { fill: rgba(255,255,255,0.1); stroke: none; }
+  .cauldron-rim-lip { fill: none; stroke: rgba(0,0,0,0.3); stroke-width: 1.5; }
+  .cauldron-rim-inner { fill: none; stroke: rgba($gold, 0.12); stroke-width: 1.5; }
+
+  // Handles — layered metallic iron
+  .handle-shadow { fill: none; stroke: #2a1e14; stroke-width: 8; stroke-linecap: round; }
+  .handle-body { fill: none; stroke: #5a4a3a; stroke-width: 6; stroke-linecap: round; }
+  .handle-highlight { fill: none; stroke: #8a7a62; stroke-width: 1.5; stroke-linecap: round; opacity: 0.6; }
+
+  // Mounting brackets — layered
+  .bracket-shadow { fill: #2a1e14; stroke: none; }
+  .bracket-body { fill: #5a4a3a; stroke: #6b5a48; stroke-width: 0.8; }
+  .bracket-highlight { fill: #7a6a52; stroke: none; opacity: 0.4; }
+  .bracket-rivet { fill: #7a6a52; stroke: #3a2e20; stroke-width: 0.8; }
+
+  // Legs — stroke-based like handles
+  .leg-shadow { fill: none; stroke: #2a1e14; stroke-width: 10; stroke-linecap: round; }
+  .leg-body { fill: none; stroke: #5a4a3a; stroke-width: 7; stroke-linecap: round; }
+  .leg-highlight { fill: none; stroke: #8a7a62; stroke-width: 1.5; stroke-linecap: round; opacity: 0.5; }
+
+  // Feet — layered
+  .foot-shadow { fill: #2a1e14; stroke: none; }
+  .foot-body { fill: #5a4a3a; stroke: #6b5a48; stroke-width: 1; }
+  .foot-highlight { fill: #8a7a62; stroke: none; opacity: 0.35; }
+
   .cauldron-liquid-fill { opacity: 0.7; }
   .cauldron-liquid-surface { pointer-events: none; }
 
