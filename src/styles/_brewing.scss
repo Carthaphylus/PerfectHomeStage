@@ -1,0 +1,908 @@
+// ==========================================
+// Brewing Screen — Potion Craft inspired
+// ==========================================
+
+$fire: #e85d3a;
+$earth: #8b7355;
+$water: #4a9eca;
+$shadow: #7b5ea7;
+$light: #e8d44d;
+$gold: #c8aa6e;
+$wood: #3a2518;
+$wood-light: #5a3a25;
+$parchment: #2a2430;
+$panel-bg: rgba(25, 20, 30, 0.85);
+$panel-border: rgba($gold, 0.15);
+
+.brewing-screen {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at center 60%, rgba(35, 28, 42, 0.95) 0%, rgba(15, 10, 20, 0.99) 100%) !important;
+
+  // ══════════════════════════════════════
+  // MAIN 3-COLUMN LAYOUT
+  // ══════════════════════════════════════
+  .pc-layout {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  // ── Shared panel styles ──
+  .pc-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 2px solid rgba($gold, 0.1);
+  }
+
+  .pc-title {
+    font-size: 8px;
+    font-family: 'Press Start 2P', monospace;
+    color: $gold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .pc-section-label {
+    font-size: 5px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba($gold, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 0 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pc-divider {
+    height: 1px;
+    background: rgba($gold, 0.08);
+    margin: 4px 0;
+  }
+
+  // ══════════════════════════════════════
+  // LEFT PANEL — Brew Controls
+  // ══════════════════════════════════════
+  .pc-left {
+    width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background:
+      // Vignette
+      radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.2) 100%),
+      // Base
+      linear-gradient(180deg, rgba(28, 22, 36, 0.95), rgba(22, 16, 30, 0.98)) !important;
+    border-right: 3px solid rgba(0,0,0,0.5);
+    box-shadow:
+      inset -2px 0 0 rgba($gold, 0.08),
+      inset -4px 0 8px rgba(0,0,0,0.3),
+      inset 0 2px 6px rgba(0,0,0,0.2),
+      inset 0 -2px 6px rgba(0,0,0,0.2);
+    padding: 0 10px 10px;
+    gap: 6px;
+    overflow-y: auto;
+  }
+
+  .pc-left .pc-panel-header {
+    margin: 0 -10px;
+    padding: 8px 10px;
+  }
+
+  // Essence diamond indicators
+  .pc-essence-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .pc-diamond {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(0,0,0,0.4);
+    border-radius: 3px;
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    background: rgba(0,0,0,0.3) !important;
+    box-shadow:
+      inset 0 2px 3px rgba(0,0,0,0.4),
+      inset 0 -1px 0 rgba(255,255,255,0.03),
+      0 1px 0 rgba($gold, 0.04);
+
+    span {
+      transform: rotate(-45deg);
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      color: rgba($gold, 0.2);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    &.active {
+      background: rgba(0,0,0,0.4) !important;
+      box-shadow:
+        inset 0 2px 3px rgba(0,0,0,0.3),
+        0 0 8px currentColor;
+      span { color: inherit; }
+    }
+  }
+
+  // Added ingredients
+  .pc-added {
+    min-height: 40px;
+    padding: 6px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.25) !important;
+    border: 1px solid rgba(0,0,0,0.3);
+    box-shadow:
+      inset 0 2px 4px rgba(0,0,0,0.3),
+      inset 0 -1px 0 rgba(255,255,255,0.02),
+      0 1px 0 rgba($gold, 0.04);
+  }
+
+  .pc-added-empty {
+    font-size: 5px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba($gold, 0.2);
+    text-align: center;
+    padding: 8px 0;
+    line-height: 1.6;
+  }
+
+  .pc-added-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .pc-added-icon {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: rgba($gold, 0.06) !important;
+    border: 1px solid rgba($gold, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba($gold, 0.12) !important;
+      border-color: rgba($gold, 0.25);
+    }
+  }
+
+  .pc-added-count {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 5px;
+    font-family: 'Press Start 2P', monospace;
+    color: $gold;
+    background: rgba(20,15,25,0.9) !important;
+    border: 1px solid rgba($gold, 0.2);
+    border-radius: 3px;
+    padding: 0 2px;
+    line-height: 1.4;
+  }
+
+  .pc-clear-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-family: 'Press Start 2P', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(180, 60, 60, 0.2);
+    background: rgba(180, 60, 60, 0.08) !important;
+    color: rgba(180, 80, 80, 0.5);
+    cursor: pointer;
+    padding: 0;
+    &:hover { background: rgba(180, 60, 60, 0.2) !important; color: rgba(180, 80, 80, 0.8); }
+  }
+
+  // Base liquid bottles
+  .pc-bottles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .pc-bottle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid transparent;
+    background: none !important;
+
+    span {
+      font-size: 4px;
+      font-family: 'Press Start 2P', monospace;
+      color: rgba($gold, 0.3);
+    }
+
+    &.active {
+      border-color: rgba($gold, 0.2);
+      background: rgba($gold, 0.06) !important;
+      span { color: $gold; }
+    }
+
+    &.disabled { opacity: 0.2; cursor: not-allowed; }
+    &:hover:not(.disabled):not(.active) { background: rgba($gold, 0.04) !important; }
+  }
+
+  .pc-bottle-svg { width: 20px; height: 30px; overflow: visible; }
+  .pc-bottle-body { fill: rgba(180,200,220,0.06); stroke: rgba(180,200,220,0.15); stroke-width: 0.8; }
+  .pc-bottle-neck { fill: rgba(180,200,220,0.08); stroke: rgba(180,200,220,0.12); stroke-width: 0.6; }
+  .pc-bottle-cork { fill: rgba($wood-light, 0.3); stroke: rgba($gold, 0.08); stroke-width: 0.5; }
+  .pc-bottle-liquid { fill: rgba($gold, 0.25); rx: 2; }
+
+  // Brew button
+  .pc-brew-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba($gold, 0.3);
+    background:
+      linear-gradient(180deg, rgba($gold, 0.12) 0%, rgba($gold, 0.04) 100%) !important;
+    color: $gold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+
+    &:hover:not(:disabled) {
+      background:
+        linear-gradient(180deg, rgba($gold, 0.2) 0%, rgba($gold, 0.08) 100%) !important;
+      border-color: rgba($gold, 0.5);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 0 12px rgba($gold, 0.15),
+        0 2px 4px rgba(0,0,0,0.3);
+    }
+    &:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+  }
+
+  // Recipe list
+  .pc-recipes {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+  }
+
+  .pc-recipe {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 4px;
+    border-radius: 2px;
+
+    span {
+      font-size: 5px;
+      font-family: 'Press Start 2P', monospace;
+      color: rgba($gold, 0.25);
+    }
+
+    &.found {
+      background: rgba(160, 140, 100, 0.04) !important;
+      border-left: 2px solid rgba($gold, 0.25);
+      span { color: rgba($gold, 0.6); }
+    }
+
+    &:not(.found) {
+      border-left: 2px solid rgba($gold, 0.06);
+    }
+  }
+
+  .pc-recipe-dots { display: flex; gap: 2px; }
+  .pc-rdot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+
+  // ══════════════════════════════════════
+  // CENTER — Scene Area
+  // ══════════════════════════════════════
+
+  // Top bar with back, runes, bottles, brew info, brew button
+  .pc-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba($gold, 0.08);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15) !important;
+
+    .back-button {
+      flex-shrink: 0;
+    }
+  }
+
+  .pc-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+
+    .pc-bottles {
+      display: flex;
+      gap: 2px;
+    }
+
+    .pc-bottle {
+      padding: 2px 3px;
+    }
+
+    .pc-bottle-svg {
+      width: 16px;
+      height: 24px;
+    }
+
+    .pc-bottle span {
+      font-size: 3px;
+    }
+
+    .pc-brew-info {
+      display: flex;
+      gap: 8px;
+      span {
+        font-size: 5px;
+        font-family: 'Press Start 2P', monospace;
+        color: rgba($gold, 0.45);
+      }
+    }
+
+    .pc-brew-btn {
+      padding: 5px 10px;
+      font-size: 6px;
+      white-space: nowrap;
+    }
+  }
+
+  .pc-runes {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .pc-rune {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: transform 0.3s;
+    &.active { transform: translateY(-2px); }
+  }
+
+  .pc-rune-svg { width: 40px; height: 50px; overflow: visible; }
+
+  .pc-rune-val {
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  .pc-center {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    // Subtle ambient light from the fire
+    background:
+      radial-gradient(ellipse at 50% 75%, rgba(232, 93, 58, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(30, 24, 38, 0.3) 0%, transparent 100%) !important;
+  }
+
+  .pc-scene {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 3;
+    padding-bottom: 0;
+  }
+
+  // ══════════════════════════════════════
+  // COBBLESTONE FOOTER
+  // ══════════════════════════════════════
+  .pc-cobble-footer {
+    flex-shrink: 0;
+    position: relative;
+    width: 100%;
+    margin-top: -50px; // pull up underneath the cauldron
+    z-index: 1;
+  }
+
+  .cobble-svg {
+    width: 100%;
+    height: 120px;
+    display: block;
+  }
+
+  .cobble-edge {
+    fill: #2a2030;
+    stroke: none;
+  }
+
+  .cobble-base {
+    fill: #1e1828;
+  }
+
+  .cobble-stone {
+    fill: #2c2236;
+    stroke: rgba(80, 65, 95, 0.3);
+    stroke-width: 1;
+    transition: fill 0.3s;
+
+    // Alternating shade variations
+    @for $i from 1 through 23 {
+      &.cs#{$i} {
+        fill: if($i % 3 == 0, #302838, if($i % 3 == 1, #2a2234, #282036));
+        stroke: if($i % 2 == 0, rgba(80, 65, 95, 0.25), rgba(90, 75, 105, 0.2));
+      }
+    }
+  }
+
+  .cobble-grout {
+    stroke: rgba(10, 6, 16, 0.6);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 1;
+  }
+
+
+  // Cauldron
+  .pc-cauldron {
+    width: 300px;
+    position: relative;
+    z-index: 5;
+    flex-shrink: 0;
+  }
+
+  .cauldron-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .cauldron-pot { fill: #1a1225; stroke: rgba($gold, 0.35); stroke-width: 3; }
+  .cauldron-rim { fill: #2a2035; stroke: rgba($gold, 0.5); stroke-width: 2.5; }
+  .cauldron-rim-inner { fill: none; stroke: rgba($gold, 0.15); stroke-width: 1.5; }
+  .cauldron-handle { fill: none; stroke: rgba($gold, 0.4); stroke-width: 4; stroke-linecap: round; }
+  .cauldron-leg { fill: #4a3d52; stroke: rgba($gold, 0.45); stroke-width: 2; }
+  .cauldron-foot { fill: #4a3d52; stroke: rgba($gold, 0.4); stroke-width: 1.5; }
+  .cauldron-liquid-fill { opacity: 0.7; }
+  .cauldron-liquid-surface { pointer-events: none; }
+
+  .ember-ambient { opacity: 0.6; animation: emberAmbientPulse 3s ease-in-out infinite; }
+  .ember-ash { fill: #1a0a06; stroke: rgba(120, 40, 15, 0.2); stroke-width: 1; }
+  .coal {
+    fill: #2a0e08; stroke: rgba(200, 60, 20, 0.35); stroke-width: 1.2;
+    animation: coalGlow 2.5s ease-in-out infinite;
+    @for $i from 1 through 9 { &.c#{$i} { animation-delay: #{$i * 0.18}s; } }
+  }
+  .ember-crack {
+    stroke: #ff6030; stroke-width: 1.5; stroke-linecap: round; opacity: 0.7;
+    animation: crackGlow 2s ease-in-out infinite;
+    @for $i from 1 through 6 { &.cr#{$i} { animation-delay: #{$i * 0.2}s; } }
+  }
+  .ember-sparks .spark {
+    fill: #ffaa40; opacity: 0; animation: sparkFloat 3s ease-out infinite;
+    @for $i from 1 through 5 { &.sp#{$i} { animation-delay: #{$i * 0.4}s; } }
+  }
+  .cauldron-bubbles .bub {
+    fill: rgba(255,255,255,0.25); stroke: rgba(255,255,255,0.15); stroke-width: 1;
+    animation: bubbleFloat 2.5s ease-in-out infinite;
+    @for $i from 1 through 5 { &.b#{$i} { animation-delay: #{($i - 1) * 0.5}s; } }
+  }
+  .cauldron-steam .steam {
+    fill: none; stroke: rgba(200,190,180,0.2); stroke-width: 6; stroke-linecap: round;
+    animation: steamRise 3s ease-out infinite;
+    &.s1 { animation-delay: 0s; } &.s2 { animation-delay: 1s; } &.s3 { animation-delay: 2s; }
+  }
+  .cauldron-fire .flame {
+    fill: $fire; opacity: 0.9; animation: flameDance 0.8s ease-in-out infinite; transform-origin: bottom center;
+    @for $i from 1 through 5 { &.f#{$i} { animation-delay: #{($i - 1) * 0.15}s; } }
+  }
+  .cauldron-fire .flame-core {
+    fill: #ffcc33; opacity: 0.85; animation: flameDance 0.6s ease-in-out infinite; transform-origin: bottom center;
+    @for $i from 1 through 5 { &.fc#{$i} { animation-delay: #{$i * 0.13}s; } }
+  }
+  .cauldron-plop .plop-ring {
+    fill: none; stroke-width: 2; opacity: 0; animation: plopSplash 0.5s ease-out forwards;
+  }
+
+  // Cauldron states
+  .cauldron-empty {
+    .cauldron-fire .flame { animation-name: flameDim; animation-duration: 1.2s; }
+    .cauldron-fire .flame-core { animation-name: flameDim; animation-duration: 1s; }
+    .cauldron-pot { stroke: rgba($gold, 0.2); }
+    .coal { stroke: rgba(200, 60, 20, 0.15); }
+    .ember-crack { opacity: 0.25; }
+    .ember-ambient { opacity: 0.2; }
+    .ember-sparks .spark { animation: none; opacity: 0; }
+  }
+  .cauldron-idle { .cauldron-fire .flame { opacity: 0.85; } }
+  .cauldron-brewing {
+    animation: cauldronShake 0.3s ease-in-out infinite;
+    .cauldron-svg { animation: cauldronGlow 1s ease-in-out infinite; }
+    .cauldron-fire .flame { animation-name: flameIntense; animation-duration: 0.4s; opacity: 1; filter: brightness(1.3); }
+    .cauldron-fire .flame-core { animation-name: flameIntense; animation-duration: 0.3s; opacity: 1; filter: brightness(1.4); }
+    .cauldron-bubbles .bub { animation-duration: 1s; fill: rgba(255,255,255,0.4); }
+    .cauldron-steam .steam { animation-duration: 1.5s; stroke: rgba(200,190,180,0.35); stroke-width: 8; }
+    .cauldron-liquid-fill { opacity: 0.85; animation: liquidBoil 0.4s ease-in-out infinite; }
+    .cauldron-pot { stroke: rgba($gold, 0.6); }
+    .cauldron-rim { stroke: rgba($gold, 0.7); }
+    .coal { stroke: rgba(255, 80, 20, 0.6); fill: #3a1208; }
+    .ember-crack { stroke: #ff8040; opacity: 1; animation-duration: 0.8s; }
+    .ember-ambient { opacity: 1; }
+  }
+
+  // ══════════════════════════════════════
+  // SHARED — Panel Texture Overlay
+  // ══════════════════════════════════════
+  .panel-texture {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.07;
+    filter: url(#noise-coarse);
+    mix-blend-mode: soft-light;
+    background: white;
+  }
+
+  // Make panels position:relative for the texture overlay
+  .pc-right {
+    position: relative;
+
+    // Everything inside sits above the texture
+    > *:not(.panel-texture) {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  // ══════════════════════════════════════
+  // RIGHT PANEL — Ingredients (Dark Stone)
+  // ══════════════════════════════════════
+  .pc-right {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+      // Vignette darkening at edges
+      radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.25) 100%),
+      // Base dark stone
+      linear-gradient(180deg, rgba(28, 22, 36, 0.95), rgba(22, 16, 30, 0.98)) !important;
+    // Double border for carved look
+    border-left: 3px solid rgba(0,0,0,0.5);
+    box-shadow:
+      inset 2px 0 0 rgba($gold, 0.08),
+      inset 4px 0 8px rgba(0,0,0,0.3),
+      inset 0 2px 6px rgba(0,0,0,0.2),
+      inset 0 -2px 6px rgba(0,0,0,0.2);
+  }
+
+  .pc-right .pc-panel-header {
+    border-bottom: 1px solid rgba($gold, 0.1);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .pc-ing-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    align-content: flex-start;
+
+    // Styled scrollbar
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; margin: 4px 0; }
+    &::-webkit-scrollbar-thumb {
+      background: rgba($gold, 0.15); border-radius: 3px;
+      border: 1px solid rgba($gold, 0.05);
+      &:hover { background: rgba($gold, 0.25); }
+    }
+    scrollbar-width: thin;
+    scrollbar-color: rgba($gold, 0.15) rgba(0,0,0,0.2);
+  }
+
+  .pc-ing-empty {
+    grid-column: 1 / -1;
+    font-size: 6px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba($gold, 0.2);
+    text-align: center;
+    padding: 24px 8px;
+  }
+
+  .pc-ing-cell {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: visible;
+
+    // Recessed stone slot look
+    background:
+      radial-gradient(ellipse at center, rgba(40,30,55,0.6) 0%, rgba(15,10,25,0.8) 100%) !important;
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow:
+      inset 0 2px 4px rgba(0,0,0,0.4),
+      inset 0 -1px 2px rgba(255,255,255,0.03),
+      0 1px 0 rgba($gold, 0.05);
+
+    &:hover:not(.depleted) {
+      background:
+        radial-gradient(ellipse at center, rgba(50,38,68,0.7) 0%, rgba(20,14,30,0.85) 100%) !important;
+      border-color: rgba($gold, 0.25);
+      box-shadow:
+        inset 0 2px 4px rgba(0,0,0,0.3),
+        0 0 8px rgba($gold, 0.1),
+        0 1px 0 rgba($gold, 0.1);
+      transform: scale(1.04);
+      z-index: 10;
+
+      .pc-ing-tooltip { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    }
+
+    &.depleted {
+      opacity: 0.2;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+  }
+
+  // Quantity badge
+  .pc-ing-qty {
+    position: absolute;
+    bottom: 2px;
+    right: 3px;
+    font-size: 6px;
+    font-family: 'Press Start 2P', monospace;
+    color: rgba($gold, 0.7);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  }
+
+  // Element indicator dot
+  .pc-ing-element {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.3);
+    box-shadow: 0 0 4px currentColor;
+  }
+
+  // Tooltip
+  .pc-ing-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(10, 6, 16, 0.95);
+    border: 1px solid rgba($gold, 0.25);
+    border-radius: 4px;
+    padding: 6px 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.15s ease;
+    z-index: 100;
+    white-space: nowrap;
+    min-width: 100px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba($gold, 0.25);
+    }
+  }
+
+  .pc-ing-tooltip-name {
+    font-size: 5px;
+    font-family: 'Press Start 2P', monospace;
+    color: $gold;
+    margin-bottom: 4px;
+  }
+
+  .pc-ing-tooltip-els {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    span {
+      font-size: 5px;
+      font-family: 'Press Start 2P', monospace;
+    }
+  }
+
+  // In-cauldron section at bottom of right panel
+  .pc-right-added {
+    border-top: 1px solid rgba($gold, 0.08);
+    box-shadow: 0 -1px 0 rgba(0,0,0,0.3), inset 0 2px 4px rgba(0,0,0,0.15);
+    padding: 6px 8px;
+    flex-shrink: 0;
+  }
+
+  .pc-clear-sm {
+    font-size: 4px; font-family: 'Press Start 2P', monospace;
+    border: none; background: none !important; color: rgba($gold, 0.3); cursor: pointer;
+    &:hover { color: rgba($gold, 0.7); }
+  }
+
+  .pc-right-added-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+  }
+
+  .pc-ra-name {
+    font-size: 5px; font-family: 'Press Start 2P', monospace;
+    color: rgba(220,210,190,0.7); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .pc-ra-qty {
+    font-size: 6px; font-family: 'Press Start 2P', monospace; color: $gold;
+  }
+
+  .pc-ra-btn {
+    width: 14px; height: 14px; border-radius: 2px;
+    font-size: 8px; font-family: 'Press Start 2P', monospace;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba($gold, 0.15); background: rgba($gold, 0.04) !important;
+    color: rgba($gold, 0.4); padding: 0; line-height: 1;
+    &:hover:not(:disabled) { background: rgba($gold, 0.12) !important; color: $gold; }
+    &:disabled { opacity: 0.25; cursor: not-allowed; }
+  }
+
+  // ══════════════════════════════════════
+  // RESULT OVERLAY
+  // ══════════════════════════════════════
+  .brew-result-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center;
+    z-index: 100; cursor: pointer; animation: fadeIn 0.3s ease;
+  }
+  .brew-result-card {
+    padding: 24px 32px; border-radius: 8px; border: 2px solid rgba($gold, 0.3);
+    background: radial-gradient(ellipse at center, rgba(40,30,55,0.98), rgba(20,15,30,0.99));
+    display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 320px;
+    animation: slideUp 0.4s ease;
+    &.quality-potent { border-color: rgba($light, 0.5); box-shadow: 0 0 25px rgba($light, 0.15); }
+    &.quality-standard { border-color: rgba($gold, 0.4); box-shadow: 0 0 15px rgba($gold, 0.1); }
+    &.quality-weak { border-color: rgba($gold, 0.2); }
+    &.quality-failed { border-color: rgba(180, 80, 80, 0.3); }
+  }
+  .brew-discovery-badge {
+    font-size: 7px; font-family: 'Press Start 2P', monospace; color: $light;
+    text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px;
+    border: 1px solid rgba($light, 0.4); border-radius: 4px;
+    background: rgba($light, 0.1) !important; animation: pulse 1.5s ease-in-out infinite;
+  }
+  .brew-result-icon { margin: 8px 0; }
+  .brew-result-name { font-size: 9px; font-family: 'Press Start 2P', monospace; color: #dcd2be; text-align: center; }
+  .brew-result-quality {
+    font-size: 7px; font-family: 'Press Start 2P', monospace; text-transform: uppercase;
+    letter-spacing: 1px; padding: 3px 8px; border-radius: 3px;
+    &.potent { color: $light; background: rgba($light, 0.15) !important; }
+    &.standard { color: $gold; background: rgba($gold, 0.15) !important; }
+    &.weak { color: rgba($gold, 0.5); background: rgba($gold, 0.08) !important; }
+    &.failed { color: rgba(180,80,80,0.7); background: rgba(180,80,80,0.1) !important; }
+  }
+  .brew-result-feedback { font-size: 7px; font-family: 'Press Start 2P', monospace; color: rgba(220,210,190,0.7); text-align: center; line-height: 1.8; }
+  .brew-result-dismiss { font-size: 6px; font-family: 'Press Start 2P', monospace; color: rgba($gold, 0.3); margin-top: 8px; }
+}
+
+// ══════════════════════════════════════
+// ANIMATIONS
+// ══════════════════════════════════════
+@keyframes flameDance {
+  0%, 100% { transform: scaleY(1) scaleX(1); opacity: 0.9; }
+  25% { transform: scaleY(1.15) scaleX(0.95); opacity: 1; }
+  50% { transform: scaleY(0.85) scaleX(1.05); opacity: 0.8; }
+  75% { transform: scaleY(1.1) scaleX(0.9); opacity: 0.95; }
+}
+@keyframes flameDim {
+  0%, 100% { transform: scaleY(0.7) scaleX(0.9); opacity: 0.25; }
+  50% { transform: scaleY(0.65) scaleX(0.95); opacity: 0.2; }
+}
+@keyframes flameIntense {
+  0%, 100% { transform: scaleY(1.3) scaleX(1); opacity: 1; }
+  25% { transform: scaleY(1.5) scaleX(0.85); }
+  50% { transform: scaleY(1.15) scaleX(1.1); opacity: 0.95; }
+  75% { transform: scaleY(1.45) scaleX(0.9); }
+}
+@keyframes bubbleFloat {
+  0% { transform: translateY(0) scale(0.4); opacity: 0; }
+  10% { opacity: 0.6; }
+  100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+}
+@keyframes steamRise {
+  0% { transform: translateY(0) scaleX(1); opacity: 0; }
+  15% { opacity: 0.25; }
+  100% { transform: translateY(-50px) scaleX(1.6); opacity: 0; }
+}
+@keyframes plopSplash {
+  0% { transform: scale(0); opacity: 0.8; stroke-width: 3; }
+  100% { transform: scale(3); opacity: 0; stroke-width: 1; }
+}
+@keyframes cauldronGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(200,170,110,0.15)); }
+  50% { filter: drop-shadow(0 0 20px rgba(200,170,110,0.5)) drop-shadow(0 5px 15px rgba(232,93,58,0.3)); }
+}
+@keyframes cauldronShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-1.5px); }
+  40% { transform: translateX(1.5px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+@keyframes liquidBoil {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  75% { transform: translateY(-1.5px); }
+}
+@keyframes emberAmbientPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+@keyframes coalGlow {
+  0%, 100% { fill: #2a0e08; stroke: rgba(200,60,20,0.3); }
+  30% { fill: #3a1208; stroke: rgba(240,80,25,0.5); }
+}
+@keyframes crackGlow {
+  0%, 100% { stroke: #ff6030; opacity: 0.5; }
+  40% { stroke: #ffaa50; opacity: 1; }
+}
+@keyframes sparkFloat {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translateY(-35px) translateX(8px); opacity: 0; }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
