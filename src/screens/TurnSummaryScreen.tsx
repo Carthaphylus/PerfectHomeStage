@@ -231,8 +231,33 @@ export const TurnSummaryScreen: FC<TurnSummaryScreenProps> = ({ stage, summary, 
                     )}
                 </div>
 
+                {/* ═══ Daily Events ═══ */}
+                {summary.dailyEvents && summary.dailyEvents.length > 0 && (
+                    <div className={`ts-section ${phase >= 3 ? 'ts-visible' : ''}`}>
+                        <div className="ts-block">
+                            <div className="ts-block-header">
+                                <GameIcon icon="scroll" size={13} color="#d4a07a" />
+                                <span>Events</span>
+                            </div>
+                            <div className="ts-event-list">
+                                {summary.dailyEvents.map((ev, i) => (
+                                    <div key={i} className="ts-event-card">
+                                        <div className="ts-event-icon">
+                                            <GameIcon icon={ev.icon} size={16} color="#d4a07a" />
+                                        </div>
+                                        <div className="ts-event-body">
+                                            <span className="ts-event-name">{ev.name}</span>
+                                            <span className="ts-event-desc">{ev.description}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* ═══ Quiet day ═══ */}
-                {!hasCompletedTasks && !hasProgressingTasks && phase >= 2 && (
+                {!hasCompletedTasks && !hasProgressingTasks && (!summary.dailyEvents || summary.dailyEvents.length === 0) && phase >= 2 && (
                     <div className="ts-empty">
                         <GameIcon icon="moon" size={28} color="rgba(200,170,110,0.25)" />
                         <p>A quiet day at the manor.</p>

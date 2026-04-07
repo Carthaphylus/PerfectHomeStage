@@ -51,11 +51,13 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
                     obedience: 6,
                 },
                 gold: 250,
+                soulFragments: 0,
                 mana: 100,
                 maxMana: 100,
                 servants: 2,
                 maxServants: 10,
                 day: 5,
+                reputation: 30,
             },
             location: 'Woods',
             playerCharacter: {
@@ -212,6 +214,7 @@ export const TestStageRunner = <StageType extends StageBase<InitStateType, ChatS
             completedEvents: [],
             activeQuests: [],
             completedQuests: [],
+            discoveredRecipes: [],
         });
         refresh();
 

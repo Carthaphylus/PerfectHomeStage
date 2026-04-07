@@ -2,16 +2,71 @@
 // INVENTORY & ITEMS
 // ──────────────────────────────────────────
 
-export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-export type ItemType = 'equipment' | 'consumable' | 'material' | 'key' | 'currency';
+import type { StatName } from './stats';
 
-export interface CraftingRecipe {
-    id: string;
-    ingredients: {
-        itemName: string;
-        quantity: number;
-    }[];
+// ── Item Enums & Sub-types ──
+
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type ItemType = 'equipment' | 'consumable' | 'ingredient' | 'material' | 'key' | 'currency';
+
+/** Sub-categories for consumable items */
+export type ConsumableSubtype = 'potion' | 'food' | 'incense' | 'scroll' | 'trinket';
+
+/** Sub-categories for ingredient items */
+export type IngredientCategory = 'herb' | 'crystal' | 'essence' | 'powder' | 'extract';
+
+/** The five element essences used by the brewing system */
+export type ElementType = 'fire' | 'earth' | 'water' | 'shadow' | 'light';
+
+/** Numeric element values — each ingredient contributes some amount of each element */
+export type ElementProfile = Partial<Record<ElementType, number>>;
+
+/** Base liquid determines the output form of a brew */
+export type BaseLiquid = 'water' | 'oil' | 'spirit' | 'smoke';
+
+/** Output form of a brew, determined by the base liquid */
+export type BrewOutputForm = 'potion' | 'salve' | 'tincture' | 'incense';
+
+/** Quality tier of a brew result */
+export type BrewQuality = 'failed' | 'weak' | 'standard' | 'potent';
+
+// ── Item Source (UI hint for where to obtain an item) ──
+
+export interface ItemSource {
+    type: 'shop' | 'exploration' | 'task' | 'crafting' | 'quest' | 'conditioning';
+    location?: string;
+    details?: string;
 }
+
+// ── Brewing Types ──
+
+/** Element-ratio-based brew recipe — defines element thresholds for producing a result */
+export interface BrewRecipe {
+    id: string;
+    name: string;
+    resultItemName: string;
+    elementThresholds: ElementProfile;  // minimum element values needed
+    minimumTotal: number;               // minimum sum of all elements
+    dominantElement?: ElementType;      // highest element must be this
+    allowedForms: BrewOutputForm[];     // which output forms this recipe supports
+    discoveryHint: string;
+    soulFragmentCost?: number;
+}
+
+/** Result of a brewing attempt */
+export interface BrewResult {
+    success: boolean;
+    quality: BrewQuality;
+    resultItemName: string;
+    outputForm: BrewOutputForm;
+    isNewDiscovery: boolean;
+    matchScore: number;                 // 0-100 percentage match
+    feedback: string;
+    elementProfile: ElementProfile;     // what the player mixed
+    ingredientsConsumed: { itemName: string; quantity: number }[];
+}
+
+// ── Core Item Definition ──
 
 export interface ItemDefinition {
     name: string;
@@ -21,8 +76,25 @@ export interface ItemDefinition {
     description: string;
     stackable: boolean;
     maxStack: number;
+
+    // ── Consumable-specific ──
     craftable?: boolean;
     recipeId?: string;
+    consumableSubtype?: ConsumableSubtype;
+
+    // ── Ingredient-specific ──
+    ingredientCategory?: IngredientCategory;
+    elementProfile?: ElementProfile; // element essence contribution for brewing
+
+    // ── Equipment-specific ──
+    statBonuses?: Partial<Record<StatName, number>>;
+    conditioningBonus?: number; // bonus to brainwashing delta
+
+    // ── Key item specific ──
+    tradeable?: boolean; // false = cannot sell (default false for key items)
+
+    // ── Source hints (for UI) ──
+    sources?: ItemSource[];
 }
 
 export interface InventoryItem {
@@ -31,448 +103,466 @@ export interface InventoryItem {
     type?: string;
 }
 
+// ──────────────────────────────────────────
+// ITEM REGISTRY
+// ──────────────────────────────────────────
+// NOTE: This registry has been cleared for the item system rework.
+// Only stub items that are actively referenced in events, conditioning,
+// quests, and tasks are kept. All items are marked for redesign in
+// future batches.
+
 export const ITEM_REGISTRY: Record<string, ItemDefinition> = {
-    // ── Conditioning & Control Tools ──
+
+    // ── Equipment (stub — referenced in conditioning/capture) ──
+
     'Hypnotic Pendant': {
         name: 'Hypnotic Pendant', type: 'equipment', rarity: 'epic', icon: 'pendant-spiral',
         description: 'A golden pendant enchanted with a mesmerizing spiral pattern. Amplifies the wearer\'s hypnotic influence over weak-willed targets.',
         stackable: false, maxStack: 1,
+        conditioningBonus: 5,
+        statBonuses: { presence: 6, attunement: 4 },
+        sources: [
+            { type: 'quest', details: 'Reward from hero questlines' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+        ],
     },
     'Arcane Visor': {
         name: 'Arcane Visor', type: 'equipment', rarity: 'legendary', icon: 'visor-eye',
         description: 'Citrine\'s signature headset. Projects a golden spiral directly into the target\'s vision, bypassing natural mental defenses.',
         stackable: false, maxStack: 1,
+        conditioningBonus: 10,
+        statBonuses: { attunement: 8, insight: 5, presence: 3 },
+        sources: [
+            { type: 'quest', details: 'Crafted by Citrine after unlocking the Ritual Room' },
+        ],
     },
     'Servant Collar': {
         name: 'Servant Collar', type: 'equipment', rarity: 'rare', icon: 'collar-lock',
         description: 'An ornate collar inscribed with binding runes. Worn by fully converted servants as a mark of devotion.',
         stackable: true, maxStack: 5,
+        statBonuses: { discipline: 8 },
+        conditioningBonus: 3,
+        sources: [
+            { type: 'crafting', details: 'Brewed at the Enchanting Workshop' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+        ],
     },
     'Enchanted Shackles': {
-        name: 'Enchanted Shackles', type: 'key', rarity: 'rare', icon: 'shackles-chain',
+        name: 'Enchanted Shackles', type: 'equipment', rarity: 'rare', icon: 'shackles-chain',
         description: 'Arcane restraints that dampen a captive\'s willpower. Required to hold particularly strong-willed heroes.',
         stackable: true, maxStack: 5,
+        statBonuses: { discipline: 5, prowess: 3 },
+        conditioningBonus: 4,
+        sources: [
+            { type: 'crafting', details: 'Requires Iron and Ward Crystals' },
+            { type: 'exploration', location: 'Dungeon', details: 'Rare find in deep chambers' },
+        ],
     },
-    'Memory Fragment': {
-        name: 'Memory Fragment', type: 'key', rarity: 'epic', icon: 'memory-shard',
-        description: 'A shard of a hero\'s memories, extracted during conditioning. Can be used to unlock deeper obedience or returned to restore free will.',
-        stackable: true, maxStack: 10,
-    },
-
-    // ── Alchemy Ingredients: Herbs ──
-    'Dreamcatcher Herb': {
-        name: 'Dreamcatcher Herb', type: 'material', rarity: 'common', icon: 'herb-dream',
-        description: 'A fragrant herb found in the woods. Used to brew potions and burn as incense.',
-        stackable: true, maxStack: 50,
-    },
-    'Moonflower Petals': {
-        name: 'Moonflower Petals', type: 'material', rarity: 'uncommon', icon: 'herb-moon',
-        description: 'Delicate petals that glow faintly under moonlight. Promote sleep and heighten suggestibility in potions.',
-        stackable: true, maxStack: 40,
-    },
-    'Honeysuckle Blossoms': {
-        name: 'Honeysuckle Blossoms', type: 'material', rarity: 'common', icon: 'herb-honey',
-        description: 'Sweet-scented golden flowers. Add attraction and affection properties to brews.',
-        stackable: true, maxStack: 50,
-    },
-    'Nightshade Leaf': {
-        name: 'Nightshade Leaf', type: 'material', rarity: 'rare', icon: 'herb-nightshade',
-        description: 'A dangerous dark herb with veins of purple. Dramatically increases potion potency but carries risks.',
-        stackable: true, maxStack: 20,
-    },
-    'Mistletoe Sprigs': {
-        name: 'Mistletoe Sprigs', type: 'material', rarity: 'uncommon', icon: 'herb-mistletoe',
-        description: 'Sacred branches known for binding and connection magic. Enhances emotional bonding in potions.',
-        stackable: true, maxStack: 30,
-    },
-    'Frostwhisper Moss': {
-        name: 'Frostwhisper Moss', type: 'material', rarity: 'uncommon', icon: 'herb-frost',
-        description: 'Cool, crystalline moss from deep forests. Imparts clarity and rational obedience to brews.',
-        stackable: true, maxStack: 35,
-    },
-
-    // ── Alchemy Ingredients: Crystals & Minerals ──
-    'Mana Crystal': {
-        name: 'Mana Crystal', type: 'material', rarity: 'uncommon', icon: 'crystal-mana',
-        description: 'A shard of crystallized arcane energy. Used in enchanting and manor upgrades.',
-        stackable: true, maxStack: 99,
-    },
-    'Amethyst Shard': {
-        name: 'Amethyst Shard', type: 'material', rarity: 'uncommon', icon: 'crystal-amethyst',
-        description: 'A purple crystal fragment. Enhances spiritual and psychic aspects of magical potions.',
-        stackable: true, maxStack: 50,
-    },
-    'Rose Quartz Dust': {
-        name: 'Rose Quartz Dust', type: 'material', rarity: 'common', icon: 'dust-rose',
-        description: 'Fine pink powder with gentle energy. Imparts love and affection aspects to brews.',
-        stackable: true, maxStack: 60,
-    },
-    'Sapphire Fragment': {
-        name: 'Sapphire Fragment', type: 'material', rarity: 'rare', icon: 'crystal-sapphire',
-        description: 'A brilliant blue crystal shard. Strengthens obedience and discipline in potions.',
-        stackable: true, maxStack: 30,
-    },
-    'Obsidian Powder': {
-        name: 'Obsidian Powder', type: 'material', rarity: 'rare', icon: 'powder-obsidian',
-        description: 'Black powder from volcanic glass. Adds darkness, control, and dominance to magical brews.',
-        stackable: true, maxStack: 25,
-    },
-    'Moonstone Splinter': {
-        name: 'Moonstone Splinter', type: 'material', rarity: 'uncommon', icon: 'crystal-moonstone',
-        description: 'A silvery fragment that reflects light mystically. Enhances illusion and perception magic.',
-        stackable: true, maxStack: 40,
-    },
-    'Phoenix Ash': {
-        name: 'Phoenix Ash', type: 'material', rarity: 'epic', icon: 'ash-phoenix',
-        description: 'Glowing ash from a phoenix\'s rebirth. Enables transformation and rebirth effects in powerful potions.',
-        stackable: true, maxStack: 10,
-    },
-    'Dragon Scale Powder': {
-        name: 'Dragon Scale Powder', type: 'material', rarity: 'legendary', icon: 'powder-dragon',
-        description: 'Ground scales from an ancient dragon. The ultimate catalyst—exponentially amplifies all potion effects.',
-        stackable: true, maxStack: 5,
-    },
-    'Siren\'s Tear': {
-        name: 'Siren\'s Tear', type: 'material', rarity: 'rare', icon: 'tear-siren',
-        description: 'A crystallized tear from a siren. Amplifies charm and attraction magic dramatically.',
+    'Binding Cord': {
+        name: 'Binding Cord', type: 'equipment', rarity: 'common', icon: 'binding-cord',
+        description: 'Strong cord infused with restraint magic. Used for binding and control during capture.',
         stackable: true, maxStack: 15,
-    },
-    'Wraith Essence': {
-        name: 'Wraith Essence', type: 'material', rarity: 'epic', icon: 'essence-wraith',
-        description: 'The distilled essence of a restless spirit. Enables memory and consciousness manipulation in brews.',
-        stackable: true, maxStack: 8,
+        statBonuses: { discipline: 2 },
+        conditioningBonus: 1,
+        sources: [
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+            { type: 'task', details: 'Weave Cloth task' },
+        ],
     },
 
-    // ── Alchemy Results: Potions ──
+    // ── Consumables (referenced in conditioning/tasks) ──
+
     'Obedience Elixir': {
         name: 'Obedience Elixir', type: 'consumable', rarity: 'rare', icon: 'potion-obedience',
         description: 'A shimmering golden potion that temporarily heightens suggestibility. Increases brainwashing progress when administered.',
-        stackable: true, maxStack: 10, craftable: true, recipeId: 'obedience_elixir',
+        stackable: true, maxStack: 10,
+        craftable: true, recipeId: 'obedience_elixir',
+        consumableSubtype: 'potion',
+        sources: [{ type: 'crafting', details: 'Brewed with shadow-dominant ingredients' }],
     },
     'Spiral Incense': {
         name: 'Spiral Incense', type: 'consumable', rarity: 'uncommon', icon: 'incense-spiral',
         description: 'Burns with a hypnotic golden smoke that fills a room. Creates an atmosphere conducive to conditioning.',
         stackable: true, maxStack: 20,
-    },
-    'Binding Tincture': {
-        name: 'Binding Tincture', type: 'consumable', rarity: 'uncommon', icon: 'potion-binding',
-        description: 'A pale blue liquid with mystical shimmer. Provides light obedience boost when administered.',
-        stackable: true, maxStack: 15, craftable: true, recipeId: 'binding_tincture',
-    },
-    'Thrall\'s Draught': {
-        name: 'Thrall\'s Draught', type: 'consumable', rarity: 'rare', icon: 'potion-thrall',
-        description: 'A deep crimson potion with an intoxicating aroma. Grants strong obedience and submission effects.',
-        stackable: true, maxStack: 8, craftable: true, recipeId: 'thralls_draught',
-    },
-    'Domination Brew': {
-        name: 'Domination Brew', type: 'consumable', rarity: 'epic', icon: 'potion-domination',
-        description: 'A swirling black and gold elixir of immense power. Overwhelms resistance and enforces complete control.',
-        stackable: true, maxStack: 5, craftable: true, recipeId: 'domination_brew',
-    },
-    'Sweetness Tonic': {
-        name: 'Sweetness Tonic', type: 'consumable', rarity: 'uncommon', icon: 'potion-sweet',
-        description: 'A rose-tinted liquid with honeyed scent. Encourages light romantic preference and attraction.',
-        stackable: true, maxStack: 12, craftable: true, recipeId: 'sweetness_tonic',
-    },
-    'Admiration Nectar': {
-        name: 'Admiration Nectar', type: 'consumable', rarity: 'rare', icon: 'potion-admire',
-        description: 'A lustrous amber elixir. Fosters strong emotional attachment and admiration toward the witch.',
-        stackable: true, maxStack: 8, craftable: true, recipeId: 'admiration_nectar',
-    },
-    'Devotion Elixir': {
-        name: 'Devotion Elixir', type: 'consumable', rarity: 'epic', icon: 'potion-devotion',
-        description: 'A radiant golden liquid infused with pure affection. Instills overwhelming love and loyalty.',
-        stackable: true, maxStack: 5, craftable: true, recipeId: 'devotion_elixir',
-    },
-    'Clarity Potion': {
-        name: 'Clarity Potion', type: 'consumable', rarity: 'uncommon', icon: 'potion-clarity',
-        description: 'A crystalline blue draught. Temporarily enhances Insight and perception abilities.',
-        stackable: true, maxStack: 15, craftable: true, recipeId: 'clarity_potion',
-    },
-    'Vigor Tincture': {
-        name: 'Vigor Tincture', type: 'consumable', rarity: 'uncommon', icon: 'potion-vigor',
-        description: 'A crimson liquid that glows faintly. Temporarily enhances Prowess and physical capability.',
-        stackable: true, maxStack: 15, craftable: true, recipeId: 'vigor_tincture',
-    },
-    'Charm Cordial': {
-        name: 'Charm Cordial', type: 'consumable', rarity: 'uncommon', icon: 'potion-charm',
-        description: 'A shimmering rose-gold liquid. Temporarily enhances Presence and social influence.',
-        stackable: true, maxStack: 15, craftable: true, recipeId: 'charm_cordial',
+        consumableSubtype: 'incense',
+        sources: [
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+            { type: 'crafting', details: 'Brewed with shadow and light balance' },
+        ],
     },
 
-    // ── Manor & Building Materials ──
-    'Stone Blocks': {
-        name: 'Stone Blocks', type: 'material', rarity: 'common', icon: 'mat-stone',
-        description: 'Rough-hewn stone for basic construction. Essential for building and upgrading manor structures.',
-        stackable: true, maxStack: 100,
-    },
-    'Wooden Planks': {
-        name: 'Wooden Planks', type: 'material', rarity: 'common', icon: 'mat-wood',
-        description: 'Sturdy wooden boards. Used for framing, walls, and basic structural elements.',
-        stackable: true, maxStack: 100,
-    },
-    'Iron Bars': {
-        name: 'Iron Bars', type: 'material', rarity: 'uncommon', icon: 'mat-iron',
-        description: 'Heavy iron rods and gratings. Used for constructing cells, cages, and secure holding areas.',
+    // ── Ingredients (stub — referenced in tasks/exploration rewards) ──
+
+    'Dreamcatcher Herb': {
+        name: 'Dreamcatcher Herb', type: 'ingredient', rarity: 'common', icon: 'herb-dream',
+        description: 'A fragrant herb found in the woods. Its petals exude a calming, shadowy aroma.',
         stackable: true, maxStack: 50,
+        ingredientCategory: 'herb',
+        elementProfile: { water: 3, shadow: 2 },
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Found while foraging herbs' },
+            { type: 'task', details: 'Forage Ingredients task' },
+        ],
     },
-    'Marble Slabs': {
-        name: 'Marble Slabs', type: 'material', rarity: 'rare', icon: 'mat-marble',
-        description: 'Polished white marble stone. Adds luxury and aesthetic appeal to manor upgrades.',
-        stackable: true, maxStack: 40,
+    'Mana Crystal': {
+        name: 'Mana Crystal', type: 'ingredient', rarity: 'uncommon', icon: 'crystal-mana',
+        description: 'A shard of crystallized arcane energy. Radiates pure light with a fiery core.',
+        stackable: true, maxStack: 99,
+        ingredientCategory: 'crystal',
+        elementProfile: { light: 4, fire: 1 },
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Crystalline formations near ley lines' },
+            { type: 'task', details: 'Forage Ingredients task' },
+        ],
     },
-    'Obsidian Tiles': {
-        name: 'Obsidian Tiles', type: 'material', rarity: 'epic', icon: 'mat-obsidian-tile',
-        description: 'Dark lustrous tiles with arcane properties. Grant special properties to enchanted rooms.',
-        stackable: true, maxStack: 25,
+    'Moonpetal Blossom': {
+        name: 'Moonpetal Blossom', type: 'ingredient', rarity: 'common', icon: 'ing-moonpetal',
+        description: 'Pale petals that bloom only under moonlight. Gentle and soothing.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'herb',
+        elementProfile: { water: 2, light: 2 },
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Blooms in moonlit clearings' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
+    },
+    'Embervine Root': {
+        name: 'Embervine Root', type: 'ingredient', rarity: 'uncommon', icon: 'ing-embervine',
+        description: 'A gnarled root from a vine that grows near volcanic vents. Warm to the touch.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'herb',
+        elementProfile: { fire: 3, earth: 2 },
+        sources: [
+            { type: 'exploration', location: 'Dungeon', details: 'Near geothermal vents in deep levels' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+        ],
+    },
+    'Obsidian Dust': {
+        name: 'Obsidian Dust', type: 'ingredient', rarity: 'uncommon', icon: 'ing-obsidian',
+        description: 'Finely ground volcanic glass. Dark and volatile when mixed.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'powder',
+        elementProfile: { shadow: 3, fire: 2 },
+        sources: [
+            { type: 'exploration', location: 'Dungeon', details: 'Scraped from obsidian formations' },
+            { type: 'exploration', location: 'Ruins', details: 'Found among ritual remnants' },
+        ],
+    },
+    'Sunstone Shard': {
+        name: 'Sunstone Shard', type: 'ingredient', rarity: 'uncommon', icon: 'ing-sunstone',
+        description: 'A warm crystal that glows faintly in darkness. Prized for its clarity.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'crystal',
+        elementProfile: { light: 3, fire: 2 },
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Uncovered in sunlit chambers' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
+    },
+    'Marshwater Moss': {
+        name: 'Marshwater Moss', type: 'ingredient', rarity: 'common', icon: 'ing-marshmoss',
+        description: 'Soggy moss from stagnant marshlands. Abundant and mildly useful.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'herb',
+        elementProfile: { water: 3, earth: 1 },
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Grows along streams and bogs' },
+        ],
+    },
+    'Nightshade Extract': {
+        name: 'Nightshade Extract', type: 'ingredient', rarity: 'rare', icon: 'ing-nightshade',
+        description: 'A concentrated distillation of nightshade berries. Deeply shadowy and potent.',
+        stackable: true, maxStack: 30,
+        ingredientCategory: 'extract',
+        elementProfile: { shadow: 4, earth: 1 },
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Rare nightshade bushes in deep forest' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities (limited stock)" },
+        ],
+    },
+    'Spiritbloom': {
+        name: 'Spiritbloom', type: 'ingredient', rarity: 'rare', icon: 'ing-spiritbloom',
+        description: 'An ethereal flower that exists half in the spirit realm. Balanced essence.',
+        stackable: true, maxStack: 30,
+        ingredientCategory: 'essence',
+        elementProfile: { light: 2, shadow: 2, water: 2 },
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Grows near ancient shrines' },
+            { type: 'quest', details: 'Reward from certain quest events' },
+        ],
+    },
+    'Ironbark Ash': {
+        name: 'Ironbark Ash', type: 'ingredient', rarity: 'common', icon: 'ing-ironbark',
+        description: 'The charred remains of ironbark wood. Dense and earthy.',
+        stackable: true, maxStack: 50,
+        ingredientCategory: 'powder',
+        elementProfile: { earth: 3, fire: 1 },
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Burned ironbark stumps' },
+            { type: 'task', details: 'Gather Timber task (byproduct)' },
+        ],
+    },
+
+    // ── Key Items (stub — referenced in quests/tasks) ──
+
+    'Memory Fragment': {
+        name: 'Memory Fragment', type: 'key', rarity: 'epic', icon: 'memory-shard',
+        description: 'A shard of a hero\'s memories, extracted during conditioning. Can be used to unlock deeper obedience or returned to restore free will.',
+        stackable: true, maxStack: 10,
+        tradeable: false,
+        sources: [
+            { type: 'conditioning', details: 'Extracted at high brainwashing levels' },
+            { type: 'exploration', location: 'Ruins', details: 'Rare find among ancient relics' },
+        ],
+    },
+    'Skeleton Key': {
+        name: 'Skeleton Key', type: 'key', rarity: 'rare', icon: 'key',
+        description: 'An old skeleton key that can open many locks. Useful for breaking into secured places.',
+        stackable: true, maxStack: 5,
+        tradeable: false,
+        sources: [
+            { type: 'exploration', location: 'Dungeon', details: 'Found in locked chests' },
+            { type: 'quest', details: 'Reward from certain quest steps' },
+        ],
+    },
+
+    // ── Materials (construction resources for rooms) ──
+
+    'Timber': {
+        name: 'Timber', type: 'material', rarity: 'common', icon: 'item-log',
+        description: 'Sturdy planks and beams. The backbone of any construction project.',
+        stackable: true, maxStack: 99,
+        sources: [
+            { type: 'exploration', location: 'Woods', details: 'Gathered from fallen trees and clearings' },
+            { type: 'task', details: 'Gather Timber task' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
+    },
+    'Stone': {
+        name: 'Stone', type: 'material', rarity: 'common', icon: 'item-rock',
+        description: 'Rough-hewn blocks quarried from ancient ruins. Essential for foundations and walls.',
+        stackable: true, maxStack: 99,
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Salvaged from crumbling structures' },
+            { type: 'task', details: 'Quarry Stone task' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
+    },
+    'Iron': {
+        name: 'Iron', type: 'material', rarity: 'uncommon', icon: 'item-ingot',
+        description: 'Raw iron in bars and ingots. Used for reinforcement, fittings, and structural support.',
+        stackable: true, maxStack: 99,
+        sources: [
+            { type: 'exploration', location: 'Dungeon', details: 'Salvaged from deep ruins and dungeon forges' },
+            { type: 'task', details: 'Forge Fittings task (requires armory)' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
     },
     'Velvet Cloth': {
-        name: 'Velvet Cloth', type: 'material', rarity: 'uncommon', icon: 'mat-velvet',
-        description: 'Soft, luxurious fabric. Used for furnishings, cushions, and comfort upgrades.',
+        name: 'Velvet Cloth', type: 'material', rarity: 'uncommon', icon: 'item-fabric',
+        description: 'Soft luxurious fabric for furnishings, cushions, and drapes.',
+        stackable: true, maxStack: 99,
+        sources: [
+            { type: 'task', details: 'Weave Cloth task' },
+            { type: 'shop', location: 'Town', details: "Pip's Emporium" },
+        ],
+    },
+    'Marble Slab': {
+        name: 'Marble Slab', type: 'material', rarity: 'rare', icon: 'item-marble',
+        description: 'Polished white stone. Adds elegance and permanence to a room.',
         stackable: true, maxStack: 50,
-    },
-    'Silk Tapestries': {
-        name: 'Silk Tapestries', type: 'material', rarity: 'rare', icon: 'mat-silk',
-        description: 'Intricately woven silk hangings. Decorate rooms and create atmosphere for conditioning.',
-        stackable: true, maxStack: 30,
-    },
-    'Crystal Chandelier': {
-        name: 'Crystal Chandelier', type: 'equipment', rarity: 'rare', icon: 'chandelier',
-        description: 'An ornate chandelier with prismatic crystals. Illuminates rooms with enchanted light and grandeur.',
-        stackable: true, maxStack: 8,
-    },
-    'Enchanted Mirror': {
-        name: 'Enchanted Mirror', type: 'equipment', rarity: 'epic', icon: 'mirror-enchanted',
-        description: 'A magical mirror inscribed with runes. Allows scrying and magical observation of captives.',
-        stackable: true, maxStack: 3,
-    },
-    'Binding Circle Chalk': {
-        name: 'Binding Circle Chalk', type: 'material', rarity: 'common', icon: 'chalk-circle',
-        description: 'Powdered chalk infused with binding magic. Used to draw ritual circles and summoning marks.',
-        stackable: true, maxStack: 80,
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Rare find among ancient architecture' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+        ],
     },
     'Rune Stones': {
-        name: 'Rune Stones', type: 'material', rarity: 'uncommon', icon: 'hexagon',
-        description: 'Stones carved with ancient runes. Used as components in enchantments and protective wards.',
-        stackable: true, maxStack: 45,
+        name: 'Rune Stones', type: 'material', rarity: 'rare', icon: 'item-rune',
+        description: 'Stones carved with ancient magical script. Required for enchanted rooms.',
+        stackable: true, maxStack: 50,
+        sources: [
+            { type: 'exploration', location: 'Ruins', details: 'Found among ritual sites' },
+            { type: 'task', details: 'Inscribe Runes task (requires ritual room)' },
+            { type: 'shop', location: 'Circus', details: "Vesper's Curiosities" },
+        ],
     },
     'Ward Crystals': {
-        name: 'Ward Crystals', type: 'material', rarity: 'rare', icon: 'shield',
-        description: 'Crystalline shards pulsing with protective magic. Used to create wards and containment chambers.',
-        stackable: true, maxStack: 25,
-    },
-
-    // ── Equipment & Wearables ──
-    'Mystical Robes': {
-        name: 'Mystical Robes', type: 'equipment', rarity: 'rare', icon: 'robe-mystic',
-        description: 'Dark silk robes enhanced with enchantments. Enhance spellcasting ability and presence.',
-        stackable: false, maxStack: 1,
-    },
-    'Enchanted Ring': {
-        name: 'Enchanted Ring', type: 'equipment', rarity: 'uncommon', icon: 'ring-enchanted',
-        description: 'A simple band inscribed with glowing runes. Provides general magical amplification.',
-        stackable: true, maxStack: 5,
-    },
-    'Amulet of Influence': {
-        name: 'Amulet of Influence', type: 'equipment', rarity: 'rare', icon: 'amulet-influence',
-        description: 'A pendant hanging from a chain, carved from unknown stone. Passively enhances Presence and social influence.',
-        stackable: true, maxStack: 3,
-    },
-    'Silken Blindfold': {
-        name: 'Silken Blindfold', type: 'equipment', rarity: 'uncommon', icon: 'blindfold-silk',
-        description: 'Soft, enchanted silk cloth. Used for sensory deprivation and control during conditioning.',
-        stackable: true, maxStack: 8,
-    },
-    'Binding Cord': {
-        name: 'Binding Cord', type: 'equipment', rarity: 'common', icon: 'link-2',
-        description: 'Strong cord infused with restraint magic. Used for binding and control during sessions.',
-        stackable: true, maxStack: 15,
-    },
-
-    // ── Rewards & Treasure ──
-    'Gemstone': {
-        name: 'Gemstone', type: 'material', rarity: 'uncommon', icon: 'gem-treasure',
-        description: 'A polished gemstone of moderate value. Collectable treasure from exploration.',
-        stackable: true, maxStack: 50,
-    },
-    'Ancient Relic': {
-        name: 'Ancient Relic', type: 'material', rarity: 'rare', icon: 'relic-ancient',
-        description: 'An artifact of historical significance. Worth significant gold or trade value.',
-        stackable: true, maxStack: 20,
-    },
-    'Enchanted Jewelry': {
-        name: 'Enchanted Jewelry', type: 'equipment', rarity: 'rare', icon: 'jewelry-enchanted',
-        description: 'Jewelry imbued with minor magic. Valuable personal treasures from captured heroes.',
-        stackable: true, maxStack: 10,
-    },
-    'Spell Tome Fragment': {
-        name: 'Spell Tome Fragment', type: 'material', rarity: 'uncommon', icon: 'tome-fragment',
-        description: 'A page or excerpt from an ancient spellbook. Provides knowledge and lore about magical practices.',
+        name: 'Ward Crystals', type: 'material', rarity: 'epic', icon: 'item-crystal',
+        description: 'Crystalline shards pulsing with protective magic. For containment and magical infrastructure.',
         stackable: true, maxStack: 30,
-    },
-    'Adventurer\'s Badge': {
-        name: 'Adventurer\'s Badge', type: 'material', rarity: 'uncommon', icon: 'badge-adventurer',
-        description: 'A medal or insignia from a hero\'s past. Serves as a trophy of conquest.',
-        stackable: true, maxStack: 20,
-    },
-    'Magical Talisman': {
-        name: 'Magical Talisman', type: 'equipment', rarity: 'rare', icon: 'talisman-magic',
-        description: 'A personal charm carried by a hero. Retains residual magical properties.',
-        stackable: true, maxStack: 8,
-    },
-    'Heir\'s Ring': {
-        name: 'Heir\'s Ring', type: 'equipment', rarity: 'epic', icon: 'ring-heir',
-        description: 'An ornate signet ring bearing a noble\'s seal. A trophy of capturing nobility.',
-        stackable: true, maxStack: 5,
+        sources: [
+            { type: 'exploration', location: 'Dungeon', details: 'Rare find in deep chambers' },
+            { type: 'task', details: 'Enchanting tasks' },
+        ],
     },
 
-    // ── Consumables & Utility ──
-    'Healing Salve': {
-        name: 'Healing Salve', type: 'consumable', rarity: 'common', icon: 'salve-heal',
-        description: 'A soothing ointment for wounds and injuries. Heals minor damages.',
+    // ── Base Liquids (brewing materials) ──
+
+    "Alchemist's Oil": {
+        name: "Alchemist's Oil", type: 'material', rarity: 'common', icon: 'base-oil',
+        description: 'A refined oil base used for brewing salves and creams.',
         stackable: true, maxStack: 30,
+        sources: [{ type: 'shop', location: 'Town', details: "Pip's Emporium" }],
     },
-    'Stamina Draught': {
-        name: 'Stamina Draught', type: 'consumable', rarity: 'uncommon', icon: 'draught-stamina',
-        description: 'A refreshing liquid that restores energy. Replenishes stamina and endurance.',
-        stackable: true, maxStack: 20,
-    },
-    'Luck Charm': {
-        name: 'Luck Charm', type: 'consumable', rarity: 'uncommon', icon: 'charm-luck',
-        description: 'A small token radiating fortune. Provides temporary boost to luck and favorable outcomes.',
-        stackable: true, maxStack: 25,
-    },
-    'Antidote': {
-        name: 'Antidote', type: 'consumable', rarity: 'uncommon', icon: 'antidote-bottle',
-        description: 'A specialized remedy that counteracts poisons and conditions. Removes negative effects.',
-        stackable: true, maxStack: 12,
-    },
-    'Scroll of Summoning': {
-        name: 'Scroll of Summoning', type: 'consumable', rarity: 'rare', icon: 'scroll-summon',
-        description: 'An ancient scroll inscribed with summoning runes. Can be used to call forth allies or effects.',
-        stackable: true, maxStack: 6,
-    },
-
-    // ── Merchant Goods (Pip's Market Stall) ──
-    'Traveler\'s Rations': {
-        name: 'Traveler\'s Rations', type: 'consumable', rarity: 'common', icon: 'utensils',
-        description: 'Dried meat, hard cheese, and trail bread wrapped in waxed cloth. Restores stamina on long expeditions.',
-        stackable: true, maxStack: 20,
-    },
-    'Enchanted Candle': {
-        name: 'Enchanted Candle', type: 'consumable', rarity: 'uncommon', icon: 'flame',
-        description: 'A candle that burns with a soft violet flame. Creates a calming atmosphere that lowers mental defenses.',
-        stackable: true, maxStack: 15,
-    },
-    'Whispering Vial': {
-        name: 'Whispering Vial', type: 'consumable', rarity: 'rare', icon: 'flask-conical',
-        description: 'A sealed glass vial that murmurs softly when held close. Contains a captured whisper of compliance — pour it into a captive\'s ear during conditioning.',
-        stackable: true, maxStack: 8,
-    },
-    'Silver Pocket Mirror': {
-        name: 'Silver Pocket Mirror', type: 'equipment', rarity: 'uncommon', icon: 'scan-eye',
-        description: 'A palm-sized mirror with an ornate silver frame. Can be used to reflect hypnotic spirals, doubling their visual impact.',
-        stackable: true, maxStack: 3,
-    },
-    'Mousefolk Cheese Wheel': {
-        name: 'Mousefolk Cheese Wheel', type: 'consumable', rarity: 'common', icon: 'circle-dot',
-        description: 'A miniature wheel of sharp, aromatic cheese — a mousefolk delicacy. Surprisingly restorative and delicious.',
-        stackable: true, maxStack: 10,
-    },
-    'Bottled Starlight': {
-        name: 'Bottled Starlight', type: 'consumable', rarity: 'rare', icon: 'sparkles',
-        description: 'A corked bottle containing a swirl of captured starlight. Replenishes mana when consumed under the open sky.',
-        stackable: true, maxStack: 5,
-    },
-    'Map Fragment': {
-        name: 'Map Fragment', type: 'key', rarity: 'uncommon', icon: 'map',
-        description: 'A torn piece of an old adventurer\'s map, showing a path to a hidden location. Pip swears it\'s genuine.',
-        stackable: true, maxStack: 5,
-    },
-    'Suggestive Perfume': {
-        name: 'Suggestive Perfume', type: 'consumable', rarity: 'uncommon', icon: 'wind',
-        description: 'A floral perfume with subtle enchantment woven into its scent. Wearers find others more agreeable and pliable.',
-        stackable: true, maxStack: 10,
-    },
-    'Pip\'s Lucky Trinket': {
-        name: 'Pip\'s Lucky Trinket', type: 'equipment', rarity: 'rare', icon: 'star',
-        description: 'A tiny brass figurine of a mouse holding a four-leaf clover. Pip claims it brought her nothing but good fortune. "Mostly."',
-        stackable: false, maxStack: 1,
-    },
-
-    // ── Circus Goods (Madame Vesper's Curiosities) ──
-    'Fate-Woven Card': {
-        name: 'Fate-Woven Card', type: 'consumable', rarity: 'uncommon', icon: 'card-fate',
-        description: 'A tarot card shimmering with genuine enchantment. Reveals hidden truths about a captive\'s deepest desires when burned during a session.',
-        stackable: true, maxStack: 10,
-    },
-    'Crystal Ball Shard': {
-        name: 'Crystal Ball Shard', type: 'material', rarity: 'rare', icon: 'ball-crystal',
-        description: 'A cracked fragment of a fortune-teller\'s crystal ball. Still holds residual scrying magic — useful as an alchemy catalyst.',
-        stackable: true, maxStack: 15,
-    },
-    'Mesmerist\'s Pendulum': {
-        name: 'Mesmerist\'s Pendulum', type: 'equipment', rarity: 'rare', icon: 'pendulum-mesmer',
-        description: 'A weighted pendulum on a silver chain, used by stage mesmerists. Swings with an unnervingly perfect rhythm that draws the eye.',
-        stackable: true, maxStack: 3,
-    },
-    'Stage Smoke Bomb': {
-        name: 'Stage Smoke Bomb', type: 'consumable', rarity: 'common', icon: 'smoke-stage',
-        description: 'A small clay sphere filled with theatrical flash powder. Produces a dramatic cloud of shimmering smoke — useful for distractions or atmosphere.',
-        stackable: true, maxStack: 20,
-    },
-    'Hypnotist\'s Honey Wine': {
-        name: 'Hypnotist\'s Honey Wine', type: 'consumable', rarity: 'uncommon', icon: 'wine-hypnotic',
-        description: 'Sweet amber wine laced with a mild relaxant. Lowers inhibitions and makes the drinker more receptive to suggestion. A circus specialty.',
-        stackable: true, maxStack: 10,
-    },
-    'Trance Taffy': {
-        name: 'Trance Taffy', type: 'consumable', rarity: 'common', icon: 'candy-trance',
-        description: 'Chewy carnival candy infused with a faint calming enchantment. Tastes of lavender and honey. Mildly sedative.',
-        stackable: true, maxStack: 20,
-    },
-    'Mind-Fog Candle': {
-        name: 'Mind-Fog Candle', type: 'consumable', rarity: 'rare', icon: 'candle-mindfog',
-        description: 'A dark wax candle that burns with pale violet smoke. The fumes cloud rational thought and amplify emotional vulnerability. Handle with care.',
-        stackable: true, maxStack: 8,
-    },
-    'Enchanted Masquerade Mask': {
-        name: 'Enchanted Masquerade Mask', type: 'equipment', rarity: 'epic', icon: 'mask-masquerade',
-        description: 'An ornate half-mask decorated with feathers and arcane filigree. The wearer\'s voice carries an unnatural allure — words spoken through it feel like intimate whispers.',
-        stackable: false, maxStack: 1,
-    },
-    'Ringmaster\'s Baton': {
-        name: 'Ringmaster\'s Baton', type: 'equipment', rarity: 'epic', icon: 'baton-ringmaster',
-        description: 'A slender black baton tipped with a golden spiral. Once wielded by a legendary ringmaster — it radiates commanding presence and amplifies charm magic.',
-        stackable: false, maxStack: 1,
-    },
-    'Fortune Bones': {
-        name: 'Fortune Bones', type: 'consumable', rarity: 'uncommon', icon: 'bones-fortune',
-        description: 'A set of carved animal knucklebones etched with mystic symbols. Cast them to divine fragments of the future — or to unsettle a captive during conditioning.',
-        stackable: true, maxStack: 5,
-    },
-    'Illusionist\'s Dust': {
-        name: 'Illusionist\'s Dust', type: 'material', rarity: 'uncommon', icon: 'dust-illusionist',
-        description: 'Glittering powder used by circus illusionists. When thrown, it creates brief but vivid visual hallucinations. A useful alchemy ingredient.',
+    'Distilled Spirit': {
+        name: 'Distilled Spirit', type: 'material', rarity: 'uncommon', icon: 'base-spirit',
+        description: 'A clear, potent spirit. Used as a base for tinctures.',
         stackable: true, maxStack: 30,
+        sources: [{ type: 'shop', location: 'Town', details: "Pip's Emporium" }],
     },
-    'Carnival Prize Voucher': {
-        name: 'Carnival Prize Voucher', type: 'key', rarity: 'common', icon: 'voucher-carnival',
-        description: 'A stamped paper voucher redeemable at the Circus of the Crescent Moon. Collect enough and trade them for rare prizes.',
-        stackable: true, maxStack: 50,
+    'Smoldering Incense Base': {
+        name: 'Smoldering Incense Base', type: 'material', rarity: 'uncommon', icon: 'incense-spiral',
+        description: 'A smoldering coal and resin base used for brewing incense blends.',
+        stackable: true, maxStack: 30,
+        sources: [{ type: 'shop', location: 'Circus', details: "Vesper's Curiosities" }],
     },
 
-    // ── Currency ──
-    'Gold Coin': {
-        name: 'Gold Coin', type: 'currency', rarity: 'common', icon: 'gold-coins',
-        description: 'Standard currency. Used for manor improvements, hiring, and trade.',
-        stackable: true, maxStack: 9999,
+    // ── Brew Results (consumables produced by brewing) ──
+
+    'Calming Draught': {
+        name: 'Calming Draught', type: 'consumable', rarity: 'uncommon', icon: 'potion-calming',
+        description: 'A cool, blue-tinged draught that soothes the mind. Lowers a captive\'s resistance.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'calming_draught',
+        consumableSubtype: 'potion',
+        conditioningBonus: 3,
+        sources: [{ type: 'crafting', details: 'Water-dominant brew' }],
+    },
+    'Fortifying Tonic': {
+        name: 'Fortifying Tonic', type: 'consumable', rarity: 'uncommon', icon: 'potion-fortify',
+        description: 'A hearty, amber tonic that restores stamina and vigor. Grants +20 stamina to a servant.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'fortifying_tonic',
+        consumableSubtype: 'potion',
+        statBonuses: { prowess: 3 },
+        sources: [{ type: 'crafting', details: 'Earth-dominant brew' }],
+    },
+    'Blazebright Serum': {
+        name: 'Blazebright Serum', type: 'consumable', rarity: 'rare', icon: 'potion-blaze',
+        description: 'A fiery red serum that enhances combat prowess. Temporarily boosts prowess by 5.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'blazebright_serum',
+        consumableSubtype: 'potion',
+        statBonuses: { prowess: 5 },
+        sources: [{ type: 'crafting', details: 'Fire-dominant brew' }],
+    },
+    'Clarity Philter': {
+        name: 'Clarity Philter', type: 'consumable', rarity: 'uncommon', icon: 'potion-clarity',
+        description: 'A luminous, clear liquid that sharpens perception and insight. Temporarily boosts insight by 4.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'clarity_philter',
+        consumableSubtype: 'potion',
+        statBonuses: { insight: 4 },
+        sources: [{ type: 'crafting', details: 'Light-dominant brew' }],
+    },
+    'Binding Salve': {
+        name: 'Binding Salve', type: 'consumable', rarity: 'rare', icon: 'salve-binding',
+        description: 'A thick, dark paste applied to restraints. Increases conditioning effectiveness by 5.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'binding_salve',
+        consumableSubtype: 'potion',
+        conditioningBonus: 5,
+        sources: [{ type: 'crafting', details: 'Shadow + earth balanced brew (salve form)' }],
+    },
+    'Mindmist Incense': {
+        name: 'Mindmist Incense', type: 'consumable', rarity: 'rare', icon: 'incense-mindmist',
+        description: 'Burns with a shimmering haze that makes the mind pliable. Room-wide conditioning bonus of 4.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'mindmist_incense',
+        consumableSubtype: 'incense',
+        conditioningBonus: 4,
+        sources: [{ type: 'crafting', details: 'Shadow + light balanced brew (incense form)' }],
+    },
+    'Vitality Balm': {
+        name: 'Vitality Balm', type: 'consumable', rarity: 'uncommon', icon: 'balm-vitality',
+        description: 'A warm, earthy balm that heals wounds and restores energy. Grants +30 stamina to a servant.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'vitality_balm',
+        consumableSubtype: 'potion',
+        statBonuses: { prowess: 2, expertise: 2 },
+        sources: [{ type: 'crafting', details: 'Earth + water balanced brew' }],
+    },
+
+    // ── New Brew Results ──
+
+    'Devotion Draught': {
+        name: 'Devotion Draught', type: 'consumable', rarity: 'rare', icon: 'potion-devotion',
+        description: 'A shimmering pink-gold potion that deepens feelings of adoration and loyalty. Increases a servant\'s love by 8.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'devotion_draught',
+        consumableSubtype: 'potion',
+        sources: [{ type: 'crafting', details: 'Light-dominant brew with strong water' }],
+    },
+    'Mana Restorative': {
+        name: 'Mana Restorative', type: 'consumable', rarity: 'uncommon', icon: 'potion-mana',
+        description: 'A radiant, sparkling elixir that replenishes arcane reserves. Restores 25 mana.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'mana_restorative',
+        consumableSubtype: 'potion',
+        sources: [{ type: 'crafting', details: 'Light-dominant brew fueled by fire' }],
+    },
+    'Ironhide Tonic': {
+        name: 'Ironhide Tonic', type: 'consumable', rarity: 'uncommon', icon: 'potion-ironhide',
+        description: 'A dense, brown-green tonic that toughens the body. Boosts discipline by 4 and prowess by 2 temporarily.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'ironhide_tonic',
+        consumableSubtype: 'potion',
+        statBonuses: { discipline: 4, prowess: 2 },
+        sources: [{ type: 'crafting', details: 'Earth-dominant brew with water and fire' }],
+    },
+    'Shadow Veil': {
+        name: 'Shadow Veil', type: 'consumable', rarity: 'rare', icon: 'incense-shadowveil',
+        description: 'Dark smoke that clings to the user, concealing their presence. Boosts insight by 5 during exploration.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'shadow_veil',
+        consumableSubtype: 'incense',
+        statBonuses: { insight: 5 },
+        sources: [{ type: 'crafting', details: 'Shadow-dominant brew grounded in earth' }],
+    },
+    'Ember Salve': {
+        name: 'Ember Salve', type: 'consumable', rarity: 'uncommon', icon: 'salve-ember',
+        description: 'A warm, tingling paste that invigorates the muscles. Boosts prowess by 4 and restores 15 stamina.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'ember_salve',
+        consumableSubtype: 'potion',
+        statBonuses: { prowess: 4 },
+        sources: [{ type: 'crafting', details: 'Fire-dominant brew tempered with earth (salve form)' }],
+    },
+    'Tranquil Mist': {
+        name: 'Tranquil Mist', type: 'consumable', rarity: 'uncommon', icon: 'incense-tranquil',
+        description: 'Pale, luminous smoke that fills a room with serenity. Increases household comfort by 5.',
+        stackable: true, maxStack: 10, craftable: true, recipeId: 'tranquil_mist',
+        consumableSubtype: 'incense',
+        sources: [{ type: 'crafting', details: 'Water-dominant brew carried by light (incense form)' }],
+    },
+    'Soulbind Tincture': {
+        name: 'Soulbind Tincture', type: 'consumable', rarity: 'epic', icon: 'tincture-soulbind',
+        description: 'A dark, swirling liquid that binds fragments of the soul. Increases conditioning effectiveness by 8 and extracts a Memory Fragment.',
+        stackable: true, maxStack: 5, craftable: true, recipeId: 'soulbind_tincture',
+        consumableSubtype: 'potion',
+        conditioningBonus: 8,
+        sources: [{ type: 'crafting', details: 'Shadow-dominant brew ignited by fire (tincture form). Costs 1 soul fragment.' }],
+    },
+
+    // ── Brew Failures ──
+
+    'Murky Sludge': {
+        name: 'Murky Sludge', type: 'consumable', rarity: 'common', icon: 'brew-sludge',
+        description: 'A foul-smelling, bubbling mess. The result of a failed brew.',
+        stackable: true, maxStack: 50, consumableSubtype: 'potion',
+    },
+    'Foul Paste': {
+        name: 'Foul Paste', type: 'consumable', rarity: 'common', icon: 'brew-paste',
+        description: 'A noxious, sticky paste. Nobody wants to touch this.',
+        stackable: true, maxStack: 50, consumableSubtype: 'potion',
+    },
+    'Unstable Tincture': {
+        name: 'Unstable Tincture', type: 'consumable', rarity: 'common', icon: 'brew-unstable',
+        description: 'A fizzing, unstable liquid. Might be slightly dangerous.',
+        stackable: true, maxStack: 50, consumableSubtype: 'potion',
+    },
+    'Acrid Smoke': {
+        name: 'Acrid Smoke', type: 'consumable', rarity: 'common', icon: 'brew-acrid',
+        description: 'A choking cloud of unpleasant smoke. At least it keeps the bugs away.',
+        stackable: true, maxStack: 50, consumableSubtype: 'incense',
     },
 };
 
+// ──────────────────────────────────────────
+// ITEM UTILITIES
+// ──────────────────────────────────────────
+
 export function getItemDefinition(itemName: string): ItemDefinition {
     return ITEM_REGISTRY[itemName] || {
-        name: itemName, type: 'material' as ItemType, rarity: 'common' as ItemRarity,
+        name: itemName, type: 'key' as ItemType, rarity: 'common' as ItemRarity,
         icon: 'package', description: 'An unknown item.', stackable: true, maxStack: 99,
     };
 }
@@ -487,148 +577,52 @@ export function getRarityColor(rarity: ItemRarity): string {
     }
 }
 
-// ──────────────────────────────────────────
-// CRAFTING RECIPES
-// ──────────────────────────────────────────
-
-export const CRAFTING_RECIPES: Record<string, CraftingRecipe> = {
-    'binding_tincture': {
-        id: 'binding_tincture',
-        ingredients: [
-            { itemName: 'Dreamcatcher Herb', quantity: 2 },
-            { itemName: 'Rose Quartz Dust', quantity: 1 },
-            { itemName: 'Mana Crystal', quantity: 1 },
-        ],
-    },
-    'obedience_elixir': {
-        id: 'obedience_elixir',
-        ingredients: [
-            { itemName: 'Dreamcatcher Herb', quantity: 3 },
-            { itemName: 'Sapphire Fragment', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 2 },
-            { itemName: 'Obsidian Powder', quantity: 1 },
-        ],
-    },
-    'thralls_draught': {
-        id: 'thralls_draught',
-        ingredients: [
-            { itemName: 'Nightshade Leaf', quantity: 2 },
-            { itemName: 'Moonflower Petals', quantity: 3 },
-            { itemName: 'Sapphire Fragment', quantity: 3 },
-            { itemName: 'Obsidian Powder', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 2 },
-        ],
-    },
-    'domination_brew': {
-        id: 'domination_brew',
-        ingredients: [
-            { itemName: 'Nightshade Leaf', quantity: 3 },
-            { itemName: 'Obsidian Powder', quantity: 3 },
-            { itemName: 'Sapphire Fragment', quantity: 4 },
-            { itemName: 'Phoenix Ash', quantity: 1 },
-            { itemName: 'Wraith Essence', quantity: 1 },
-            { itemName: 'Mana Crystal', quantity: 3 },
-        ],
-    },
-    'sweetness_tonic': {
-        id: 'sweetness_tonic',
-        ingredients: [
-            { itemName: 'Honeysuckle Blossoms', quantity: 3 },
-            { itemName: 'Rose Quartz Dust', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 1 },
-        ],
-    },
-    'admiration_nectar': {
-        id: 'admiration_nectar',
-        ingredients: [
-            { itemName: 'Honeysuckle Blossoms', quantity: 4 },
-            { itemName: 'Rose Quartz Dust', quantity: 3 },
-            { itemName: 'Siren\'s Tear', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 2 },
-        ],
-    },
-    'devotion_elixir': {
-        id: 'devotion_elixir',
-        ingredients: [
-            { itemName: 'Honeysuckle Blossoms', quantity: 5 },
-            { itemName: 'Rose Quartz Dust', quantity: 4 },
-            { itemName: 'Siren\'s Tear', quantity: 3 },
-            { itemName: 'Phoenix Ash', quantity: 1 },
-            { itemName: 'Mana Crystal', quantity: 3 },
-        ],
-    },
-    'clarity_potion': {
-        id: 'clarity_potion',
-        ingredients: [
-            { itemName: 'Frostwhisper Moss', quantity: 3 },
-            { itemName: 'Moonstone Splinter', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 1 },
-        ],
-    },
-    'vigor_tincture': {
-        id: 'vigor_tincture',
-        ingredients: [
-            { itemName: 'Dreamcatcher Herb', quantity: 3 },
-            { itemName: 'Amethyst Shard', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 2 },
-        ],
-    },
-    'charm_cordial': {
-        id: 'charm_cordial',
-        ingredients: [
-            { itemName: 'Honeysuckle Blossoms', quantity: 2 },
-            { itemName: 'Amethyst Shard', quantity: 2 },
-            { itemName: 'Mana Crystal', quantity: 1 },
-        ],
-    },
-};
-
-// ──────────────────────────────────────────
-// CRAFTING UTILITIES
-// ──────────────────────────────────────────
-
-export function getCraftingRecipe(recipeId: string): CraftingRecipe | null {
-    return CRAFTING_RECIPES[recipeId] || null;
-}
-
-export function getItemRecipe(itemName: string): CraftingRecipe | null {
-    const item = getItemDefinition(itemName);
-    if (!item.recipeId) return null;
-    return getCraftingRecipe(item.recipeId);
-}
-
-export function canCraftItem(itemName: string, inventory: Record<string, InventoryItem>): boolean {
-    const recipe = getItemRecipe(itemName);
-    if (!recipe) return false;
-
-    for (const ingredient of recipe.ingredients) {
-        const have = inventory[ingredient.itemName]?.quantity ?? 0;
-        if (have < ingredient.quantity) return false;
-    }
-    return true;
-}
-
-export function getCraftingProgress(itemName: string, inventory: Record<string, InventoryItem>): { have: number; need: number } {
-    const recipe = getItemRecipe(itemName);
-    if (!recipe) return { have: 0, need: 0 };
-
-    let have = 0;
-    let need = recipe.ingredients.length;
-
-    for (const ingredient of recipe.ingredients) {
-        const haveAmount = inventory[ingredient.itemName]?.quantity ?? 0;
-        if (haveAmount >= ingredient.quantity) {
-            have++;
-        }
-    }
-
-    return { have, need };
-}
-
 export function getAllItemDefinitions(): ItemDefinition[] {
     return Object.values(ITEM_REGISTRY);
 }
 
 export function getCraftableItems(): ItemDefinition[] {
     return Object.values(ITEM_REGISTRY).filter(item => item.craftable);
+}
+
+/** Get the human-readable label for an item type */
+export function getItemTypeLabel(type: ItemType): string {
+    switch (type) {
+        case 'equipment': return 'Equipment';
+        case 'consumable': return 'Consumable';
+        case 'ingredient': return 'Ingredient';
+        case 'material': return 'Material';
+        case 'key': return 'Key Item';
+        case 'currency': return 'Currency';
+    }
+}
+
+/** Get the icon name for an item type */
+export function getItemTypeIcon(type: ItemType): string {
+    switch (type) {
+        case 'equipment': return 'swords';
+        case 'consumable': return 'flask-conical';
+        case 'ingredient': return 'leaf';
+        case 'material': return 'hammer';
+        case 'key': return 'key';
+        case 'currency': return 'coins';
+    }
+}
+
+// ──────────────────────────────────────────
+// BREWING UTILITIES (legacy compat wrappers)
+// ──────────────────────────────────────────
+// These functions are kept for ItemLibrary compatibility.
+// The real brewing engine is in brewing.ts.
+
+/** Check if an item is brewable (has a recipeId linked to the brew system) */
+export function getItemRecipe(itemName: string): { id: string } | null {
+    const item = getItemDefinition(itemName);
+    if (!item.recipeId) return null;
+    return { id: item.recipeId };
+}
+
+/** Legacy compat — always returns false; real brewing uses the BrewingScreen */
+export function canCraftItem(_itemName: string, _inventory: Record<string, InventoryItem>): boolean {
+    return false;
 }

@@ -161,27 +161,6 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                         </div>
 
                         <div className="pc-topbar-right">
-                            <div className="pc-bottles">
-                                {(['water', 'oil', 'spirit', 'smoke'] as BaseLiquid[]).map(base => {
-                                    const available = hasBaseLiquid(base);
-                                    const isActive = selectedBase === base;
-                                    return (
-                                        <div key={base}
-                                            className={`pc-bottle ${isActive ? 'active' : ''} ${!available ? 'disabled' : ''}`}
-                                            onClick={() => available && setSelectedBase(base)}
-                                            title={!available ? 'Not in inventory' : BASE_LIQUID_LABELS[base]}>
-                                            <svg viewBox="0 0 24 36" className="pc-bottle-svg">
-                                                <path className="pc-bottle-body" d="M7,14 L7,28 Q7,33 12,33 Q17,33 17,28 L17,14 Z" />
-                                                <rect className="pc-bottle-neck" x="9" y="8" width="6" height="7" rx="1" />
-                                                <rect className="pc-bottle-cork" x="8" y="5" width="8" height="4" rx="2" />
-                                                {isActive && <rect className="pc-bottle-liquid" x="8" y="20" width="8" height="12" rx="2" />}
-                                            </svg>
-                                            <span>{BASE_LIQUID_LABELS[base]}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
                             <div className="pc-brew-info">
                                 <span>{BREW_OUTPUT_LABELS[outputForm]}</span>
                                 <span>{getElementTotal(previewProfile)} ess.</span>
@@ -194,6 +173,175 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                                 {brewPhase === 'brewing' ? ' Brewing...' : ' Brew Potion'}
                             </button>
                         </div>
+                    </div>
+
+                    {/* Background decorations */}
+                    <div className="pc-wall-decor">
+                        {/* Left wall sconce */}
+                        <svg className="pc-sconce left" viewBox="0 0 60 100">
+                            {/* Bracket */}
+                            <path className="sconce-bracket" d="M30,50 L30,90 M20,90 L40,90" />
+                            <path className="sconce-bracket" d="M25,55 L35,55" />
+                            {/* Torch holder */}
+                            <path className="sconce-cup" d="M18,40 L22,52 L38,52 L42,40 Z" />
+                            {/* Flame */}
+                            <g className="sconce-flame">
+                                <ellipse className="sconce-glow" cx="30" cy="30" rx="18" ry="20" />
+                                <path className="sconce-fire sf1" d="M30,40 Q26,30 28,22 Q30,16 32,22 Q34,30 30,40 Z" />
+                                <path className="sconce-fire sf2" d="M30,38 Q28,32 29,26 Q30,22 31,26 Q32,32 30,38 Z" />
+                            </g>
+                        </svg>
+
+                        {/* Decorative shelf with bottles */}
+                        <div className="pc-wall-shelf">
+                            <svg viewBox="0 0 400 70">
+                                {/* Shelf plank */}
+                                <rect className="shelf-plank" x="0" y="40" width="400" height="6" rx="1" />
+                                {/* Shelf brackets */}
+                                <path className="shelf-bracket-l" d="M60,46 L60,68 L50,68" />
+                                <path className="shelf-bracket-r" d="M340,46 L340,68 L350,68" />
+                                {/* Potion bottle 1 — tall */}
+                                <g className="shelf-bottle">
+                                    <path d="M80,16 L80,38 Q80,40 85,40 L95,40 Q100,40 100,38 L100,16 Z" fill="#1a1525" stroke="#3a3048" strokeWidth="1" />
+                                    <rect x="85" y="10" width="10" height="7" rx="1" fill="#1a1525" stroke="#3a3048" strokeWidth="0.8" />
+                                    <rect x="83" y="7" width="14" height="4" rx="2" fill="#3a3048" />
+                                    <rect x="82" y="28" width="16" height="10" rx="1" fill="rgba(80,180,120,0.15)" />
+                                </g>
+                                {/* Potion bottle 2 — round */}
+                                <g className="shelf-bottle">
+                                    <ellipse cx="145" cy="30" rx="12" ry="10" fill="#1a1525" stroke="#3a3048" strokeWidth="1" />
+                                    <rect x="141" y="14" width="8" height="12" rx="1" fill="#1a1525" stroke="#3a3048" strokeWidth="0.8" />
+                                    <rect x="140" y="11" width="10" height="4" rx="2" fill="#3a3048" />
+                                    <ellipse cx="145" cy="32" rx="8" ry="6" fill="rgba(120,60,180,0.12)" />
+                                </g>
+                                {/* Jar 3 — wide */}
+                                <g className="shelf-bottle">
+                                    <rect x="185" y="18" width="30" height="22" rx="3" fill="#1a1525" stroke="#3a3048" strokeWidth="1" />
+                                    <rect x="190" y="14" width="20" height="5" rx="1" fill="#3a3048" />
+                                    <rect x="188" y="28" width="24" height="10" rx="1" fill="rgba(180,140,60,0.1)" />
+                                </g>
+                                {/* Skull */}
+                                <g className="shelf-skull">
+                                    <ellipse cx="260" cy="30" rx="10" ry="11" fill="#2a2535" stroke="#3a3048" strokeWidth="1" />
+                                    <ellipse cx="256" cy="28" rx="2.5" ry="3" fill="#1a1525" />
+                                    <ellipse cx="264" cy="28" rx="2.5" ry="3" fill="#1a1525" />
+                                    <path d="M256,35 L258,34 L260,35 L262,34 L264,35" fill="none" stroke="#1a1525" strokeWidth="1" />
+                                </g>
+                                {/* Potion bottle 4 — small */}
+                                <g className="shelf-bottle">
+                                    <path d="M310,24 L310,38 Q310,40 315,40 L321,40 Q326,40 326,38 L326,24 Z" fill="#1a1525" stroke="#3a3048" strokeWidth="1" />
+                                    <rect x="314" y="18" width="8" height="7" rx="1" fill="#1a1525" stroke="#3a3048" strokeWidth="0.8" />
+                                    <rect x="313" y="15" width="10" height="4" rx="2" fill="#3a3048" />
+                                    <rect x="312" y="30" width="12" height="8" rx="1" fill="rgba(60,120,200,0.12)" />
+                                </g>
+                            </svg>
+                        </div>
+
+                        {/* Right wall sconce */}
+                        <svg className="pc-sconce right" viewBox="0 0 60 100">
+                            <path className="sconce-bracket" d="M30,50 L30,90 M20,90 L40,90" />
+                            <path className="sconce-bracket" d="M25,55 L35,55" />
+                            <path className="sconce-cup" d="M18,40 L22,52 L38,52 L42,40 Z" />
+                            <g className="sconce-flame">
+                                <ellipse className="sconce-glow" cx="30" cy="30" rx="18" ry="20" />
+                                <path className="sconce-fire sf1" d="M30,40 Q26,30 28,22 Q30,16 32,22 Q34,30 30,40 Z" />
+                                <path className="sconce-fire sf2" d="M30,38 Q28,32 29,26 Q30,22 31,26 Q32,32 30,38 Z" />
+                            </g>
+                        </svg>
+
+                        {/* Hanging herb bundles — left */}
+                        <svg className="pc-herbs left" viewBox="0 0 50 80">
+                            <line className="herb-string" x1="25" y1="0" x2="25" y2="20" />
+                            <g className="herb-bundle">
+                                <path d="M20,20 Q18,35 16,50 Q15,55 20,55" fill="none" stroke="#2a4a20" strokeWidth="2" />
+                                <path d="M25,20 Q25,38 25,52 Q25,57 25,55" fill="none" stroke="#3a5a2a" strokeWidth="2.5" />
+                                <path d="M30,20 Q32,35 34,50 Q35,55 30,55" fill="none" stroke="#2a4a20" strokeWidth="2" />
+                                <path d="M22,20 Q20,32 21,45" fill="none" stroke="#1a3a18" strokeWidth="1.5" />
+                                <path d="M28,20 Q30,32 29,45" fill="none" stroke="#1a3a18" strokeWidth="1.5" />
+                                {/* Tie */}
+                                <rect x="17" y="18" width="16" height="4" rx="1" fill="#5a4a30" stroke="#6a5a40" strokeWidth="0.5" />
+                            </g>
+                        </svg>
+
+                        {/* Hanging herb bundles — right */}
+                        <svg className="pc-herbs right" viewBox="0 0 50 80">
+                            <line className="herb-string" x1="25" y1="0" x2="25" y2="20" />
+                            <g className="herb-bundle">
+                                <path d="M20,20 Q17,38 15,52 Q14,57 19,55" fill="none" stroke="#4a3a28" strokeWidth="2" />
+                                <path d="M25,20 Q25,40 26,54 Q26,58 25,56" fill="none" stroke="#5a4a30" strokeWidth="2.5" />
+                                <path d="M30,20 Q33,38 35,52 Q36,57 31,55" fill="none" stroke="#4a3a28" strokeWidth="2" />
+                                <path d="M22,20 Q19,34 20,48" fill="none" stroke="#3a2a1a" strokeWidth="1.5" />
+                                <path d="M28,20 Q31,34 30,48" fill="none" stroke="#3a2a1a" strokeWidth="1.5" />
+                                <rect x="17" y="18" width="16" height="4" rx="1" fill="#5a4a30" stroke="#6a5a40" strokeWidth="0.5" />
+                            </g>
+                        </svg>
+
+                        {/* Hanging chain with hook — left of center */}
+                        <svg className="pc-chain left" viewBox="0 0 20 100">
+                            {[0,12,24,36,48,60].map(y => (
+                                <ellipse key={y} cx="10" cy={y+6} rx="4" ry="6" fill="none" stroke="#3a3048" strokeWidth="1.5" />
+                            ))}
+                            {/* Hook at bottom */}
+                            <path d="M10,72 Q10,82 6,86 Q2,90 6,92" fill="none" stroke="#3a3048" strokeWidth="1.5" />
+                        </svg>
+
+                        {/* Hanging chain — right of center */}
+                        <svg className="pc-chain right" viewBox="0 0 20 80">
+                            {[0,12,24,36,48].map(y => (
+                                <ellipse key={y} cx="10" cy={y+6} rx="4" ry="6" fill="none" stroke="#3a3048" strokeWidth="1.5" />
+                            ))}
+                        </svg>
+
+                        {/* Second shelf — lower, offset */}
+                        <div className="pc-wall-shelf lower">
+                            <svg viewBox="0 0 250 55">
+                                <rect className="shelf-plank" x="0" y="30" width="250" height="5" rx="1" />
+                                <path className="shelf-bracket-l" d="M40,35 L40,52 L32,52" />
+                                <path className="shelf-bracket-r" d="M210,35 L210,52 L218,52" />
+                                {/* Candle */}
+                                <g>
+                                    <rect x="50" y="18" width="8" height="13" rx="1" fill="#d4c8a0" stroke="#b0a478" strokeWidth="0.5" />
+                                    <line x1="54" y1="18" x2="54" y2="14" stroke="#4a3a28" strokeWidth="0.8" />
+                                    <ellipse cx="54" cy="13" rx="2" ry="3" fill="#e8a040" opacity="0.8" />
+                                    <ellipse cx="54" cy="10" rx="4" ry="5" fill="rgba(255,160,60,0.08)" />
+                                </g>
+                                {/* Book */}
+                                <g>
+                                    <rect x="90" y="22" width="22" height="9" rx="1" fill="#2a1e28" stroke="#3a2e38" strokeWidth="0.8" />
+                                    <rect x="91" y="23" width="20" height="2" fill="#3a2030" />
+                                </g>
+                                {/* Small round jar */}
+                                <g>
+                                    <circle cx="145" cy="24" rx="7" ry="7" fill="#1a1525" stroke="#3a3048" strokeWidth="0.8" />
+                                    <rect x="142" y="15" width="6" height="4" rx="1" fill="#3a3048" />
+                                    <circle cx="145" cy="26" rx="4" ry="4" fill="rgba(220,80,80,0.1)" />
+                                </g>
+                                {/* Mortar and pestle */}
+                                <g>
+                                    <path d="M180,20 L176,30 Q176,32 190,32 Q204,32 204,30 L200,20 Z" fill="#2a2535" stroke="#3a3048" strokeWidth="0.8" />
+                                    <line x1="195" y1="12" x2="185" y2="28" stroke="#3a3048" strokeWidth="1.5" strokeLinecap="round" />
+                                    <circle cx="196" cy="11" r="3" fill="#2a2535" stroke="#3a3048" strokeWidth="0.8" />
+                                </g>
+                            </svg>
+                        </div>
+
+                        {/* Cobweb — top left */}
+                        <svg className="pc-cobweb left" viewBox="0 0 80 80">
+                            <path d="M0,0 Q40,5 75,40" fill="none" stroke="rgba(200,190,180,0.06)" strokeWidth="0.5" />
+                            <path d="M0,0 Q20,20 30,60" fill="none" stroke="rgba(200,190,180,0.05)" strokeWidth="0.5" />
+                            <path d="M0,0 Q35,15 60,20" fill="none" stroke="rgba(200,190,180,0.04)" strokeWidth="0.5" />
+                            <path d="M10,18 Q30,15 50,30" fill="none" stroke="rgba(200,190,180,0.03)" strokeWidth="0.4" />
+                            <path d="M15,35 Q30,28 45,38" fill="none" stroke="rgba(200,190,180,0.03)" strokeWidth="0.4" />
+                        </svg>
+
+                        {/* Cobweb — top right */}
+                        <svg className="pc-cobweb right" viewBox="0 0 80 80">
+                            <path d="M80,0 Q40,5 5,40" fill="none" stroke="rgba(200,190,180,0.06)" strokeWidth="0.5" />
+                            <path d="M80,0 Q60,20 50,60" fill="none" stroke="rgba(200,190,180,0.05)" strokeWidth="0.5" />
+                            <path d="M80,0 Q45,15 20,20" fill="none" stroke="rgba(200,190,180,0.04)" strokeWidth="0.5" />
+                            <path d="M70,18 Q50,15 30,30" fill="none" stroke="rgba(200,190,180,0.03)" strokeWidth="0.4" />
+                            <path d="M65,35 Q50,28 35,38" fill="none" stroke="rgba(200,190,180,0.03)" strokeWidth="0.4" />
+                        </svg>
                     </div>
 
                     {/* Cauldron scene — fills the remaining space */}
@@ -397,6 +545,47 @@ export const BrewingScreen: FC<BrewingScreenProps> = ({ stage, setScreenType }) 
                             </svg>
                         </div>
 
+                    </div>
+
+                    {/* ═══ Bottle Stand — sits on cobblestone left of cauldron ═══ */}
+                    <div className="pc-bottle-stand">
+                        <div className="bottle-stand-label">Base Liquid</div>
+                        <div className="bottle-stand-row">
+                            {(['water', 'oil', 'spirit', 'smoke'] as BaseLiquid[]).map(base => {
+                                const available = hasBaseLiquid(base);
+                                const isActive = selectedBase === base;
+                                return (
+                                    <div key={base}
+                                        className={`stand-bottle ${isActive ? 'active' : ''} ${!available ? 'disabled' : ''}`}
+                                        onClick={() => available && setSelectedBase(base)}
+                                        title={!available ? 'Not in inventory' : BASE_LIQUID_LABELS[base]}>
+                                        <svg viewBox="0 0 28 44" className="stand-bottle-svg">
+                                            {/* Bottle shadow */}
+                                            <ellipse cx="14" cy="42" rx="8" ry="2" fill="rgba(0,0,0,0.3)" />
+                                            {/* Bottle body */}
+                                            <path className="sbottle-body" d="M6,18 L6,34 Q6,40 14,40 Q22,40 22,34 L22,18 Z" />
+                                            <rect className="sbottle-neck" x="10" y="10" width="8" height="9" rx="1.5" />
+                                            <rect className="sbottle-cork" x="9" y="6" width="10" height="5" rx="2.5" />
+                                            {/* Liquid fill */}
+                                            {isActive && <rect className="sbottle-liquid" x="7" y="24" width="14" height="15" rx="3"
+                                                style={{ fill: base === 'water' ? 'rgba(60,140,220,0.35)' :
+                                                    base === 'oil' ? 'rgba(180,160,60,0.35)' :
+                                                    base === 'spirit' ? 'rgba(160,80,220,0.35)' :
+                                                    'rgba(120,120,120,0.35)' }} />}
+                                            {/* Highlight */}
+                                            <path className="sbottle-highlight" d="M9,20 L9,32" />
+                                        </svg>
+                                        <span className="stand-bottle-name">{BASE_LIQUID_LABELS[base]}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {/* Wooden stand base */}
+                        <svg className="stand-base-svg" viewBox="0 0 200 20">
+                            <rect className="stand-plank" x="5" y="0" width="190" height="6" rx="1" />
+                            <rect className="stand-leg-l" x="20" y="5" width="5" height="15" />
+                            <rect className="stand-leg-r" x="175" y="5" width="5" height="15" />
+                        </svg>
                     </div>
 
                     {/* ═══ Cobblestone Footer ═══ */}

@@ -135,5 +135,6 @@ export function getCategoryDisplay(category: ChatChangeCategory): { label: strin
         case 'item_add':            return { label: 'Item Gained', icon: 'package',  color: '#34d399' };
         case 'item_remove':         return { label: 'Item Lost',   icon: 'package',  color: '#f87171' };
         case 'stat':                return { label: 'Stat',       icon: 'trending-up', color: '#38bdf8' };
+        case 'soul_fragments':      return { label: 'Soul Fragments', icon: 'flame', color: '#d46a6a' };
     }
 }

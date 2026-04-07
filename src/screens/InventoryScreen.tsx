@@ -13,10 +13,10 @@ interface InventoryScreenProps {
 const TYPE_FILTERS: { label: string; value: ItemType | 'all'; icon?: string }[] = [
     { label: 'All', value: 'all' },
     { label: 'Equipment', value: 'equipment', icon: 'swords' },
-    { label: 'Consumable', value: 'consumable', icon: 'test-tubes' },
-    { label: 'Material', value: 'material', icon: 'diamond' },
+    { label: 'Consumable', value: 'consumable', icon: 'flask-conical' },
+    { label: 'Ingredient', value: 'ingredient', icon: 'leaf' },
+    { label: 'Material', value: 'material', icon: 'hammer' },
     { label: 'Key', value: 'key', icon: 'key' },
-    { label: 'Currency', value: 'currency', icon: 'coins' },
 ];
 
 export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType }) => {
@@ -40,6 +40,9 @@ export const InventoryScreen: FC<InventoryScreenProps> = ({ stage, setScreenType
                     &lt; Menu
                 </button>
                 <h2>Inventory</h2>
+                <button className="library-button" onClick={() => setScreenType(ScreenType.BREWING)}>
+                    <GameIcon icon="flask-conical" /> Brewing
+                </button>
                 <button className="library-button" onClick={() => setScreenType(ScreenType.ITEM_LIBRARY)}>
                     <GameIcon icon="book" /> Item Library
                 </button>

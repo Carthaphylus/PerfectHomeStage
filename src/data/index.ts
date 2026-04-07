@@ -20,6 +20,12 @@ export * from './characters';
 // Item system
 export * from './items';
 
+// Brewing system
+export * from './brewing';
+
+// Room build costs
+export * from './roomCosts';
+
 // Event system (common mechanics, brainwashing, exploration)
 export { rollSkillCheck } from './events/mechanics';
 export * from './events/brainwashing/conditioning';
@@ -39,3 +45,12 @@ export * from './npcGeneration';
 
 // Quest system
 export * from './events/quests/registry';
+
+// Daily events
+export * from './dailyEvents';
+
+// Servant relationships
+export * from './relationships';
+
+// Reputation system
+export * from './reputation';

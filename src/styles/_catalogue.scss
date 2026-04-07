@@ -302,6 +302,15 @@
     }
   }
 
+  // Cost rows — missing indicator
+  .catalogue-detail-row.cost-missing {
+    border-left: 2px solid #d46a6a;
+
+    .catalogue-detail-value {
+      color: #d46a6a;
+    }
+  }
+
   // Build button
   .catalogue-build-btn {
     margin: auto 22px 22px;
@@ -331,6 +340,24 @@
       border-color: rgba(200, 170, 110, 0.5);
       transform: translateY(-1px);
       box-shadow: 0 4px 16px rgba(200, 170, 110, 0.08);
+    }
+
+    &--disabled, &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: rgba(200, 100, 100, 0.25);
+      color: rgba(200, 100, 100, 0.7);
+
+      &:hover {
+        background: linear-gradient(
+          180deg,
+          rgba(200, 170, 110, 0.12),
+          rgba(200, 170, 110, 0.06)
+        ) !important;
+        border-color: rgba(200, 100, 100, 0.25);
+        transform: none;
+        box-shadow: none;
+      }
     }
   }
 }

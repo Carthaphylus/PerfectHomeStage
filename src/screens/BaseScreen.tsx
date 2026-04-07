@@ -17,6 +17,7 @@ import { ConversionScreen } from './ConversionScreen';
 import { ExploreScreen } from './ExploreScreen';
 import { TurnSummaryScreen } from './TurnSummaryScreen';
 import { QuestScreen } from './QuestScreen';
+import { BrewingScreen } from './BrewingScreen';
 import { StatBar } from './StatBar';
 import { ScreenType } from './screenTypes';
 
@@ -166,6 +167,11 @@ export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
             {/* Quest screen */}
             {screenType === ScreenType.QUESTS && (
                 <QuestScreen stage={stage} setScreenType={setScreenType} startEvent={startEvent} />
+            )}
+
+            {/* Brewing screen */}
+            {screenType === ScreenType.BREWING && (
+                <BrewingScreen stage={stage} setScreenType={setScreenType} />
             )}
 
             {/* Explore screen */}

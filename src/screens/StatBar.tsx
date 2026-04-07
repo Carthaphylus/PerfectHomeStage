@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import type { Stage } from '../Stage';
+import { getReputationTier } from '../data/reputation';
 import { GameIcon } from './GameIcon';
 
 // Skill icons
@@ -47,6 +48,12 @@ export const StatBar: FC<StatBarProps> = ({ stage }) => {
                     <img src={GoldIcon} alt="Gold" className="stat-icon" />
                     <span className="stat-value">{s.gold}</span>
                 </div>
+                {(s.soulFragments > 0) && (
+                    <div className="stat-item" title="Soul Fragments">
+                        <GameIcon icon="flame" size={14} className="icon-soul-fragments" />
+                        <span className="stat-value" style={{ color: '#d46a6a' }}>{s.soulFragments}</span>
+                    </div>
+                )}
                 <div className="stat-item bar-stat" title={`Mana: ${s.mana}/${s.maxMana}`}>
                     <GameIcon icon="sparkles" size={14} className="icon-mana" />
                     <div className="stat-blocks mana-blocks">
@@ -82,6 +89,18 @@ export const StatBar: FC<StatBarProps> = ({ stage }) => {
                     </div>
                 </div>
             </div>
+
+            {s.reputation !== undefined && s.reputation > 15 && (() => {
+                const tier = getReputationTier(s.reputation);
+                return (
+                    <div className="stat-bar-group reputation">
+                        <div className="stat-item" title={`Suspicion: ${s.reputation} — ${tier.label}: ${tier.description}`}>
+                            <GameIcon icon={tier.icon} size={14} color={tier.color} />
+                            <span className="stat-value" style={{ color: tier.color }}>{tier.label}</span>
+                        </div>
+                    </div>
+                );
+            })()}
 
             <div className="stat-bar-group day">
                 <div className="stat-item" title="Current Day">

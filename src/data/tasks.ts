@@ -367,6 +367,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         rewards: [
             { type: 'item', itemName: 'Dreamcatcher Herb', amount: 5, narrative: 'Found a patch of rare herbs deep in the forest' },
             { type: 'item', itemName: 'Mana Crystal', amount: 1, narrative: 'Discovered a crystal formation near a stream' },
+            { type: 'item', itemName: 'Timber', amount: 4, narrative: 'Collected usable wood along the way' },
         ],
     },
 
@@ -391,6 +392,7 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
             { type: 'item', itemName: 'Memory Fragment', amount: 1, narrative: 'Unearthed a glowing relic from the ruins' },
             { type: 'gold', amount: 40, narrative: 'Found a cache of ancient coins' },
             { type: 'mana', amount: 10, narrative: 'Residual mana lingers in the ancient stones' },
+            { type: 'item', itemName: 'Stone', amount: 4, narrative: 'Salvaged stone blocks from the ruins' },
         ],
     },
 
@@ -415,6 +417,176 @@ export const TASK_REGISTRY: Record<string, TaskDefinition> = {
         rewards: [
             { type: 'gold', amount: 20, narrative: 'Picked a few pockets during the show' },
             { type: 'mana', amount: 5, narrative: 'Sensed arcane undercurrents in the performance' },
+        ],
+    },
+
+    // ────────────────────────────────────
+    // MATERIAL-GATHERING TASKS
+    // ────────────────────────────────────
+
+    'gather_timber': {
+        id: 'gather_timber',
+        name: 'Gather Timber',
+        description: 'Venture into the woods to fell trees and collect usable lumber for construction projects.',
+        category: 'exploration',
+        icon: 'axe',
+        color: '#8b6b3a',
+        duration: 2,
+        staminaCost: 45,
+        location: 'Woods',
+        primaryStat: 'prowess',
+        requirements: [{ stat: 'prowess', minimum: 16 }],
+        traitModifiers: [
+            { traitKey: 'hardworking', effect: 'bonus', magnitude: 15, description: 'Chops tirelessly' },
+            { traitKey: 'resourceful', effect: 'bonus', magnitude: 10, description: 'Finds the best timber stands' },
+            { traitKey: 'restless', effect: 'bonus', magnitude: 5, description: 'Covers more ground' },
+            { traitKey: 'gentle', effect: 'penalty', magnitude: 8, description: 'Hesitates with the axe' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Timber', amount: 7, narrative: 'Felled several trees and split them into usable planks' },
+        ],
+    },
+
+    'quarry_stone': {
+        id: 'quarry_stone',
+        name: 'Quarry Stone',
+        description: 'Excavate stone blocks from the ancient ruins. Backbreaking but essential for construction.',
+        category: 'exploration',
+        icon: 'pickaxe',
+        color: '#8a8a7a',
+        duration: 3,
+        staminaCost: 60,
+        location: 'Ruins',
+        primaryStat: 'prowess',
+        requirements: [{ stat: 'prowess', minimum: 24 }],
+        traitModifiers: [
+            { traitKey: 'hardworking', effect: 'bonus', magnitude: 15, description: 'Endures the heavy labor' },
+            { traitKey: 'fierce', effect: 'bonus', magnitude: 10, description: 'Attacks the rock with vigor' },
+            { traitKey: 'perceptive', effect: 'bonus', magnitude: 8, description: 'Spots natural fracture lines' },
+            { traitKey: 'impulsive', effect: 'penalty', magnitude: 10, description: 'Shatters blocks with careless strikes' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Stone', amount: 6, narrative: 'Quarried several clean blocks from the ruins' },
+            { type: 'item', itemName: 'Rune Stones', amount: 1, narrative: 'Found an intact rune-carved stone among the rubble' },
+        ],
+    },
+
+    'forge_fittings': {
+        id: 'forge_fittings',
+        name: 'Forge Fittings',
+        description: 'Work the armory forge to produce iron bars and structural fittings from raw ore.',
+        category: 'room',
+        icon: 'hammer',
+        color: '#a0705a',
+        duration: 2,
+        staminaCost: 50,
+        roomType: 'armory',
+        primaryStat: 'expertise',
+        requirements: [{ stat: 'expertise', minimum: 28 }],
+        traitModifiers: [
+            { traitKey: 'meticulous', effect: 'bonus', magnitude: 15, description: 'Produces quality metalwork' },
+            { traitKey: 'hardworking', effect: 'bonus', magnitude: 10, description: 'Keeps the forge burning' },
+            { traitKey: 'fierce', effect: 'bonus', magnitude: 8, description: 'Hammers with passion' },
+            { traitKey: 'impulsive', effect: 'penalty', magnitude: 12, description: 'Rushes the tempering process' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Iron', amount: 4, narrative: 'Produced several bars of quality iron' },
+        ],
+    },
+
+    'inscribe_runes': {
+        id: 'inscribe_runes',
+        name: 'Inscribe Runes',
+        description: 'Channel arcane energy to carve magical scripts into prepared stone. Requires the ritual room.',
+        category: 'room',
+        icon: 'gem',
+        color: '#7a8ac0',
+        duration: 3,
+        staminaCost: 55,
+        manaCost: 15,
+        roomType: 'ritual',
+        primaryStat: 'attunement',
+        requirements: [{ stat: 'attunement', minimum: 32 }, { stat: 'expertise', minimum: 24 }],
+        traitModifiers: [
+            { traitKey: 'occultist', effect: 'bonus', magnitude: 18, description: 'Innate understanding of runic language' },
+            { traitKey: 'meticulous', effect: 'bonus', magnitude: 12, description: 'Every stroke is precise' },
+            { traitKey: 'disciplined', effect: 'bonus', magnitude: 8, description: 'Maintains focus during long inscriptions' },
+            { traitKey: 'impulsive', effect: 'penalty', magnitude: 15, description: 'Ruins delicate carvings' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Rune Stones', amount: 3, narrative: 'Inscribed ancient scripts onto prepared stone' },
+        ],
+    },
+
+    'weave_cloth': {
+        id: 'weave_cloth',
+        name: 'Weave Cloth',
+        description: 'Spin and weave luxurious velvet fabric from raw materials. A tedious but valuable craft.',
+        category: 'room',
+        icon: 'shirt',
+        color: '#9a6aaa',
+        duration: 2,
+        staminaCost: 30,
+        roomType: 'lounge',
+        primaryStat: 'expertise',
+        requirements: [{ stat: 'expertise', minimum: 20 }],
+        traitModifiers: [
+            { traitKey: 'meticulous', effect: 'bonus', magnitude: 15, description: 'Produces flawless weave' },
+            { traitKey: 'patient', effect: 'bonus', magnitude: 12, description: 'Steady hands for fine work' },
+            { traitKey: 'hardworking', effect: 'bonus', magnitude: 8, description: 'Works the loom for hours' },
+            { traitKey: 'restless', effect: 'penalty', magnitude: 10, description: 'Can\'t sit still long enough' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Velvet Cloth', amount: 4, narrative: 'Wove several bolts of fine velvet fabric' },
+        ],
+    },
+
+    'salvage_marble': {
+        id: 'salvage_marble',
+        name: 'Salvage Marble',
+        description: 'Carefully extract polished marble slabs from the ruins of ancient halls. Requires patience and a keen eye for quality stone.',
+        category: 'exploration',
+        icon: 'gem',
+        color: '#c8c0d0',
+        duration: 3,
+        staminaCost: 55,
+        location: 'Ruins',
+        primaryStat: 'expertise',
+        requirements: [{ stat: 'expertise', minimum: 28 }, { stat: 'prowess', minimum: 18 }],
+        traitModifiers: [
+            { traitKey: 'meticulous', effect: 'bonus', magnitude: 18, description: 'Extracts slabs without cracks' },
+            { traitKey: 'perceptive', effect: 'bonus', magnitude: 12, description: 'Spots the best marble deposits' },
+            { traitKey: 'hardworking', effect: 'bonus', magnitude: 8, description: 'Endures the careful labor' },
+            { traitKey: 'impulsive', effect: 'penalty', magnitude: 15, description: 'Rushes and shatters delicate slabs' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Marble Slab', amount: 3, narrative: 'Extracted pristine marble from ancient flooring' },
+            { type: 'item', itemName: 'Stone', amount: 2, narrative: 'Collected some rough stone along the way' },
+        ],
+    },
+
+    'attune_ward_crystals': {
+        id: 'attune_ward_crystals',
+        name: 'Attune Ward Crystals',
+        description: 'Channel protective magic into raw crystal formations in the ritual room, producing ward crystals for containment and magical infrastructure.',
+        category: 'room',
+        icon: 'shield',
+        color: '#6a9ac0',
+        duration: 4,
+        staminaCost: 50,
+        manaCost: 25,
+        roomType: 'ritual',
+        primaryStat: 'attunement',
+        requirements: [{ stat: 'attunement', minimum: 36 }, { stat: 'discipline', minimum: 28 }],
+        traitModifiers: [
+            { traitKey: 'occultist', effect: 'bonus', magnitude: 20, description: 'Deep understanding of ward magic' },
+            { traitKey: 'disciplined', effect: 'bonus', magnitude: 15, description: 'Maintains focus during long ritual' },
+            { traitKey: 'meticulous', effect: 'bonus', magnitude: 10, description: 'Precise energy channeling' },
+            { traitKey: 'impulsive', effect: 'penalty', magnitude: 18, description: 'Energy surges shatter the crystals' },
+        ],
+        rewards: [
+            { type: 'item', itemName: 'Ward Crystals', amount: 2, narrative: 'Attuned raw crystals into pulsing ward shards' },
+            { type: 'mana', amount: -10, narrative: 'The ritual drains residual mana' },
         ],
     },
 

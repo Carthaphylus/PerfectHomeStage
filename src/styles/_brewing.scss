@@ -421,14 +421,101 @@ $panel-border: rgba($gold, 0.15);
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    // Subtle ambient light from the fire
+    // Stone wall background with fire glow
     background:
-      radial-gradient(ellipse at 50% 75%, rgba(232, 93, 58, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(30, 24, 38, 0.3) 0%, transparent 100%) !important;
+      // Fire glow from below
+      radial-gradient(ellipse at 50% 85%, rgba(232, 93, 58, 0.08) 0%, transparent 40%),
+      // Vignette darkening at edges
+      radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,0.3) 100%),
+      // Subtle warm sconce glow left
+      radial-gradient(ellipse at 15% 15%, rgba(255, 160, 60, 0.04) 0%, transparent 30%),
+      // Subtle warm sconce glow right
+      radial-gradient(ellipse at 85% 15%, rgba(255, 160, 60, 0.04) 0%, transparent 30%) !important;
+  }
+
+  // ═══ Wall decorations ═══
+  .pc-wall-decor {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 120px;
+    pointer-events: none;
+  }
+
+  .pc-sconce {
+    position: absolute;
+    width: 50px;
+    height: 80px;
+    top: 10%;
+    &.left { left: 12%; }
+    &.right { right: 12%; }
+  }
+  .sconce-bracket { fill: none; stroke: #4a3a2c; stroke-width: 2.5; stroke-linecap: round; }
+  .sconce-cup { fill: #3a2e22; stroke: #5a4a38; stroke-width: 1.2; }
+  .sconce-glow { fill: rgba(255, 160, 60, 0.08); }
+  .sconce-fire {
+    fill: #e8a040;
+    &.sf1 { animation: sconceFlicker 1.5s ease-in-out infinite; }
+    &.sf2 { fill: #f0c860; animation: sconceFlicker 1.8s ease-in-out infinite 0.3s; }
+  }
+  @keyframes sconceFlicker {
+    0%, 100% { opacity: 0.8; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1) translateY(-1px); }
+  }
+
+  .pc-wall-shelf {
+    position: absolute;
+    width: 320px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 5%;
+    svg { width: 100%; height: auto; }
+  }
+  .shelf-plank { fill: #3a2e24; stroke: #4a3a2c; stroke-width: 1; }
+  .shelf-bracket-l, .shelf-bracket-r { fill: none; stroke: #4a3a2c; stroke-width: 2; stroke-linecap: round; }
+
+  .pc-herbs {
+    position: absolute;
+    width: 35px;
+    height: 60px;
+    top: 0;
+    &.left { left: 28%; }
+    &.right { right: 28%; }
+  }
+  .herb-string { stroke: #4a3a28; stroke-width: 1; }
+
+  .pc-chain {
+    position: absolute;
+    width: 16px;
+    top: 0;
+    opacity: 0.5;
+    &.left { left: 35%; }
+    &.right { right: 35%; }
+  }
+
+  .pc-wall-shelf.lower {
+    position: absolute;
+    width: 220px;
+    top: 45%;
+    &:nth-of-type(2) { left: 6%; }
+    // Default: right side
+    right: 5%;
+    left: auto;
+    svg { width: 100%; height: auto; }
+  }
+
+  .pc-cobweb {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    top: 0;
+    opacity: 0.8;
+    &.left { left: 0; }
+    &.right { right: 0; }
   }
 
   .pc-scene {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -437,6 +524,56 @@ $panel-border: rgba($gold, 0.15);
     z-index: 3;
     padding-bottom: 0;
   }
+
+  // ══════════════════════════════════════
+  // BOTTLE STAND — sits on cobblestone left of cauldron
+  // ══════════════════════════════════════
+  .pc-bottle-stand {
+    position: absolute;
+    bottom: 100px; // overlap onto cobblestone
+    left: 8%;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+  }
+  .bottle-stand-label {
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba($gold, 0.4);
+    margin-bottom: 4px;
+  }
+  .bottle-stand-row {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+  }
+  .stand-bottle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    &:hover:not(.disabled) { background: rgba($gold, 0.08); }
+    &.active {
+      background: rgba($gold, 0.12);
+      .stand-bottle-name { color: rgba($gold, 0.8); }
+    }
+    &.disabled { opacity: 0.3; cursor: not-allowed; }
+  }
+  .stand-bottle-svg { width: 28px; height: 44px; }
+  .sbottle-body { fill: #1a1525; stroke: #3a3048; stroke-width: 1.2; }
+  .sbottle-neck { fill: #1a1525; stroke: #3a3048; stroke-width: 0.8; }
+  .sbottle-cork { fill: #4a3a2c; stroke: #5a4a38; stroke-width: 0.5; }
+  .sbottle-highlight { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 1; stroke-linecap: round; }
+  .stand-bottle-name { font-size: 6px; color: rgba($gold, 0.35); margin-top: 1px; }
+  .stand-base-svg { width: 140px; margin-top: -2px; }
+  .stand-plank { fill: #3a2e24; stroke: #4a3a2c; stroke-width: 0.8; }
+  .stand-leg-l, .stand-leg-r { fill: #3a2e24; stroke: #4a3a2c; stroke-width: 0.5; }
 
   // ══════════════════════════════════════
   // COBBLESTONE FOOTER

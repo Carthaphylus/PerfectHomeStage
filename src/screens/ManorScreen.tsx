@@ -1,8 +1,8 @@
 import React, { FC, useState, useRef, useCallback, useEffect } from 'react';
 import { ScreenType } from './screenTypes';
 import type { Stage } from '../Stage';
-import { ROOM_ROLES } from '../data';
-import type { Role } from '../data';
+import { ROOM_ROLES, getRoomBuildCost, canAffordRoom, getMissingMaterials, deductRoomCost } from '../data';
+import type { Role, RoomBuildCost } from '../data';
 import { GameIcon } from './GameIcon';
 import { LayoutEditorHandles, LayoutEditorPanel } from './LayoutEditor';
 import type { LayoutSlot } from './LayoutEditor';
@@ -1432,10 +1432,21 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
 
     const handleBuildRoom = (roomType: string) => {
         if (selectedSlot) {
-            setSlotData(prev => prev.map(s =>
-                s.slotId === selectedSlot.slotId
-                    ? { ...s, roomType, level: 1, occupant: undefined }
-                    : s
+            const s = stage();
+            const st = s.currentState;
+            const inventory = st.inventory || {};
+
+            // Deduct gold + materials
+            const cost = getRoomBuildCost(roomType, 1);
+            if (cost) {
+                if (!canAffordRoom(roomType, 1, st.stats.gold, inventory)) return;
+                st.stats.gold = deductRoomCost(roomType, 1, st.stats.gold, inventory);
+            }
+
+            setSlotData(prev => prev.map(slot =>
+                slot.slotId === selectedSlot.slotId
+                    ? { ...slot, roomType, level: 1, occupant: undefined }
+                    : slot
             ));
             setShowBuildPicker(false);
             // Update selection to show the newly built room
@@ -1741,12 +1752,46 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 </div>
                                             )}
 
-                                            <div className="upgrade-info">
-                                                <h4>Next Upgrade</h4>
-                                                <div className="upgrade-cost">
-                                                    <span><GameIcon icon="diamond" size={12} className="icon-blue" /> Cost: {selectedRoom.getUpgradeCost()} Gold</span>
-                                                </div>
-                                            </div>
+                                            {(() => {
+                                                const nextLevel = (selectedRoom.level || 1) + 1;
+                                                const upgradeCost = getRoomBuildCost(selectedRoom.type, nextLevel);
+                                                const st = stage().currentState;
+                                                const inv = st.inventory || {};
+                                                if (nextLevel > 3) return (
+                                                    <div className="upgrade-info">
+                                                        <h4>Max Level</h4>
+                                                        <div className="upgrade-cost">
+                                                            <span className="upgrade-maxed">This room is fully upgraded.</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                                return (
+                                                    <div className="upgrade-info">
+                                                        <h4>Upgrade to Lv.{nextLevel}</h4>
+                                                        {upgradeCost ? (
+                                                            <div className="upgrade-cost-list">
+                                                                <div className={`upgrade-cost-row ${st.stats.gold < upgradeCost.gold ? 'cost-missing' : ''}`}>
+                                                                    <GameIcon icon="coins" size={12} className="icon-gold" />
+                                                                    <span>Gold: {st.stats.gold}/{upgradeCost.gold}</span>
+                                                                </div>
+                                                                {upgradeCost.materials.map(mat => {
+                                                                    const have = inv[mat.itemName]?.quantity ?? 0;
+                                                                    return (
+                                                                        <div key={mat.itemName} className={`upgrade-cost-row ${have < mat.quantity ? 'cost-missing' : ''}`}>
+                                                                            <GameIcon icon="hammer" size={12} />
+                                                                            <span>{mat.itemName}: {have}/{mat.quantity}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="upgrade-cost">
+                                                                <span><GameIcon icon="diamond" size={12} className="icon-blue" /> Cost: {selectedRoom.getUpgradeCost()} Gold</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                     
@@ -1820,31 +1865,69 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                                 ))}
                                             </div>
 
-                                            <div className="catalogue-detail-section">
-                                                <h4>Costs</h4>
-                                                <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label"><GameIcon icon="hammer" size={12} /> Build Cost</span>
-                                                    <span className="catalogue-detail-value">{preview.getUpgradeCost()} gold</span>
-                                                </div>
-                                                <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label"><GameIcon icon="wrench" size={12} className="icon-gold" /> Upkeep</span>
-                                                    <span className="catalogue-detail-value">{preview.getUpkeep()} gold/day</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="catalogue-detail-section">
-                                                <div className="catalogue-detail-row">
-                                                    <span className="catalogue-detail-label"><GameIcon icon="map-pin" size={12} /> Placement</span>
-                                                    <span className="catalogue-detail-value">{preview.location}</span>
-                                                </div>
-                                            </div>
+                                            {(() => {
+                                                const buildCost = getRoomBuildCost(preview.type, 1);
+                                                const st = stage().currentState;
+                                                const inv = st.inventory || {};
+                                                const affordable = buildCost ? canAffordRoom(preview.type, 1, st.stats.gold, inv) : true;
+                                                const missing = buildCost ? getMissingMaterials(preview.type, 1, inv) : [];
+                                                const goldShort = buildCost ? st.stats.gold < buildCost.gold : false;
+                                                return (
+                                                    <>
+                                                        <div className="catalogue-detail-section">
+                                                            <h4>Build Cost</h4>
+                                                            {buildCost && (
+                                                                <>
+                                                                    <div className={`catalogue-detail-row ${goldShort ? 'cost-missing' : ''}`}>
+                                                                        <span className="catalogue-detail-label"><GameIcon icon="coins" size={12} className="icon-gold" /> Gold</span>
+                                                                        <span className="catalogue-detail-value">{st.stats.gold}/{buildCost.gold}</span>
+                                                                    </div>
+                                                                    {buildCost.materials.map(mat => {
+                                                                        const have = inv[mat.itemName]?.quantity ?? 0;
+                                                                        const short = have < mat.quantity;
+                                                                        return (
+                                                                            <div key={mat.itemName} className={`catalogue-detail-row ${short ? 'cost-missing' : ''}`}>
+                                                                                <span className="catalogue-detail-label"><GameIcon icon="hammer" size={12} /> {mat.itemName}</span>
+                                                                                <span className="catalogue-detail-value">{have}/{mat.quantity}</span>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </>
+                                                            )}
+                                                            {!buildCost && (
+                                                                <div className="catalogue-detail-row">
+                                                                    <span className="catalogue-detail-label">No build cost data</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="catalogue-detail-section">
+                                                            <div className="catalogue-detail-row">
+                                                                <span className="catalogue-detail-label"><GameIcon icon="wrench" size={12} className="icon-gold" /> Upkeep</span>
+                                                                <span className="catalogue-detail-value">{preview.getUpkeep()} gold/day</span>
+                                                            </div>
+                                                            <div className="catalogue-detail-row">
+                                                                <span className="catalogue-detail-label"><GameIcon icon="map-pin" size={12} /> Placement</span>
+                                                                <span className="catalogue-detail-value">{preview.location}</span>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
-                                        <button
-                                            className="catalogue-build-btn"
-                                            onClick={() => { handleBuildRoom(preview.type); setCatalogueSelection(null); }}
-                                        >
-                                            <GameIcon icon="hammer" size={12} /> Build {preview.name}
-                                        </button>
+                                        {(() => {
+                                            const buildCost = getRoomBuildCost(preview.type, 1);
+                                            const st = stage().currentState;
+                                            const affordable = buildCost ? canAffordRoom(preview.type, 1, st.stats.gold, st.inventory || {}) : true;
+                                            return (
+                                                <button
+                                                    className={`catalogue-build-btn ${!affordable ? 'catalogue-build-btn--disabled' : ''}`}
+                                                    onClick={() => { if (affordable) { handleBuildRoom(preview.type); setCatalogueSelection(null); } }}
+                                                    disabled={!affordable}
+                                                >
+                                                    <GameIcon icon="hammer" size={12} /> {affordable ? `Build ${preview.name}` : 'Missing Resources'}
+                                                </button>
+                                            );
+                                        })()}
                                     </div>
                                 )}
                             </div>

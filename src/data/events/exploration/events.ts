@@ -59,6 +59,20 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 tooltip: 'Rest and listen for rumors at the local inn.',
                 eventId: 'explore_town_tavern',
             },
+            {
+                id: 'town_alchemist',
+                label: 'Visit the Alchemist',
+                icon: 'flask-conical',
+                tooltip: 'Browse rare ingredients and brewing supplies.',
+                eventId: 'explore_town_alchemist',
+            },
+            {
+                id: 'town_notice_board',
+                label: 'Check the Notice Board',
+                icon: 'scroll',
+                tooltip: 'Read posted notices for rumors and bounties.',
+                eventId: 'explore_town_notice_board',
+            },
         ],
     },
     Woods: {
@@ -122,6 +136,20 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 tooltip: 'Venture into the unexplored lower levels.',
                 eventId: 'explore_ruins_delve',
             },
+            {
+                id: 'ruins_ritual_site',
+                label: 'Investigate Ritual Site',
+                icon: 'sparkles',
+                tooltip: 'A circle of standing stones hums with residual power.',
+                eventId: 'explore_ruins_ritual_site',
+            },
+            {
+                id: 'ruins_sealed_vault',
+                label: 'Sealed Vault',
+                icon: 'lock',
+                tooltip: 'A heavy door sealed with ancient wards. What lies within?',
+                eventId: 'explore_ruins_sealed_vault',
+            },
         ],
     },
     Circus: {
@@ -150,6 +178,20 @@ export const EXPLORE_DATA: Partial<Record<Location, LocationExploreData>> = {
                 tooltip: 'Sneak behind the curtain to see what they\'re hiding.',
                 eventId: 'explore_circus_backstage',
             },
+            {
+                id: 'circus_fortune_teller',
+                label: 'Visit the Fortune Teller',
+                icon: 'eye',
+                tooltip: 'A mysterious seer offers readings for a price.',
+                eventId: 'explore_circus_fortune_teller',
+            },
+            {
+                id: 'circus_menagerie',
+                label: 'Explore the Menagerie',
+                icon: 'bug',
+                tooltip: 'Exotic creatures are kept in cages behind the big top.',
+                eventId: 'explore_circus_menagerie',
+            },
         ],
     },
 };
@@ -165,32 +207,17 @@ const PIP_SHOP: EventShopPhase = {
     shopName: "Pip's Emporium",
     shopkeeperName: 'Pip',
     shopkeeperGreeting: '"Find what you need? I\'ve got more where that came from — just say the word! Squeak!"',
-    categories: ['Supplies', 'Reagents', 'Pip\'s Finds'],
+    categories: ['Materials', 'Supplies'],
     exitStep: 'depart',
     items: [
-        // ─ Supplies — practical frontier goods ─
-        { itemName: 'Traveler\'s Rations',    price: 5,   quantity: 2, category: 'Supplies' },
-        { itemName: 'Healing Salve',          price: 8,   quantity: 1, category: 'Supplies' },
-        { itemName: 'Mousefolk Cheese Wheel',  price: 3,   quantity: 1, category: 'Supplies' },
-        { itemName: 'Stamina Draught',        price: 12,  quantity: 1, category: 'Supplies' },
-        { itemName: 'Antidote',               price: 10,  quantity: 1, category: 'Supplies' },
-        { itemName: 'Binding Cord',           price: 6,   quantity: 2, category: 'Supplies' },
-        { itemName: 'Binding Circle Chalk',   price: 4,   quantity: 3, category: 'Supplies' },
-        // ─ Reagents — crafting herbs & minerals ─
-        { itemName: 'Dreamcatcher Herb',      price: 8,   quantity: 3, category: 'Reagents' },
-        { itemName: 'Honeysuckle Blossoms',   price: 6,   quantity: 3, category: 'Reagents' },
-        { itemName: 'Moonflower Petals',      price: 10,  quantity: 2, category: 'Reagents' },
-        { itemName: 'Frostwhisper Moss',      price: 9,   quantity: 2, category: 'Reagents' },
-        { itemName: 'Rose Quartz Dust',       price: 6,   quantity: 3, category: 'Reagents' },
-        { itemName: 'Mana Crystal',           price: 15,  quantity: 1, category: 'Reagents' },
-        { itemName: 'Moonstone Splinter',     price: 12,  quantity: 1, category: 'Reagents' },
-        // ─ Pip's Finds — rare things Pip "acquired" ─
-        { itemName: 'Silver Pocket Mirror',   price: 20,  quantity: 1, category: 'Pip\'s Finds', stock: 1 },
-        { itemName: 'Enchanted Candle',       price: 10,  quantity: 1, category: 'Pip\'s Finds' },
-        { itemName: 'Map Fragment',           price: 12,  quantity: 1, category: 'Pip\'s Finds', stock: 1 },
-        { itemName: 'Bottled Starlight',      price: 22,  quantity: 1, category: 'Pip\'s Finds', stock: 3 },
-        { itemName: 'Suggestive Perfume',     price: 15,  quantity: 1, category: 'Pip\'s Finds', stock: 2 },
-        { itemName: 'Luck Charm',             price: 14,  quantity: 1, category: 'Pip\'s Finds' },
+        // Materials
+        { itemName: 'Timber', price: 5, quantity: 5, category: 'Materials' },
+        { itemName: 'Stone', price: 8, quantity: 5, category: 'Materials' },
+        { itemName: 'Iron', price: 12, quantity: 3, category: 'Materials' },
+        { itemName: 'Velvet Cloth', price: 15, quantity: 2, category: 'Materials' },
+        // Supplies — existing consumables/ingredients
+        { itemName: 'Dreamcatcher Herb', price: 5, quantity: 3, category: 'Supplies' },
+        { itemName: 'Spiral Incense', price: 12, quantity: 2, category: 'Supplies' },
     ],
 };
 
@@ -520,8 +547,11 @@ const EXPLORE_WOODS_HERBS: EventDefinition = {
         },
         gather: {
             id: 'gather',
-            text: '*You carefully harvest the herbs, wrapping them in a cloth. Dreamcatcher Herb — perfect for brewing potions and burning as incense during conditioning sessions. A good haul.*',
-            effects: [{ type: 'add_item', target: 'Dreamcatcher Herb', value: 3 }],
+            text: '*You carefully harvest the herbs, wrapping them in a cloth. Dreamcatcher Herb — perfect for brewing potions and burning as incense during conditioning sessions. On the way back, you snap off several sturdy branches — good timber for the manor. A productive trip.*',
+            effects: [
+                { type: 'add_item', target: 'Dreamcatcher Herb', value: 3 },
+                { type: 'add_item', target: 'Timber', value: 4 },
+            ],
             isEnding: true,
         },
     },
@@ -588,17 +618,21 @@ const EXPLORE_WOODS_TRAIL: EventDefinition = {
         },
         deeper: {
             id: 'deeper',
-            text: '*The trail leads to a small, hidden glade. In the center sits a crumbling stone shrine, overgrown with vines. On the altar — a shimmering mana crystal, pulsing faintly with residual energy.*\n\n*You carefully extract it. The forest seems to hum with approval — or perhaps warning.*',
+            text: '*The trail leads to a small, hidden glade. In the center sits a crumbling stone shrine, overgrown with vines. On the altar — a shimmering mana crystal, pulsing faintly with residual energy.*\n\n*You carefully extract it, and gather some quality timber from the ancient trees lining the glade. The forest seems to hum with approval — or perhaps warning.*',
             effects: [
                 { type: 'add_item', target: 'Mana Crystal', value: 1 },
+                { type: 'add_item', target: 'Timber', value: 5 },
                 { type: 'modify_gold', value: 10 },
             ],
             isEnding: true,
         },
         retreat: {
             id: 'retreat',
-            text: '*Discretion being the better part of valor, you decide not to follow the unknown trail. On the way back, you spot a patch of useful herbs growing beside the path — not a wasted trip after all.*',
-            effects: [{ type: 'add_item', target: 'Dreamcatcher Herb', value: 1 }],
+            text: '*Discretion being the better part of valor, you decide not to follow the unknown trail. On the way back, you spot a patch of useful herbs growing beside the path, and collect some fallen timber — not a wasted trip after all.*',
+            effects: [
+                { type: 'add_item', target: 'Dreamcatcher Herb', value: 1 },
+                { type: 'add_item', target: 'Timber', value: 3 },
+            ],
             isEnding: true,
         },
         // ── PERMANENT quest step — Kova step 1 (wolfpack) ──
@@ -813,14 +847,20 @@ const EXPLORE_RUINS_EXCAVATE: EventDefinition = {
         },
         take_crystal: {
             id: 'take_crystal',
-            text: '*You carefully extract the mana crystal from the earth. It hums warmly in your palm, its energy still potent despite the ages it has spent buried here.*\n\n*A fine find for any practitioner of the arcane arts.*',
-            effects: [{ type: 'add_item', target: 'Mana Crystal', value: 1 }],
+            text: '*You carefully extract the mana crystal from the earth. It hums warmly in your palm, its energy still potent despite the ages it has spent buried here. You also chip away several usable blocks of stone from the surrounding rubble.*\n\n*A fine find for any practitioner of the arcane arts.*',
+            effects: [
+                { type: 'add_item', target: 'Mana Crystal', value: 1 },
+                { type: 'add_item', target: 'Stone', value: 4 },
+            ],
             isEnding: true,
         },
         take_fragment: {
             id: 'take_fragment',
-            text: '*You pry the iridescent shard free. The moment your skin touches it, a flash of alien memory surges through you — a glimpse of a ritual, an ancient name, a spiral of golden light. Then silence.*\n\n*A memory fragment. These are rare and valuable, useful for deepening a servant\'s conditioning... or restoring a captive\'s free will.*',
-            effects: [{ type: 'add_item', target: 'Memory Fragment', value: 1 }],
+            text: '*You pry the iridescent shard free. The moment your skin touches it, a flash of alien memory surges through you — a glimpse of a ritual, an ancient name, a spiral of golden light. Then silence. You also salvage some stone blocks from the excavation site.*\n\n*A memory fragment. These are rare and valuable, useful for deepening a servant\'s conditioning... or restoring a captive\'s free will.*',
+            effects: [
+                { type: 'add_item', target: 'Memory Fragment', value: 1 },
+                { type: 'add_item', target: 'Stone', value: 3 },
+            ],
             isEnding: true,
         },
         // ── PERMANENT quest step — Pervis step 2 (perimeter) ──
@@ -864,7 +904,7 @@ const EXPLORE_RUINS_INSCRIPTIONS: EventDefinition = {
         },
         insight: {
             id: 'insight',
-            text: '*You spend a considerable time absorbing the ancient knowledge. By the time you step away from the wall, the sun has shifted significantly. But you can feel the difference — a deeper well of mana, a sharper instinct for enchantment.*\n\n*Time well spent.*',
+            text: '*You spend a considerable time absorbing the ancient knowledge. By the time you step away from the wall, the sun has shifted significantly. But you can feel the difference — a deeper well of mana, a sharper instinct for enchantment.*\n\n*Among the rubble near the inscribed wall, you notice several stones still bearing intact runic script — too valuable to leave behind.*\n\n*Time well spent.*',
             onEnter: (ctx) => {
                 // Passive: studying the ruins layout grants Pervis step 3 (infiltrate)
                 // — the architectural knowledge reveals the hidden passages needed to bypass guards
@@ -876,6 +916,8 @@ const EXPLORE_RUINS_INSCRIPTIONS: EventDefinition = {
             effects: [
                 { type: 'modify_skill', target: 'wisdom', value: 1 },
                 { type: 'custom', target: 'mana', value: 20 },
+                { type: 'add_item', target: 'Rune Stones', value: 2 },
+                { type: 'add_item', target: 'Stone', value: 3 },
             ],
             isEnding: true,
         },
@@ -932,23 +974,32 @@ const EXPLORE_RUINS_DELVE: EventDefinition = {
         },
         delve_success: {
             id: 'delve_success',
-            text: '*You press through the wards, feeling them crackle against your aura like static. The lower chamber opens into a vaulted hall, remarkably well-preserved. In the center, atop a stone pedestal, rests a collection of artifacts — gold, crystals, and a finely crafted pendant.*\n\n*You fill your pockets. The ancients were generous, if involuntarily.*',
+            text: '*You press through the wards, feeling them crackle against your aura like static. The lower chamber opens into a vaulted hall, remarkably well-preserved. In the center, atop a stone pedestal, rests a collection of artifacts — gold, crystals, and a finely crafted pendant.*\n\n*The walls here are lined with polished marble slabs and iron fittings, still intact after centuries. You salvage what you can carry.*',
             effects: [
                 { type: 'modify_gold', value: 40 },
                 { type: 'add_item', target: 'Mana Crystal', value: 2 },
+                { type: 'add_item', target: 'Stone', value: 5 },
+                { type: 'add_item', target: 'Marble Slab', value: 1 },
+                { type: 'add_item', target: 'Iron', value: 2 },
             ],
             isEnding: true,
         },
         delve_fail: {
             id: 'delve_fail',
-            text: '*The wards flare as you attempt to pass, sending a painful jolt through your body. You stumble back up the stairs, singed and smarting. Whatever is down there, your current power isn\'t enough to breach the protections.*\n\n*At least you learned something about the nature of these wards.*',
-            effects: [{ type: 'modify_skill', target: 'power', value: 1 }],
+            text: '*The wards flare as you attempt to pass, sending a painful jolt through your body. You stumble back up the stairs, singed and smarting. Whatever is down there, your current power isn\'t enough to breach the protections.*\n\n*At least you salvage some usable stone from the stairwell.*',
+            effects: [
+                { type: 'modify_skill', target: 'power', value: 1 },
+                { type: 'add_item', target: 'Stone', value: 2 },
+            ],
             isEnding: true,
         },
         stay_above: {
             id: 'stay_above',
-            text: '*Wisdom dictates caution. You explore the upper levels instead, finding a small cache of coins that some previous explorer overlooked. Not the motherload, but you\'ll live to delve another day.*',
-            effects: [{ type: 'modify_gold', value: 15 }],
+            text: '*Wisdom dictates caution. You explore the upper levels instead, finding a small cache of coins that some previous explorer overlooked. You also quarry several blocks of usable stone from the crumbling walls. Not the motherload, but you\'ll live to delve another day.*',
+            effects: [
+                { type: 'modify_gold', value: 15 },
+                { type: 'add_item', target: 'Stone', value: 4 },
+            ],
             isEnding: true,
         },
         // ── PERMANENT quest step — Pervis step 4 (sabotage) ──
@@ -974,30 +1025,15 @@ const VESPER_SHOP: EventShopPhase = {
     shopName: "Vesper's Curiosities",
     shopkeeperName: 'Madame Vesper',
     shopkeeperGreeting: '"Every item here has a story, dear. The question is — which story do *you* need?"',
-    categories: ['Curiosities', 'Elixirs', 'Arcane Trinkets'],
+    categories: ['Arcane Materials', 'Curiosities'],
     exitStep: 'depart',
     items: [
-        // ─ Curiosities — carnival novelties & conditioning atmospherics ─
-        { itemName: 'Fate-Woven Card',          price: 10,  quantity: 1, category: 'Curiosities' },
-        { itemName: 'Fortune Bones',             price: 14,  quantity: 1, category: 'Curiosities' },
-        { itemName: 'Stage Smoke Bomb',          price: 5,   quantity: 3, category: 'Curiosities' },
-        { itemName: 'Trance Taffy',              price: 3,   quantity: 5, category: 'Curiosities' },
-        { itemName: 'Carnival Prize Voucher',    price: 2,   quantity: 1, category: 'Curiosities' },
-        { itemName: 'Illusionist\'s Dust',       price: 8,   quantity: 2, category: 'Curiosities' },
-        // ─ Elixirs — potions, wines, and consumable mind-alterers ─
-        { itemName: 'Hypnotist\'s Honey Wine',   price: 15,  quantity: 1, category: 'Elixirs' },
-        { itemName: 'Spiral Incense',            price: 14,  quantity: 2, category: 'Elixirs' },
-        { itemName: 'Obedience Elixir',          price: 35,  quantity: 1, category: 'Elixirs', stock: 2 },
-        { itemName: 'Sweetness Tonic',           price: 18,  quantity: 1, category: 'Elixirs' },
-        { itemName: 'Binding Tincture',          price: 20,  quantity: 1, category: 'Elixirs' },
-        { itemName: 'Whispering Vial',           price: 28,  quantity: 1, category: 'Elixirs', stock: 1 },
-        // ─ Arcane Trinkets — equipment & rare conditioning tools ─
-        { itemName: 'Mind-Fog Candle',           price: 22,  quantity: 1, category: 'Arcane Trinkets', stock: 3 },
-        { itemName: 'Mesmerist\'s Pendulum',     price: 30,  quantity: 1, category: 'Arcane Trinkets', stock: 2 },
-        { itemName: 'Crystal Ball Shard',        price: 18,  quantity: 1, category: 'Arcane Trinkets' },
-        { itemName: 'Enchanted Masquerade Mask', price: 60,  quantity: 1, category: 'Arcane Trinkets', stock: 1 },
-        { itemName: 'Ringmaster\'s Baton',       price: 75,  quantity: 1, category: 'Arcane Trinkets', stock: 1 },
-        { itemName: 'Silken Blindfold',          price: 16,  quantity: 1, category: 'Arcane Trinkets' },
+        // Arcane Materials — rare construction materials
+        { itemName: 'Rune Stones', price: 30, quantity: 1, stock: 3, category: 'Arcane Materials' },
+        { itemName: 'Marble Slab', price: 40, quantity: 1, stock: 2, category: 'Arcane Materials' },
+        // Curiosities — existing consumables/ingredients
+        { itemName: 'Mana Crystal', price: 20, quantity: 1, category: 'Curiosities' },
+        { itemName: 'Obedience Elixir', price: 35, quantity: 1, stock: 2, category: 'Curiosities' },
     ],
 };
 
@@ -1122,6 +1158,410 @@ const EXPLORE_CIRCUS_BACKSTAGE: EventDefinition = {
     },
 };
 
+// ══════════════════════════════════════════
+// NEW TOWN EVENTS
+// ══════════════════════════════════════════
+
+const EXPLORE_TOWN_ALCHEMIST: EventDefinition = {
+    id: 'explore_town_alchemist',
+    name: 'The Alchemist\'s Shop',
+    description: 'A cramped shop filled with bubbling flasks and dried herbs.',
+    icon: 'flask-conical',
+    category: 'exploration',
+    startStep: 'entrance',
+    steps: {
+        entrance: {
+            id: 'entrance',
+            text: '*You push open a heavy wooden door into a dimly lit shop. The air is thick with competing scents — lavender, sulfur, and something sweet you can\'t quite place. Shelves line every wall from floor to ceiling, crammed with bottles, jars, and dried bundles.*\n\n*Behind the counter, a thin fox with half-moon spectacles peers at you over a mortar and pestle.*\n\n"Ah, a customer. You look like someone who knows the difference between a decoction and a tincture. Browse at your leisure — but don\'t touch the green bottles on the third shelf. Those are... temperamental."',
+            choices: [
+                {
+                    id: 'browse',
+                    label: 'Browse the Wares',
+                    tooltip: 'See what ingredients are for sale.',
+                    nextStep: 'shop',
+                },
+                {
+                    id: 'ask_advice',
+                    label: 'Ask for Brewing Advice',
+                    tooltip: 'The alchemist might share some wisdom.',
+                    nextStep: 'advice',
+                },
+            ],
+        },
+        shop: {
+            id: 'shop',
+            text: '*The alchemist gestures broadly at the shelves.* "Take your time. Everything\'s labeled — mostly."',
+            shopPhase: {
+                shopName: "The Alchemist's Shop",
+                shopkeeperName: 'The Alchemist',
+                shopkeeperGreeting: '"Need something specific, or just browsing? I\'ve got fresh stock from the woods this morning."',
+                categories: ['Ingredients', 'Bases', 'Rare'],
+                exitStep: 'depart',
+                items: [
+                    { itemName: 'Dreamcatcher Herb', price: 6, quantity: 5, category: 'Ingredients' },
+                    { itemName: 'Moonpetal Blossom', price: 5, quantity: 5, category: 'Ingredients' },
+                    { itemName: 'Embervine Root', price: 10, quantity: 3, category: 'Ingredients' },
+                    { itemName: 'Marshwater Moss', price: 4, quantity: 8, category: 'Ingredients' },
+                    { itemName: 'Ironbark Ash', price: 4, quantity: 5, category: 'Ingredients' },
+                    { itemName: "Alchemist's Oil", price: 8, quantity: 5, category: 'Bases' },
+                    { itemName: 'Distilled Spirit', price: 12, quantity: 3, category: 'Bases' },
+                    { itemName: 'Nightshade Extract', price: 25, quantity: 1, stock: 1, category: 'Rare' },
+                    { itemName: 'Spiritbloom', price: 30, quantity: 1, stock: 1, category: 'Rare' },
+                ],
+            },
+        },
+        advice: {
+            id: 'advice',
+            text: '*The alchemist adjusts their spectacles and regards you with interest.*\n\n"Brewing advice? Well, the fundamentals are simple enough. Every ingredient carries elemental essence — fire, earth, water, shadow, light. When you combine them, the essences blend. Match the right ratios and you get something useful. Get them wrong and you get..." *they gesture at a stain on the ceiling* "...well. You get the idea."\n\n*They lean in conspiratorially.* "If you\'re looking for something specific, pay attention to the dominant element. A potion dominated by shadow will always tend toward mind-affecting brews. Fire leans toward physical enhancement. And if you can balance two elements in equal measure..." *they trail off with a knowing smile* "That\'s where the interesting recipes hide."',
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        depart: {
+            id: 'depart',
+            text: '*You thank the alchemist and step back into the street, your pack heavier with new supplies.*\n\n"Come back anytime. And remember — never brew on an empty stomach."',
+            isEnding: true,
+        },
+    },
+};
+
+const EXPLORE_TOWN_NOTICE_BOARD: EventDefinition = {
+    id: 'explore_town_notice_board',
+    name: 'Town Notice Board',
+    description: 'A weathered board covered in postings and notices.',
+    icon: 'scroll',
+    category: 'exploration',
+    startStep: 'approach',
+    steps: {
+        approach: {
+            id: 'approach',
+            text: '*The town notice board stands at the crossroads, layered thick with postings — bounty notices, job listings, missing persons, and the occasional poorly-spelled love letter nailed up as a prank. You scan the notices for anything useful.*',
+            choices: [
+                {
+                    id: 'bounty',
+                    label: 'Read the Bounty Notices',
+                    tooltip: 'Someone might be offering gold for services rendered.',
+                    nextStep: 'bounty',
+                },
+                {
+                    id: 'rumors',
+                    label: 'Look for Rumors',
+                    tooltip: 'Local gossip sometimes hides useful information.',
+                    nextStep: 'rumors',
+                },
+                {
+                    id: 'leave',
+                    label: 'Move On',
+                    tooltip: 'Nothing catches your eye.',
+                    nextStep: 'leave',
+                },
+            ],
+        },
+        bounty: {
+            id: 'bounty',
+            text: '*One notice catches your attention — a request for rare herbs, posted by a local apothecary. The reward is generous.*\n\n"WANTED: Dreamcatcher Herb and Moonpetal Blossom in quantity. Will pay 30 gold for a bundle of each. Inquire at the apothecary."\n\n*You pocket the notice. Something to remember next time you\'re foraging.*',
+            effects: [
+                { type: 'modify_gold', value: 30 },
+            ],
+            isEnding: true,
+        },
+        rumors: {
+            id: 'rumors',
+            text: '*You piece together fragments of gossip from the various postings. A trader reports strange lights in the ruins at night. A farmer claims to have seen a massive wolf near the woods — bigger than any natural beast. And tucked behind a "LOST CAT" poster, someone has scrawled a cryptic note:*\n\n*"The circus fortune teller knows more than she lets on. Ask about the cards, not the crystal ball."*\n\n*Interesting. You file these tidbits away.*',
+            effects: [{ type: 'modify_skill', target: 'wisdom', value: 1 }],
+            isEnding: true,
+        },
+        leave: {
+            id: 'leave',
+            text: '*Nothing particularly useful today. You turn away from the board and continue on your way.*',
+            isEnding: true,
+        },
+    },
+};
+
+// ══════════════════════════════════════════
+// NEW RUINS EVENTS
+// ══════════════════════════════════════════
+
+const EXPLORE_RUINS_RITUAL_SITE: EventDefinition = {
+    id: 'explore_ruins_ritual_site',
+    name: 'Ancient Ritual Site',
+    description: 'A circle of standing stones thrums with residual magical energy.',
+    icon: 'sparkles',
+    category: 'exploration',
+    startStep: 'approach',
+    steps: {
+        approach: {
+            id: 'approach',
+            text: '*Beyond the main ruins, half-hidden by overgrown brambles, you find a ring of standing stones. Each monolith is taller than you and carved with spiraling symbols that seem to shift when you look at them from the corner of your eye.*\n\n*The air here is different — charged, electric. You can feel mana pulsing through the earth beneath your feet. This was a place of great power, once.*',
+            choices: [
+                {
+                    id: 'meditate',
+                    label: 'Meditate at the Circle',
+                    tooltip: 'Attune yourself to the residual energy.',
+                    nextStep: 'meditate',
+                    skillCheck: {
+                        skill: 'wisdom',
+                        difficulty: 55,
+                        successStep: 'meditate_success',
+                        failureStep: 'meditate_fail',
+                    },
+                },
+                {
+                    id: 'harvest',
+                    label: 'Harvest the Crystals',
+                    tooltip: 'Pry loose the crystals embedded in the stones.',
+                    nextStep: 'harvest',
+                },
+                {
+                    id: 'leave',
+                    label: 'Leave It Be',
+                    tooltip: 'Some things are better left undisturbed.',
+                    nextStep: 'leave',
+                },
+            ],
+        },
+        meditate_success: {
+            id: 'meditate_success',
+            text: '*You settle into the center of the circle and close your eyes. The mana flows into you like water filling a vessel — steady, warm, and deep. Ancient knowledge brushes against your consciousness: fragments of rituals, ward-patterns, binding techniques from a civilization that mastered the art of subjugation.*\n\n*When you open your eyes, the sun has moved considerably. But you feel profoundly enriched.*',
+            effects: [
+                { type: 'custom', target: 'mana', value: 35 },
+                { type: 'modify_skill', target: 'wisdom', value: 2 },
+            ],
+            isEnding: true,
+        },
+        meditate_fail: {
+            id: 'meditate_fail',
+            text: '*You attempt to attune to the circle, but the energy is overwhelming — chaotic, fragmented. A pulse of raw mana knocks you backwards, and you land in the dirt with ringing ears.*\n\n*Not a total loss — you absorbed some energy in the process — but the deeper knowledge remains locked away.*',
+            effects: [
+                { type: 'custom', target: 'mana', value: 10 },
+            ],
+            isEnding: true,
+        },
+        harvest: {
+            id: 'harvest',
+            text: '*You carefully extract several crystals from the base of the standing stones. They pulse with contained energy — perfect for ward construction or enchanting. The stones themselves seem unbothered by the removal, their carvings continuing to shimmer.*',
+            effects: [
+                { type: 'add_item', target: 'Ward Crystals', value: 2 },
+                { type: 'add_item', target: 'Rune Stones', value: 1 },
+            ],
+            isEnding: true,
+        },
+        leave: {
+            id: 'leave',
+            text: '*You back away from the circle, leaving its power undisturbed. Perhaps another day, when you are better prepared.*',
+            isEnding: true,
+        },
+    },
+};
+
+const EXPLORE_RUINS_SEALED_VAULT: EventDefinition = {
+    id: 'explore_ruins_sealed_vault',
+    name: 'The Sealed Vault',
+    description: 'A heavy door covered in protective wards blocks the way forward.',
+    icon: 'lock',
+    category: 'exploration',
+    startStep: 'door',
+    steps: {
+        door: {
+            id: 'door',
+            text: '*Deep within the ruins, behind a collapsed corridor you barely squeezed through, stands an imposing stone door. Wards glow across its surface in overlapping layers — whoever sealed this vault intended it to stay sealed.*\n\n*But wards are just magic, and magic can be undone.*',
+            choices: [
+                {
+                    id: 'dispel',
+                    label: 'Attempt to Dispel the Wards',
+                    tooltip: 'Use your power to break through. Risky.',
+                    nextStep: 'dispel',
+                    skillCheck: {
+                        skill: 'power',
+                        difficulty: 70,
+                        successStep: 'vault_open',
+                        failureStep: 'ward_backlash',
+                    },
+                },
+                {
+                    id: 'key',
+                    label: 'Use a Skeleton Key',
+                    tooltip: 'The ancient lock might respond to the right key.',
+                    nextStep: 'vault_open',
+                    requiresItem: 'Skeleton Key',
+                    consumeItem: 'Skeleton Key',
+                },
+                {
+                    id: 'retreat',
+                    label: 'Retreat',
+                    tooltip: 'You\'re not ready for this yet.',
+                    nextStep: 'retreat',
+                },
+            ],
+        },
+        vault_open: {
+            id: 'vault_open',
+            text: '*The wards flicker and die, one by one, and the stone door grinds open with a deep rumble. Beyond lies a small chamber, untouched for centuries. Dust motes swirl in the light from your mana-glow.*\n\n*The vault contains a cache of materials and relics — marble slabs stacked neatly, a rack of preserved ward crystals, and in the center, on a stone pedestal, a memory fragment that pulses with someone else\'s consciousness.*',
+            effects: [
+                { type: 'add_item', target: 'Marble Slab', value: 3 },
+                { type: 'add_item', target: 'Ward Crystals', value: 2 },
+                { type: 'add_item', target: 'Memory Fragment', value: 1 },
+                { type: 'modify_gold', value: 50 },
+            ],
+            isEnding: true,
+        },
+        ward_backlash: {
+            id: 'ward_backlash',
+            text: '*You channel your power into the wards, but they resist — fiercely. A surge of energy lashes back at you, draining your mana and leaving you staggering. The wards flare brighter than before, as if mocking your attempt.*\n\n*You manage to grab a few loose stones from the corridor on your way out. Small consolation.*',
+            effects: [
+                { type: 'custom', target: 'mana', value: -20 },
+                { type: 'add_item', target: 'Stone', value: 3 },
+            ],
+            isEnding: true,
+        },
+        retreat: {
+            id: 'retreat',
+            text: '*You study the wards carefully, memorizing their patterns for future reference. This vault will still be here when you\'re stronger.*',
+            isEnding: true,
+        },
+    },
+};
+
+// ══════════════════════════════════════════
+// NEW CIRCUS EVENTS
+// ══════════════════════════════════════════
+
+const EXPLORE_CIRCUS_FORTUNE_TELLER: EventDefinition = {
+    id: 'explore_circus_fortune_teller',
+    name: 'Madame Vesper\'s Tent',
+    description: 'A mysterious seer offers glimpses of the future.',
+    icon: 'eye',
+    category: 'exploration',
+    startStep: 'tent',
+    steps: {
+        tent: {
+            id: 'tent',
+            text: '*A purple tent stands apart from the rest, draped in star-patterned fabric. A sign reads: "Madame Vesper — Fortunes Told, Fates Revealed, No Refunds." Inside, the air is heavy with incense smoke. A raven-feathered woman sits behind a low table covered in tarot cards.*\n\n*She looks up with knowing eyes.* "I\'ve been expecting you. Sit. The cards have something to say."',
+            choices: [
+                {
+                    id: 'reading',
+                    label: 'Accept a Reading (15 gold)',
+                    tooltip: 'Let her read your fortune.',
+                    nextStep: 'reading',
+                    effects: [{ type: 'modify_gold', value: -15 }],
+                },
+                {
+                    id: 'ask_cards',
+                    label: 'Ask About the Cards',
+                    tooltip: 'Something about the cards themselves seems unusual.',
+                    nextStep: 'cards',
+                },
+                {
+                    id: 'decline',
+                    label: 'Politely Decline',
+                    tooltip: 'You don\'t trust fortune tellers.',
+                    nextStep: 'decline',
+                },
+            ],
+        },
+        reading: {
+            id: 'reading',
+            text: '*Vesper lays three cards face-down, then turns them one by one.*\n\n*The first card shows a tower struck by lightning — change, upheaval.* "Something in your household will shift soon. Be ready."\n\n*The second card depicts a figure holding chains — control, dominion.* "Your methods are... effective. But the stronger the chain, the more brittle the link. Temper strength with understanding."\n\n*The third card is blank.* "Interesting. The future is unwritten here. That means you still have a choice that matters."\n\n*She sweeps the cards away.* "That will be fifteen gold. And here — take this. You may find it useful."',
+            effects: [
+                { type: 'add_item', target: 'Spiritbloom', value: 1 },
+                { type: 'modify_skill', target: 'wisdom', value: 1 },
+            ],
+            isEnding: true,
+        },
+        cards: {
+            id: 'cards',
+            text: '*You look more closely at the deck. The cards are beautiful — hand-painted on thin slices of bone rather than paper. The illustrations seem to move in the candlelight.*\n\n*Vesper notices your interest.* "These cards were made by the same civilization that built those ruins north of here. They\'re not fortune-telling tools — they\'re focusing instruments for attunement magic. Each card is a binding pattern."\n\n*She taps the deck.* "I use them for readings, yes. But a clever witch could use them for... other purposes."*\n\n*She offers you a card from the deck — a spiraling pattern that makes your eyes water if you look at it too long.*',
+            effects: [
+                { type: 'add_item', target: 'Spiral Incense', value: 2 },
+                { type: 'modify_skill', target: 'charm', value: 1 },
+            ],
+            isEnding: true,
+        },
+        decline: {
+            id: 'decline',
+            text: '*Vesper shrugs.* "Your loss. The future comes whether you look at it or not."\n\n*As you leave, she calls after you:* "Come back when you\'re ready to listen. I have things to tell you about the one with the shield." *You pause — does she mean one of the heroes?*\n\n*Something to consider.*',
+            isEnding: true,
+        },
+    },
+};
+
+const EXPLORE_CIRCUS_MENAGERIE: EventDefinition = {
+    id: 'explore_circus_menagerie',
+    name: 'The Menagerie',
+    description: 'Exotic creatures are kept in ornate cages behind the big top.',
+    icon: 'bug',
+    category: 'exploration',
+    startStep: 'cages',
+    steps: {
+        cages: {
+            id: 'cages',
+            text: '*Behind the main tent, a row of elaborately decorated cages holds an assortment of creatures — a phoenix chick that flickers between existence and flame, a crystalline spider spinning prismatic webs, and something in a covered cage that growls deeply when you approach.*\n\n*A bored-looking handler sits nearby, whittling.* "Look but don\'t touch. Last person who touched the spider woke up three days later with no memory of their childhood."',
+            choices: [
+                {
+                    id: 'phoenix',
+                    label: 'Study the Phoenix Chick',
+                    tooltip: 'Its flames might hold alchemical value.',
+                    nextStep: 'phoenix',
+                },
+                {
+                    id: 'spider',
+                    label: 'Examine the Crystal Spider',
+                    tooltip: 'Those webs look like they could be useful.',
+                    nextStep: 'spider',
+                    skillCheck: {
+                        skill: 'charm',
+                        difficulty: 50,
+                        successStep: 'spider_success',
+                        failureStep: 'spider_fail',
+                    },
+                },
+                {
+                    id: 'covered',
+                    label: 'Peek Under the Cover',
+                    tooltip: 'What\'s in the covered cage?',
+                    nextStep: 'covered',
+                },
+            ],
+        },
+        phoenix: {
+            id: 'phoenix',
+            text: '*You crouch beside the phoenix chick\'s cage, studying the way its flames cycle through colors. Fascinating — the fire follows the same elemental spectrum as brewing ingredients. Fire and light, intertwined.*\n\n*As you watch, a few loose feathers drift through the bars. They\'re warm to the touch and shimmer with inner fire — genuine embervine-quality reagents, shed naturally.*',
+            effects: [
+                { type: 'add_item', target: 'Embervine Root', value: 2 },
+                { type: 'add_item', target: 'Sunstone Shard', value: 1 },
+            ],
+            isEnding: true,
+        },
+        spider_success: {
+            id: 'spider_success',
+            text: '*You approach the spider carefully, extending a tendril of calming magic. The crystalline arachnid pauses its weaving and regards you with faceted eyes — then, seemingly satisfied, returns to its work.*\n\n*You carefully harvest a section of its discarded web. The strands are like spun glass, suffused with both shadow and light essence. A rare ingredient.*\n\n*The handler looks impressed.* "Huh. Usually it tries to erase people."',
+            effects: [
+                { type: 'add_item', target: 'Spiritbloom', value: 1 },
+                { type: 'add_item', target: 'Obsidian Dust', value: 2 },
+            ],
+            isEnding: true,
+        },
+        spider_fail: {
+            id: 'spider_fail',
+            text: '*You reach toward the web and the spider\'s eyes flash. A pulse of prismatic energy hits you — your vision whites out for a moment, and when it clears, you\'ve stumbled back several paces with a splitting headache.*\n\n*The handler chuckles.* "Told you not to touch. Here, take this for the headache." *They toss you a small vial.*',
+            effects: [
+                { type: 'add_item', target: 'Moonpetal Blossom', value: 2 },
+            ],
+            isEnding: true,
+        },
+        covered: {
+            id: 'covered',
+            text: '*You lift the corner of the heavy cloth. Two enormous golden eyes stare back at you from the darkness — slitted, intelligent, and distinctly unimpressed. The creature is some kind of shadow-cat, its fur seeming to absorb the light around it.*\n\n*It rumbles deep in its chest — not quite a growl, more of a purr — and pushes something through the bars with one massive paw. A cluster of dark crystals, shed from its claws.*\n\n*The handler looks up sharply.* "It likes you. That\'s never happened before. Usually it just tries to eat people\'s shadows."',
+            effects: [
+                { type: 'add_item', target: 'Nightshade Extract', value: 1 },
+                { type: 'add_item', target: 'Mana Crystal', value: 1 },
+                { type: 'modify_skill', target: 'charm', value: 1 },
+            ],
+            isEnding: true,
+        },
+    },
+};
+
 // ── All Explore Events (exported as an array for easy registration) ──
 
 // Import the capture event
@@ -1132,6 +1572,8 @@ export const EXPLORE_EVENTS: EventDefinition[] = [
     EXPLORE_TOWN_MARKET,
     EXPLORE_TOWN_STREETS,
     EXPLORE_TOWN_TAVERN,
+    EXPLORE_TOWN_ALCHEMIST,
+    EXPLORE_TOWN_NOTICE_BOARD,
     // Woods
     EXPLORE_WOODS_HERBS,
     EXPLORE_WOODS_TRAIL,
@@ -1141,8 +1583,12 @@ export const EXPLORE_EVENTS: EventDefinition[] = [
     EXPLORE_RUINS_EXCAVATE,
     EXPLORE_RUINS_INSCRIPTIONS,
     EXPLORE_RUINS_DELVE,
+    EXPLORE_RUINS_RITUAL_SITE,
+    EXPLORE_RUINS_SEALED_VAULT,
     // Circus
     EXPLORE_CIRCUS_SHOW,
     EXPLORE_CIRCUS_STALLS,
     EXPLORE_CIRCUS_BACKSTAGE,
+    EXPLORE_CIRCUS_FORTUNE_TELLER,
+    EXPLORE_CIRCUS_MENAGERIE,
 ];

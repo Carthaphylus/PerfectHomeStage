@@ -33,6 +33,8 @@ import {
     // Items
     ItemRarity, ItemType, ItemDefinition, InventoryItem,
     ITEM_REGISTRY, getItemDefinition, getRarityColor,
+    // Brewing
+    BaseLiquid, BrewResult, resolveBrew, BASE_LIQUID_ITEM_MAP,
     // Conversion
     ConversionArchetype, CONVERSION_ARCHETYPES, getConversionArchetype,
     // Conditioning
@@ -56,6 +58,12 @@ import {
     GeneratedNPC, EXPLORE_WOODS_CAPTURE,
     // Quests
     ALL_HERO_QUESTS, buildQuestEvents,
+    // Daily Events
+    DailyEventResult, rollDailyEvents, DailyEventContext,
+    // Relationships
+    tickDailyRelationships, initializeRelationships,
+    // Reputation
+    REPUTATION_CHANGES, applyReputationChange,
 } from './data';
 
 
@@ -75,6 +83,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private _activeScene: SceneData | null = null;
     private _sceneMessages: SceneMessage[] = [];
     private _sceneIdCounter: number = 0;
+
+    // Daily event cooldown tracking (ephemeral — resets on page reload, which is fine)
+    private _dailyEventCooldowns: Record<string, number> = {};
 
     // Pending NPC async generation results
     private _pendingNPCPortraits: Record<string, string> = {};
@@ -142,11 +153,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     obedience: 5,
                 },
                 gold: 100,
+                soulFragments: 0,
                 mana: 100,
                 maxMana: 100,
                 servants: 0,
                 maxServants: 10,
                 day: 1,
+                reputation: 30,
             },
             location: 'Manor',
             playerCharacter: {
@@ -251,18 +264,18 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             inventory: {
                 'Arcane Visor': { name: 'Arcane Visor', quantity: 1, type: 'equipment' },
                 'Hypnotic Pendant': { name: 'Hypnotic Pendant', quantity: 1, type: 'equipment' },
-                'Gold Coin': { name: 'Gold Coin', quantity: 250, type: 'currency' },
-                'Mana Crystal': { name: 'Mana Crystal', quantity: 8, type: 'material' },
+                'Mana Crystal': { name: 'Mana Crystal', quantity: 8, type: 'ingredient' },
                 'Spiral Incense': { name: 'Spiral Incense', quantity: 5, type: 'consumable' },
                 'Obedience Elixir': { name: 'Obedience Elixir', quantity: 2, type: 'consumable' },
                 'Servant Collar': { name: 'Servant Collar', quantity: 2, type: 'equipment' },
-                'Enchanted Shackles': { name: 'Enchanted Shackles', quantity: 3, type: 'key' },
-                'Dreamcatcher Herb': { name: 'Dreamcatcher Herb', quantity: 12, type: 'material' },
+                'Enchanted Shackles': { name: 'Enchanted Shackles', quantity: 3, type: 'equipment' },
+                'Dreamcatcher Herb': { name: 'Dreamcatcher Herb', quantity: 12, type: 'ingredient' },
             },
             manorUpgrades: {},
             completedEvents: [],
             activeQuests: [],
             completedQuests: [],
+            discoveredRecipes: [],
         };
     }
 
@@ -294,6 +307,18 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             if (this.currentState.stats.mana === undefined) {
                 this.currentState.stats.mana = 100;
                 this.currentState.stats.maxMana = 100;
+            }
+            // Backward compat: ensure soulFragments exists
+            if (this.currentState.stats.soulFragments === undefined) {
+                this.currentState.stats.soulFragments = 0;
+            }
+            // Backward compat: ensure reputation exists
+            if (this.currentState.stats.reputation === undefined) {
+                this.currentState.stats.reputation = 30;
+            }
+            // Backward compat: ensure discoveredRecipes exists
+            if (!this.currentState.discoveredRecipes) {
+                this.currentState.discoveredRecipes = [];
             }
             // Patch heroes missing bio fields
             for (const hero of Object.values(this.currentState.heroes)) {
@@ -887,6 +912,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         this.currentState.stats.household.obedience += scaledAmount;
                     }
                     break;
+                case 'soul_fragments':
+                    this.currentState.stats.soulFragments += scaledAmount;
+                    break;
             }
 
             earnedRewards.push(earnedReward);
@@ -1024,6 +1052,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     case 'stat':
                         changes.push({ icon: 'trending-up', label: r.stat || 'Stat', detail: r.narrative || `+${r.amount}`, delta: r.amount, category: 'stat', color: '#c8aa6e' });
                         break;
+                    case 'soul_fragments':
+                        changes.push({ icon: 'flame', label: 'Soul Fragments', detail: r.narrative || `+${r.amount} soul fragments`, delta: r.amount, category: 'soul_fragments', color: '#d46a6a' });
+                        break;
                 }
             }
         }
@@ -1072,10 +1103,39 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             }
         }
 
-        // ── 3. Advance the day ──
+        // ── 3. Roll daily events ──
+        const capturedHeroCount = Object.values(this.currentState.heroes)
+            .filter(h => h.status === 'captured' || h.status === 'converting').length;
+        const dailyCtx: DailyEventContext = {
+            day: st.day,
+            stats: st,
+            servants: this.currentState.servants,
+            inventory: this.currentState.inventory,
+            servantCount: Object.keys(this.currentState.servants).length,
+            capturedHeroCount,
+            lastFired: this._dailyEventCooldowns,
+        };
+        const dailyEvents = rollDailyEvents(dailyCtx);
+        for (const ev of dailyEvents) {
+            changes.push(...ev.effects);
+            console.log(`[DailyEvent] ${ev.name}: ${ev.description}`);
+        }
+
+        // ── 3b. Daily reputation decay ──
+        if (st.reputation > 0) {
+            st.reputation = applyReputationChange(st.reputation, REPUTATION_CHANGES.dailyDecay);
+        }
+
+        // ── 3c. Tick servant relationships ──
+        const relEvents = tickDailyRelationships(this.currentState.servants);
+        for (const re of relEvents) {
+            console.log(`[Relationships] ${re}`);
+        }
+
+        // ── 4. Advance the day ──
         st.day += 1;
 
-        // ── 4. Calculate net changes for finance header ──
+        // ── 5. Calculate net changes for finance header ──
         const goldAfter = st.gold;
         const manaAfter = st.mana;
         const comfortAfter = st.household.comfort;
@@ -1109,6 +1169,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             changes,
             servantStaminaChanges,
             taskProgressions,
+            dailyEvents,
         };
     }
 
@@ -1309,6 +1370,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             case 'gold':
                 return prereq.minValue !== undefined
                     ? st.stats.gold >= prereq.minValue
+                    : false;
+            case 'soul_fragments':
+                return prereq.minValue !== undefined
+                    ? st.stats.soulFragments >= prereq.minValue
                     : false;
             case 'quest_complete':
                 return prereq.eventId
@@ -2380,6 +2445,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     this.currentState.stats.gold = Math.max(0, this.currentState.stats.gold + (fx.value || 0));
                     break;
                 }
+                case 'modify_soul_fragments': {
+                    this.currentState.stats.soulFragments = Math.max(0, this.currentState.stats.soulFragments + (fx.value || 0));
+                    break;
+                }
                 case 'modify_skill': {
                     const skillKey = effectTarget as keyof SkillStats;
                     if (skillKey in this.currentState.stats.skills) {
@@ -2412,14 +2481,23 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 case 'set_hero_status': {
                     const hero = this.currentState.heroes[effectTarget];
                     if (hero && fx.status) {
+                        const wasNotCaptured = hero.status !== 'captured' && hero.status !== 'converting';
                         hero.status = fx.status as any;
+                        // Reputation increase when a hero is captured
+                        if (wasNotCaptured && (fx.status === 'captured' || fx.status === 'converting')) {
+                            this.currentState.stats.reputation = applyReputationChange(
+                                this.currentState.stats.reputation,
+                                REPUTATION_CHANGES.heroCaptured,
+                            );
+                            console.log(`[Reputation] Hero captured: +${REPUTATION_CHANGES.heroCaptured.delta} suspicion`);
+                        }
                     }
                     break;
                 }
                 case 'convert_to_servant': {
                     const hero = this.currentState.heroes[effectTarget];
                     if (hero) {
-                        this.currentState.servants[effectTarget] = {
+                        const newServant = {
                             name: hero.name,
                             formerClass: hero.heroClass,
                             avatar: hero.avatar,
@@ -2433,8 +2511,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                             stamina: 100,
                             maxStamina: 100,
                         };
+                        this.currentState.servants[effectTarget] = newServant;
+                        initializeRelationships(newServant, this.currentState.servants);
                         delete this.currentState.heroes[effectTarget];
                         this.currentState.stats.servants += 1;
+                        // Reputation increase for conversion
+                        this.currentState.stats.reputation = applyReputationChange(
+                            this.currentState.stats.reputation,
+                            REPUTATION_CHANGES.heroConverted,
+                        );
+                        console.log(`[Reputation] Hero converted: +${REPUTATION_CHANGES.heroConverted.delta} suspicion`);
                     }
                     break;
                 }
@@ -2456,6 +2542,61 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     hasItem(itemName: string, minQty: number = 1): boolean {
         const inv = this.currentState.inventory[itemName];
         return !!inv && inv.quantity >= minQty;
+    }
+
+    // ============================
+    // Brewing
+    // ============================
+
+    /** Attempt to brew a potion from the given ingredients and base liquid */
+    brewPotion(ingredientNames: string[], baseLiquid: BaseLiquid): BrewResult {
+        const st = this.currentState;
+
+        // Resolve the brew
+        const result = resolveBrew(ingredientNames, baseLiquid, st.discoveredRecipes);
+
+        // Consume ingredients
+        for (const consumed of result.ingredientsConsumed) {
+            const inv = st.inventory[consumed.itemName];
+            if (inv) {
+                inv.quantity -= consumed.quantity;
+                if (inv.quantity <= 0) delete st.inventory[consumed.itemName];
+            }
+        }
+
+        // Consume base liquid item (if not water)
+        const baseLiquidItem = Object.entries(BASE_LIQUID_ITEM_MAP)
+            .find(([, bl]) => bl === baseLiquid);
+        if (baseLiquidItem) {
+            const [itemName] = baseLiquidItem;
+            const inv = st.inventory[itemName];
+            if (inv) {
+                inv.quantity -= 1;
+                if (inv.quantity <= 0) delete st.inventory[itemName];
+            }
+        }
+
+        // Add result item to inventory
+        const existing = st.inventory[result.resultItemName];
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            st.inventory[result.resultItemName] = {
+                name: result.resultItemName,
+                quantity: 1,
+            };
+        }
+
+        // Track discovery
+        if (result.isNewDiscovery && result.success) {
+            // Find the recipe id from the result item
+            const item = getItemDefinition(result.resultItemName);
+            if (item.recipeId && !st.discoveredRecipes.includes(item.recipeId)) {
+                st.discoveredRecipes.push(item.recipeId);
+            }
+        }
+
+        return result;
     }
 
     // ============================
@@ -2874,6 +3015,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         if (change.delta) {
                             this.currentState.stats.mana = Math.max(0,
                                 Math.min(this.currentState.stats.maxMana, this.currentState.stats.mana + change.delta));
+                            applied.push(change);
+                        }
+                        break;
+                    }
+                    case 'soul_fragments': {
+                        if (change.delta) {
+                            this.currentState.stats.soulFragments = Math.max(0, this.currentState.stats.soulFragments + change.delta);
                             applied.push(change);
                         }
                         break;
@@ -3429,6 +3577,21 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             console.log(`[Conditioning] ${action.label}: ${action.skillCheck.skill} check rolled ${result.roll}, total ${result.total} vs DC ${action.skillCheck.difficulty} (bonus: ${bonus}) → ${success ? 'SUCCESS' : 'FAIL'}`);
         }
 
+        // Apply equipment & consumable conditioning bonuses
+        if (success && delta > 0) {
+            let equipBonus = 0;
+            for (const inv of Object.values(this.currentState.inventory)) {
+                const def = getItemDefinition(inv.name);
+                if (def.type === 'equipment' && def.conditioningBonus && inv.quantity > 0) {
+                    equipBonus += def.conditioningBonus;
+                }
+            }
+            if (equipBonus > 0) {
+                delta += equipBonus;
+                console.log(`[Conditioning] Equipment bonus: +${equipBonus} (total delta: ${delta})`);
+            }
+        }
+
         // Apply brainwashing delta
         hero.brainwashing = Math.max(0, Math.min(100, hero.brainwashing + delta));
         if (hero.brainwashing > 0 && hero.status === 'captured') {
@@ -3884,6 +4047,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             ? JSON.parse(JSON.stringify(save.activeQuests))
             : [];
         this.currentState.completedQuests = save.completedQuests || [];
+
+        // Discovered recipes (v3+)
+        this.currentState.discoveredRecipes = save.discoveredRecipes || [];
+
+        // Backward compat: ensure soulFragments exists (added in v3)
+        if (this.currentState.stats.soulFragments === undefined) {
+            this.currentState.stats.soulFragments = 0;
+        }
     }
 
     /** Build a save name from current state */
@@ -3946,6 +4117,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 completedEvents: [...st.completedEvents],
                 activeQuests: JSON.parse(JSON.stringify(st.activeQuests)),
                 completedQuests: [...st.completedQuests],
+                discoveredRecipes: [...(st.discoveredRecipes || [])],
             };
 
             localStorage.setItem(key, JSON.stringify(saveFile));

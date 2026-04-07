@@ -7,6 +7,24 @@
     <link rel="icon" href="data:;base64,=">
   </head>
   <body>
+    <!-- SVG filters for game UI textures -->
+    <svg style="position:absolute;width:0;height:0" aria-hidden="true">
+      <!-- Coarse stone/wall texture -->
+      <filter id="noise-coarse">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise"/>
+      </filter>
+      <!-- Fine grain texture (for parchment/paper feel) -->
+      <filter id="noise-fine">
+        <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="3" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise"/>
+      </filter>
+      <!-- Medium texture for panels -->
+      <filter id="noise-medium">
+        <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise"/>
+      </filter>
+    </svg>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

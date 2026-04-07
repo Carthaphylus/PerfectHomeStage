@@ -40,6 +40,11 @@
     &.quest-completed-title {
       color: var(--text-muted);
     }
+
+    &.quest-locked-title {
+      color: rgba(150, 120, 180, 0.7);
+      border-bottom-color: rgba(150, 120, 180, 0.1);
+    }
   }
 
   .quest-list {
@@ -71,6 +76,19 @@
       border-color: rgba(90, 170, 90, 0.15);
       background: linear-gradient(180deg, rgba(30, 40, 32, 0.7) 0%, rgba(22, 30, 24, 0.7) 100%);
       opacity: 0.75;
+    }
+
+    &.quest-locked {
+      border-color: rgba(120, 100, 150, 0.2);
+      background: linear-gradient(180deg, rgba(28, 22, 38, 0.85) 0%, rgba(20, 16, 30, 0.85) 100%);
+      opacity: 0.7;
+
+      .quest-name { color: var(--text-secondary); }
+      .quest-lock-icon { color: rgba(150, 120, 180, 0.6); }
+
+      .quest-hero-avatar--locked {
+        filter: grayscale(80%) brightness(0.6);
+      }
     }
 
     .quest-card-header {
@@ -301,6 +319,43 @@
       gap: 6px;
       font-size: 9px;
       color: var(--text-muted);
+    }
+
+    .quest-prerequisites {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      border: 1px dashed rgba(150, 120, 180, 0.2);
+
+      .quest-prereq-label {
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(150, 120, 180, 0.7);
+        font-weight: bold;
+      }
+
+      .quest-prereq-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .quest-prereq-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 9px;
+        color: var(--text-muted);
+
+        svg { color: rgba(150, 120, 180, 0.5); flex-shrink: 0; }
+      }
     }
   }
 

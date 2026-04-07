@@ -51,6 +51,24 @@ import {
     // Quest icons
     Flag,
 } from 'lucide-react';
+import {
+    LogIcon, RockIcon, IngotIcon, FabricIcon,
+    MarbleCubeIcon, RuneStoneIcon, CrystalIcon,
+    HypnoticPendantIcon, ArcaneVisorIcon, ServantCollarIcon,
+    EnchantedShacklesIcon, BindingCordIcon, ObedienceElixirIcon,
+    SpiralIncenseIcon, DreamcatcherHerbIcon, ManaCrystalIcon,
+    MemoryShardIcon,
+    // Brewing ingredients
+    MoonpetalIcon, EmbervineIcon, ObsidianDustIcon, SunstoneIcon,
+    MarshwaterMossIcon, NightshadeIcon, SpiritbloomIcon, IronbarkAshIcon,
+    // Brewing potions/results
+    CalmingDraughtIcon, FortifyingTonicIcon, BlazebrightSerumIcon,
+    ClarityPhilterIcon, BindingSalveIcon, MindmistIncenseIcon, VitalityBalmIcon,
+    // Failure items
+    MurkySludgeIcon, FoulPasteIcon, UnstableTinctureIcon, AcridSmokeIcon,
+    // Base liquids
+    OilFlaskIcon, SpiritBottleIcon,
+} from './CustomIcons';
 
 /** Master icon map: string key → lucide component */
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; className?: string; color?: string }>> = {
@@ -272,6 +290,50 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
 
     // ── Event Display ──
     chart: BarChart2,
+
+    // ── Custom Game Icons ──
+    'item-log': LogIcon,
+    'item-rock': RockIcon,
+    'item-ingot': IngotIcon,
+    'item-fabric': FabricIcon,
+    'item-marble': MarbleCubeIcon,
+    'item-rune': RuneStoneIcon,
+    'item-crystal': CrystalIcon,
+    'pendant-spiral': HypnoticPendantIcon,
+    'visor-eye': ArcaneVisorIcon,
+    'collar-lock': ServantCollarIcon,
+    'shackles-chain': EnchantedShacklesIcon,
+    'binding-cord': BindingCordIcon,
+    'potion-obedience': ObedienceElixirIcon,
+    'incense-spiral': SpiralIncenseIcon,
+    'herb-dream': DreamcatcherHerbIcon,
+    'crystal-mana': ManaCrystalIcon,
+    'memory-shard': MemoryShardIcon,
+    // Brewing ingredients
+    'ing-moonpetal': MoonpetalIcon,
+    'ing-embervine': EmbervineIcon,
+    'ing-obsidian': ObsidianDustIcon,
+    'ing-sunstone': SunstoneIcon,
+    'ing-marshmoss': MarshwaterMossIcon,
+    'ing-nightshade': NightshadeIcon,
+    'ing-spiritbloom': SpiritbloomIcon,
+    'ing-ironbark': IronbarkAshIcon,
+    // Brewing results
+    'potion-calming': CalmingDraughtIcon,
+    'potion-fortify': FortifyingTonicIcon,
+    'potion-blaze': BlazebrightSerumIcon,
+    'potion-clarity': ClarityPhilterIcon,
+    'salve-binding': BindingSalveIcon,
+    'incense-mindmist': MindmistIncenseIcon,
+    'balm-vitality': VitalityBalmIcon,
+    // Failure items
+    'brew-sludge': MurkySludgeIcon,
+    'brew-paste': FoulPasteIcon,
+    'brew-unstable': UnstableTinctureIcon,
+    'brew-acrid': AcridSmokeIcon,
+    // Base liquids
+    'base-oil': OilFlaskIcon,
+    'base-spirit': SpiritBottleIcon,
 };
 
 export interface GameIconProps {
@@ -340,13 +402,15 @@ const COMPOSITE_ICONS: Record<string, CompositeIconDef> = {
     'potion-charm':      { base: 'flask-round', overlay: 'smile',     pos: 'tr', scale: 0.4, overlayColor: '#f0c0d0' },
 
     // Manor materials
-    'mat-stone':         { base: 'brick-wall',  overlay: 'box',       pos: 'br', scale: 0.35 },
+    'mat-stone':         { base: 'mountain',    overlay: 'hammer',    pos: 'br', scale: 0.4 },
     'mat-wood':          { base: 'tree-pine',   overlay: 'axe',       pos: 'br', scale: 0.4 },
-    'mat-iron':          { base: 'anvil',       overlay: 'columns',   pos: 'tr', scale: 0.35 },
-    'mat-marble':        { base: 'landmark',    overlay: 'sparkle',   pos: 'tr', scale: 0.35, overlayColor: '#e0e0f0' },
+    'mat-iron':          { base: 'rectangle',   overlay: 'flame',     pos: 'tr', scale: 0.4, overlayColor: '#f08040' },
+    'mat-marble':        { base: 'box',         overlay: 'sparkle',   pos: 'tr', scale: 0.35, overlayColor: '#e0e0f0' },
     'mat-obsidian-tile': { base: 'square',      overlay: 'eclipse',   pos: 'center', scale: 0.5, overlayColor: '#b882ff' },
-    'mat-velvet':        { base: 'layers',      overlay: 'ribbon',    pos: 'tr', scale: 0.4, overlayColor: '#d070a0' },
+    'mat-velvet':        { base: 'layers',      overlay: 'scissors',  pos: 'br', scale: 0.35, overlayColor: '#d070a0' },
     'mat-silk':          { base: 'rectangle',   overlay: 'sparkles',  pos: 'tr', scale: 0.35, overlayColor: '#e0c090' },
+    'mat-rune':          { base: 'hexagon',     overlay: 'scroll',    pos: 'center', scale: 0.5, overlayColor: '#70b0ff' },
+    'mat-ward':          { base: 'diamond',     overlay: 'sparkle',   pos: 'tr', scale: 0.35, overlayColor: '#b882ff' },
     'chandelier':        { base: 'lamp',        overlay: 'gem',       pos: 'bl', scale: 0.35, overlayColor: '#e0e0f0' },
     'mirror-enchanted':  { base: 'scan-eye',    overlay: 'sparkle',   pos: 'tr', scale: 0.35, overlayColor: '#b882ff' },
     'chalk-circle':      { base: 'circle-dashed', overlay: 'sparkle', pos: 'center', scale: 0.4, overlayColor: '#e0e0f0' },
@@ -404,6 +468,7 @@ const POS_OFFSETS: Record<string, React.CSSProperties> = {
 const TYPE_ICON_COLORS: Record<string, string> = {
     equipment: '#c8aa6e',
     consumable: '#70b0ff',
+    ingredient: '#8bc88b',
     material: '#a0c0a0',
     key: '#f0d060',
     currency: '#f0d060',
@@ -421,7 +486,13 @@ export function getItemIconColor(iconKey: string, itemType?: string): string {
 }
 
 export const GameIcon: FC<GameIconProps> = ({ icon, size = 14, className = '', color, overlayPos }) => {
-    // Check for composite icon first
+    // Dedicated custom icon takes priority over composite fallback
+    const DirectIcon = ICON_MAP[icon];
+    if (DirectIcon) {
+        return <DirectIcon size={size} className={`game-icon ${className}`} color={color} />;
+    }
+
+    // Composite icon (base + overlay) fallback
     const composite = COMPOSITE_ICONS[icon];
     if (composite) {
         const BaseIcon = ICON_MAP[composite.base];
@@ -458,11 +529,6 @@ export const GameIcon: FC<GameIconProps> = ({ icon, size = 14, className = '', c
         }
     }
 
-    // Simple icon lookup
-    const IconComponent = ICON_MAP[icon];
-    if (IconComponent) {
-        return <IconComponent size={size} className={`game-icon ${className}`} color={color} />;
-    }
     // Fallback: render the raw string (shouldn't happen if all icons are mapped)
     return <span className={`game-icon-fallback ${className}`} style={{ fontSize: size, color }}>{icon}</span>;
 };

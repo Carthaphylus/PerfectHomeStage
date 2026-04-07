@@ -674,6 +674,11 @@ export const PERVIS_QUEST: QuestDefinition = {
     icon: 'flag',
     heroName: 'Pervis',
     captureQuest: true,
+    prerequisites: [
+        { type: 'quest_complete', eventId: 'quest_sable' },
+        { type: 'quest_complete', eventId: 'quest_kova' },
+        { type: 'quest_complete', eventId: 'quest_veridian' },
+    ],
     steps: [
         {
             id: 'intel',

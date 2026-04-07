@@ -47,7 +47,7 @@ export interface TaskRequirement {
 
 /** A single reward entry from a completed task */
 export interface TaskReward {
-    type: 'gold' | 'item' | 'stat' | 'household' | 'mana';
+    type: 'gold' | 'item' | 'stat' | 'household' | 'mana' | 'soul_fragments';
     amount?: number;
     itemName?: string;
     stat?: string; // stat key for 'stat' or 'household' reward types
@@ -72,6 +72,20 @@ export interface TaskDefinition {
     manaCost?: number;
     staminaCost?: number; // stamina cost deducted from the servant
     primaryStat?: StatName; // main stat used for quality calculation
+}
+
+// ── Room Building Costs ──
+
+/** A single material requirement for building/upgrading a room */
+export interface MaterialCost {
+    itemName: string;
+    quantity: number;
+}
+
+/** Full cost to build or upgrade a room at a specific level */
+export interface RoomBuildCost {
+    gold: number;
+    materials: MaterialCost[];
 }
 
 /** Runtime state of an active task on a servant */
@@ -111,8 +125,21 @@ export interface Servant {
     servantTitleColor?: string;  // hex color for the title badge
     activeTask?: ActiveTask;
     assignedRole?: string; // role id from ROLE_REGISTRY
+    relationships?: ServantRelationship[];
     personalHistory?: string;
     backstory?: string;
+}
+
+// ── Servant Relationships ──
+
+export type RelationshipType = 'neutral' | 'friendly' | 'close' | 'rivalry' | 'tense';
+
+/** A relationship between two servants */
+export interface ServantRelationship {
+    targetName: string;
+    type: RelationshipType;
+    affinity: number; // -100 to 100 (negative = rivalry, positive = friendship)
+    history: string[]; // brief log of relationship-changing events (max 5)
 }
 
 // ── Player Character ──
@@ -161,11 +188,13 @@ export interface WitchStats {
     skills: SkillStats;
     household: HouseholdStats;
     gold: number;
+    soulFragments: number;
     mana: number;
     maxMana: number;
     servants: number;
     maxServants: number;
     day: number;
+    reputation: number; // 0-100, 0=beloved, 100=hunted
 }
 
 // ── Scene ──
@@ -191,6 +220,7 @@ export interface EventEffect {
         | 'modify_love'
         | 'modify_obedience'
         | 'modify_gold'
+        | 'modify_soul_fragments'
         | 'add_item'
         | 'remove_item'
         | 'set_hero_status'
@@ -219,6 +249,7 @@ export type ChatChangeCategory =
     | 'obedience'
     | 'stamina'
     | 'gold'
+    | 'soul_fragments'
     | 'mana'
     | 'comfort'
     | 'household_obedience'
@@ -335,7 +366,7 @@ export interface EventDefinition {
 /** Generic condition for unlocking any event */
 export interface EventPrerequisite {
     type: 'event_completed' | 'hero_captured' | 'hero_status' | 'item'
-        | 'stat' | 'gold' | 'quest_complete' | 'custom';
+        | 'stat' | 'gold' | 'soul_fragments' | 'quest_complete' | 'custom';
     eventId?: string;
     heroName?: string;
     heroStatus?: HeroStatus;
@@ -496,6 +527,7 @@ export type MessageStateType = {
     completedEvents: string[];
     activeQuests: ActiveQuest[];
     completedQuests: string[];
+    discoveredRecipes: string[];
     nsfwMode?: boolean;
 };
 
@@ -587,12 +619,15 @@ export interface SaveFileSlot {
     activeQuests: ActiveQuest[];
     completedQuests: string[];
 
+    /** Discovered crafting recipes */
+    discoveredRecipes?: string[];
+
     /** Misc flags */
     nsfwMode?: boolean;
 }
 
 /** Current save format version — bump when schema changes */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 4;
 
 export const MAX_SAVE_SLOTS = 5;
 
@@ -604,7 +639,7 @@ export interface TurnChange {
     label: string;
     detail: string;
     delta?: number;       // numeric change (+/-)
-    category: 'finance' | 'item' | 'servant' | 'task' | 'stat' | 'household' | 'mana' | 'stamina';
+    category: 'finance' | 'item' | 'servant' | 'task' | 'stat' | 'household' | 'mana' | 'stamina' | 'soul_fragments';
     color?: string;
 }
 
@@ -617,6 +652,15 @@ export interface TurnTaskResult {
 }
 
 /** Full summary of what happened when the day ended */
+/** A random daily event that fired during end-of-day */
+export interface DailyEventResult {
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    effects: TurnChange[];
+}
+
 export interface TurnSummary {
     dayEnded: number;
     dayStarting: number;
@@ -632,4 +676,5 @@ export interface TurnSummary {
     changes: TurnChange[];
     servantStaminaChanges: { name: string; before: number; after: number }[];
     taskProgressions: { servantName: string; taskName: string; turnsRemaining: number; totalDuration: number }[];
+    dailyEvents: DailyEventResult[];
 }

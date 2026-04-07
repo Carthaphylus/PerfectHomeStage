@@ -14,5 +14,6 @@ export enum ScreenType {
     CONVERSION = 'conversion',
     EXPLORE = 'explore',
     QUESTS = 'quests',
+    BREWING = 'brewing',
     TURN_SUMMARY = 'turn_summary',
 }

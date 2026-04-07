@@ -8,7 +8,6 @@ import {
     getAllItemDefinitions,
     getRarityColor,
     getItemRecipe,
-    canCraftItem,
     getItemDefinition,
 } from '../data/items';
 
@@ -20,20 +19,22 @@ interface ItemLibraryProps {
 const ITEM_TYPE_LABELS: Record<ItemType, string> = {
     equipment: 'Equipment',
     consumable: 'Consumable',
+    ingredient: 'Ingredient',
     material: 'Material',
     key: 'Key Item',
     currency: 'Currency',
 };
 
 const ITEM_TYPE_ICONS: Record<ItemType, string> = {
-    equipment: 'gem',
-    consumable: 'flask',
-    material: 'diamond',
+    equipment: 'swords',
+    consumable: 'flask-conical',
+    ingredient: 'leaf',
+    material: 'hammer',
     key: 'key',
     currency: 'coins',
 };
 
-const TYPE_ORDER: ItemType[] = ['equipment', 'consumable', 'material', 'key', 'currency'];
+const TYPE_ORDER: ItemType[] = ['equipment', 'consumable', 'ingredient', 'material', 'key'];
 
 export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
     const [selectedItemName, setSelectedItemName] = useState<string | null>(null);
@@ -75,7 +76,6 @@ export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
         : null;
 
     const recipe = selectedItem ? getItemRecipe(selectedItem.name) : null;
-    const canCraft = selectedItem ? canCraftItem(selectedItem.name, inventory) : false;
     const ownedQty = inventory[selectedItemName || '']?.quantity ?? 0;
 
     return (
@@ -189,27 +189,8 @@ export const ItemLibrary: FC<ItemLibraryProps> = ({ stage, onClose }) => {
                             {selectedItem.craftable && recipe && (
                                 <div className="ilib-recipe">
                                     <div className="ilib-recipe-header">
-                                        <GameIcon icon="flask" size={10} />
-                                        <span>Crafting Recipe</span>
-                                        <span className={`ilib-recipe-badge ${canCraft ? 'can-craft' : 'no-craft'}`}>
-                                            {canCraft ? '✓ Craftable' : '✗ Missing'}
-                                        </span>
-                                    </div>
-                                    <div className="ilib-recipe-list">
-                                        {recipe.ingredients.map((ing, idx) => {
-                                            const have = inventory[ing.itemName]?.quantity ?? 0;
-                                            const ok = have >= ing.quantity;
-                                            const ingDef = getItemDefinition(ing.itemName);
-                                            return (
-                                                <div key={idx} className={`ilib-recipe-row ${ok ? 'satisfied' : 'unsatisfied'}`}>
-                                                    <GameIcon icon={ingDef.icon} size={12} color={getItemIconColor(ingDef.icon, ingDef.type)} overlayPos="br" />
-                                                    <span className="ilib-recipe-name">{ing.itemName}</span>
-                                                    <span className={`ilib-recipe-qty ${ok ? 'qty-ok' : 'qty-no'}`}>
-                                                        {have}/{ing.quantity}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
+                                        <GameIcon icon="flask-conical" size={10} />
+                                        <span>Brewable at the Cauldron</span>
                                     </div>
                                 </div>
                             )}
