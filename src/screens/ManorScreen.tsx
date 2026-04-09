@@ -21,8 +21,18 @@ import CorridorImg from '../assets/Images/Rooms/corridor.jpg';
 import DungeonImg from '../assets/Images/Rooms/dungeon.jpg';
 import CellImg from '../assets/Images/Rooms/cell.jpg';
 import EmptyRoomImg from '../assets/Images/Rooms/Empty.jpeg';
-// TODO: import KitchenImg from '../assets/Images/Rooms/kitchen.jpg'; (when provided)
-// TODO: import LoungeImg from '../assets/Images/Rooms/lounge.jpg'; (when provided)
+import KitchenImg from '../assets/Images/Rooms/Kitchen.jpg';
+import BalconyImg from '../assets/Images/Rooms/balcony.jpg';
+import BrewingRoomImg from '../assets/Images/Rooms/brewingRoom.jpg';
+import CorridorVertImg from '../assets/Images/Rooms/corridorVertical.jpg';
+import CryptImg from '../assets/Images/Rooms/crypt.jpeg';
+import LaboratoryImg from '../assets/Images/Rooms/laboratory.jpg';
+import LibraryImg from '../assets/Images/Rooms/library.jpg';
+import RitualRoomImg from '../assets/Images/Rooms/Ritualroom.jpg';
+import StairwayImg from '../assets/Images/Rooms/stairway.jpg';
+import TerraceImg from '../assets/Images/Rooms/terrace.jpg';
+import TrophyRoomImg from '../assets/Images/Rooms/throphyroom.jpg';
+import WineCellarImg from '../assets/Images/Rooms/winecellar.jpg';
 
 // Floor blueprint images
 import Floor1Img from '../assets/Images/ManorFloors/1stFloor.jpg';
@@ -190,7 +200,7 @@ class RitualRoomClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Ritual Room';
         this.type = 'ritual';
-        this.image = RitualImg;
+        this.image = RitualRoomImg;
         this.description = 'A dark chamber for summoning demons and performing unholy rituals.';
         this.buildable = true;
         this.buildZone = 'basement';
@@ -292,7 +302,7 @@ class KitchenClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Kitchen';
         this.type = 'kitchen';
-        this.image = OvenImg;
+        this.image = KitchenImg;
         this.description = 'Where meals are prepared for the manor. Good food keeps everyone happy.';
         this.buildable = false;
         this.location = 'indoors';
@@ -354,7 +364,7 @@ class BrewingRoomClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Brewing Room';
         this.type = 'brewing';
-        this.image = BrewingImg;
+        this.image = BrewingRoomImg;
         this.description = 'A workshop for crafting potions, elixirs, and other concoctions.';
         this.buildable = true;
         this.buildZone = 'basement';
@@ -500,7 +510,7 @@ class HallwayNookClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Hallway Nook';
         this.type = 'hallway_nook';
-        this.image = CorridorImg;
+        this.image = CorridorVertImg;
         this.description = 'A cozy alcove tucked into the corridor, with a cushioned bench and a candle.';
         this.buildable = false;
         this.location = 'indoors';
@@ -512,7 +522,7 @@ class LibraryClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Library';
         this.type = 'library';
-        this.image = ClassroomImg;
+        this.image = LibraryImg;
         this.description = 'Towering shelves of forbidden tomes, arcane scrolls, and manuscripts of forgotten lore. Knowledge is power — and danger.';
         this.buildable = false;
         this.location = 'indoors';
@@ -551,7 +561,7 @@ class BalconyClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Balcony';
         this.type = 'balcony';
-        this.image = EmptyRoomImg;
+        this.image = BalconyImg;
         this.description = 'An open-air terrace overlooking the manor grounds, perfect for moonlit contemplation.';
         this.buildable = false;
         this.location = 'outdoors';
@@ -587,7 +597,7 @@ class TrophyRoomClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Trophy Room';
         this.type = 'trophy_room';
-        this.image = DungeonImg;
+        this.image = TrophyRoomImg;
         this.description = 'A dim chamber displaying conquered relics, enchanted artifacts, and mementos of dominance.';
         this.buildable = false;
         this.location = 'indoors';
@@ -599,7 +609,7 @@ class StairwayClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Stairway';
         this.type = 'stairway';
-        this.image = CorridorImg;
+        this.image = StairwayImg;
         this.description = 'A winding staircase connecting the manor floors, its stone steps worn smooth by countless footsteps.';
         this.buildable = false;
         this.location = 'indoors';
@@ -623,7 +633,7 @@ class TerraceClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Terrace';
         this.type = 'terrace';
-        this.image = EmptyRoomImg;
+        this.image = TerraceImg;
         this.description = 'A sun-dappled stone terrace draped in climbing ivy, overlooking the manor grounds.';
         this.buildable = false;
         this.location = 'outdoors';
@@ -669,7 +679,7 @@ class LaboratoryClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Laboratory';
         this.type = 'laboratory';
-        this.image = BrewingImg;
+        this.image = LaboratoryImg;
         this.description = 'A dim, bubbling laboratory crammed with arcane instruments, specimen jars, and crackling tesla coils.';
         this.buildable = true;
         this.buildZone = 'basement';
@@ -700,7 +710,7 @@ class CryptClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Crypt';
         this.type = 'crypt';
-        this.image = DungeonImg;
+        this.image = CryptImg;
         this.description = 'A cold, echoing tomb beneath the manor. The dead do not rest easy here — by design.';
         this.buildable = true;
         this.buildZone = 'basement';
@@ -731,7 +741,7 @@ class WineCellarClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Wine Cellar';
         this.type = 'wine_cellar';
-        this.image = StorageImg;
+        this.image = WineCellarImg;
         this.description = 'Rows of dusty barrels and fine vintages. A source of trade income and liquid morale.';
         this.buildable = true;
         this.buildZone = 'basement';
@@ -883,7 +893,7 @@ class EnchantingWorkshopClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Enchanting Workshop';
         this.type = 'enchanting_workshop';
-        this.image = BrewingImg;
+        this.image = BrewingRoomImg;
         this.description = 'A cluttered workshop humming with arcane energy. Rune-etched workbenches and floating crystals fill the air with a violet glow.';
         this.buildable = true;
         this.buildZone = 'mansion';
@@ -973,7 +983,7 @@ class ChapelClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Dark Chapel';
         this.type = 'chapel';
-        this.image = RitualImg;
+        this.image = RitualRoomImg;
         this.description = 'A candlelit chapel of inverted icons and whispered litanies. Devotion is reshaped here — faith bent to serve the master.';
         this.buildable = true;
         this.buildZone = 'mansion';
