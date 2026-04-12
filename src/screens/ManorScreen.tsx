@@ -1512,10 +1512,9 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                 {/* Floor Navigation */}
                 <div className="floor-navigation">
                     <button
-                        className={`floor-button disabled`}
+                        className="floor-button disabled"
                         onClick={() => {}}
                         title="Outside area coming soon"
-                        style={{ opacity: 0.45, cursor: 'not-allowed' }}
                     >
                         Outside
                     </button>
