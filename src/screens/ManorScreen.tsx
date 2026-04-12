@@ -110,6 +110,7 @@ abstract class BaseRoom {
     buildable: boolean;  // Can this room type be built by the player?
     buildZone?: BuildZone; // Where can this room be built? (only relevant if buildable)
     location: 'indoors' | 'outdoors'; // Where can this room be placed?
+    bgPosition?: string; // CSS background-position override (default: 'center')
 
     constructor(
         level: number = 1,
@@ -359,6 +360,18 @@ class CorridorClass extends BaseRoom {
     }
 }
 
+class CorridorVerticalClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Corridor';
+        this.type = 'corridor_vertical';
+        this.image = CorridorVertImg;
+        this.description = 'A long hallway connecting the rooms';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
 class BrewingRoomClass extends BaseRoom {
     constructor(level: number = 1, occupant?: string) {
         super(level, occupant);
@@ -510,7 +523,7 @@ class HallwayNookClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Hallway Nook';
         this.type = 'hallway_nook';
-        this.image = CorridorVertImg;
+        this.image = CorridorImg;
         this.description = 'A cozy alcove tucked into the corridor, with a cushioned bench and a candle.';
         this.buildable = false;
         this.location = 'indoors';
@@ -523,6 +536,7 @@ class LibraryClass extends BaseRoom {
         this.name = 'Library';
         this.type = 'library';
         this.image = LibraryImg;
+        this.bgPosition = 'bottom center';
         this.description = 'Towering shelves of forbidden tomes, arcane scrolls, and manuscripts of forgotten lore. Knowledge is power — and danger.';
         this.buildable = false;
         this.location = 'indoors';
@@ -609,6 +623,18 @@ class StairwayClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Stairway';
         this.type = 'stairway';
+        this.image = CorridorVertImg;
+        this.description = 'A winding staircase connecting the manor floors, its stone steps worn smooth by countless footsteps.';
+        this.buildable = false;
+        this.location = 'indoors';
+    }
+}
+
+class StairwayMainClass extends BaseRoom {
+    constructor(level: number = 1, occupant?: string) {
+        super(level, occupant);
+        this.name = 'Stairway';
+        this.type = 'stairway_main';
         this.image = StairwayImg;
         this.description = 'A winding staircase connecting the manor floors, its stone steps worn smooth by countless footsteps.';
         this.buildable = false;
@@ -621,7 +647,7 @@ class MainHallClass extends BaseRoom {
         super(level, occupant);
         this.name = 'Main Hall';
         this.type = 'main_hall';
-        this.image = EmptyRoomImg;
+        this.image = BalconyImg;
         this.description = 'The grand central hall of the manor, with vaulted ceilings, a roaring hearth, and banners adorning the walls.';
         this.buildable = false;
         this.location = 'indoors';
@@ -1141,6 +1167,8 @@ function createRoom(
             return new LoungeClass(level, occupant);
         case 'corridor':
             return new CorridorClass(level, occupant);
+        case 'corridor_vertical':
+            return new CorridorVerticalClass(level, occupant);
         case 'brewing':
             return new BrewingRoomClass(level, occupant);
         case 'stable':
@@ -1169,6 +1197,8 @@ function createRoom(
             return new TrophyRoomClass(level, occupant);
         case 'stairway':
             return new StairwayClass(level, occupant);
+        case 'stairway_main':
+            return new StairwayMainClass(level, occupant);
         case 'main_hall':
             return new MainHallClass(level, occupant);
         case 'terrace':
@@ -1280,10 +1310,10 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
         { slotId: '1st_slot_7', floor: '1st', x: 12, y: 0, width: 30, height: 19, roomType: null },
         { slotId: '1st_slot_8', floor: '1st', x: 12, y: 21, width: 30, height: 19, roomType: null },
         { slotId: '1st_slot_9', floor: '1st', x: 76, y: 0, width: 23, height: 40, roomType: 'library', level: 1 },
-        { slotId: '1st_slot_10', floor: '1st', x: 74, y: 81, width: 25, height: 18, roomType: 'stairway', level: 1 },
+        { slotId: '1st_slot_10', floor: '1st', x: 74, y: 81, width: 25, height: 18, roomType: 'stairway_main', level: 1 },
         { slotId: '1st_slot_12', floor: '1st', x: 33, y: 63, width: 39, height: 36, roomType: 'main_hall', level: 1 },
         { slotId: '1st_slot_13', floor: '1st', x: 0, y: 63, width: 19, height: 36, roomType: 'terrace', level: 1 },
-        { slotId: '1st_slot_14', floor: '1st', x: 21, y: 63, width: 10, height: 36, roomType: 'corridor', level: 1 },
+        { slotId: '1st_slot_14', floor: '1st', x: 21, y: 63, width: 10, height: 36, roomType: 'corridor_vertical', level: 1 },
         { slotId: '1st_slot_15', floor: '1st', x: 0, y: 42, width: 19, height: 19, roomType: 'hallway_nook', level: 1 },
         
         // 2nd Floor slots
@@ -1481,9 +1511,11 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                 
                 {/* Floor Navigation */}
                 <div className="floor-navigation">
-                    <button 
-                        className={`floor-button ${currentFloor === 'outside' ? 'active' : ''}`}
-                        onClick={() => setCurrentFloor('outside')}
+                    <button
+                        className={`floor-button disabled`}
+                        onClick={() => {}}
+                        title="Outside area coming soon"
+                        style={{ opacity: 0.45, cursor: 'not-allowed' }}
                     >
                         Outside
                     </button>
@@ -1601,7 +1633,7 @@ export const ManorScreen: FC<ManorScreenProps> = ({ stage, setScreenType }) => {
                                 <>
                                     <div
                                         className="room-image"
-                                        style={{ backgroundImage: `url(${slotWithRoom.room.image})` }}
+                                        style={{ backgroundImage: `url(${slotWithRoom.room.image})`, ...(slotWithRoom.room.bgPosition ? { backgroundPosition: slotWithRoom.room.bgPosition } : {}) }}
                                     >
                                         <div className="room-overlay">
                                             <div className="room-name">{slotWithRoom.room.name}</div>

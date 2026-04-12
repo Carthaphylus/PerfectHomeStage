@@ -50,6 +50,8 @@ import {
     BarChart2,
     // Quest icons
     Flag,
+    // Reputation icons
+    ThumbsUp, ShieldCheck,
 } from 'lucide-react';
 import {
     LogIcon, RockIcon, IngotIcon, FabricIcon,
@@ -287,6 +289,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     'arrow-up': ArrowUp,
     'arrow-down': ArrowDown,
     play: Play,
+    'thumbs-up': ThumbsUp,
+    'shield-check': ShieldCheck,
 
     // ── Event Display ──
     chart: BarChart2,
