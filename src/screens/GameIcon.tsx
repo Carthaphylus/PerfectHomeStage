@@ -52,6 +52,8 @@ import {
     Flag,
     // Reputation icons
     ThumbsUp, ShieldCheck,
+    // Daily event icons
+    Angry, ShieldOff, Volume2,
 } from 'lucide-react';
 import {
     LogIcon, RockIcon, IngotIcon, FabricIcon,
@@ -291,6 +293,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; cla
     play: Play,
     'thumbs-up': ThumbsUp,
     'shield-check': ShieldCheck,
+    angry: Angry,
+    'shield-off': ShieldOff,
+    'volume-2': Volume2,
 
     // ── Event Display ──
     chart: BarChart2,

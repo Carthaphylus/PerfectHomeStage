@@ -2,7 +2,10 @@
 // so that the chat page can be seen through the stage
 * {
   background-color: transparent !important;
-  overflow: hidden !important;
+}
+
+*:not(.ts-scroll) {
+  overflow: hidden;
 }
 
 button, input, select, textarea {

@@ -73,6 +73,8 @@ export const TurnSummaryScreen: FC<TurnSummaryScreenProps> = ({ stage, summary, 
                 <div className="ts-frame-edge ts-edge-top" />
                 <div className="ts-frame-edge ts-edge-bottom" />
 
+                <div className="ts-scroll">
+
                 {/* ═══ Header ═══ */}
                 <div className={`ts-header ${phase >= 0 ? 'ts-visible' : ''}`}>
                     <div className="ts-header-icon">
@@ -272,6 +274,8 @@ export const TurnSummaryScreen: FC<TurnSummaryScreenProps> = ({ stage, summary, 
                         <span>Begin Day {summary.dayStarting}</span>
                     </button>
                 </div>
+
+                </div>{/* end ts-scroll */}
             </div>
         </div>
     );
@@ -320,7 +324,9 @@ const TaskCard: FC<{ task: TurnTaskResult; servants: Record<string, any> }> = ({
                             {r.type === 'gold' && <GameIcon icon="coins" size={10} color="#e8c84a" />}
                             {r.type === 'mana' && <GameIcon icon="sparkles" size={10} color="#78a8d0" />}
                             {r.type === 'item' && <GameIcon icon="package" size={10} color="#a888c8" />}
-                            {r.type === 'household' && <GameIcon icon="home" size={10} color="#7ab87a" />}
+                            {r.type === 'household' && r.stat === 'obedience'
+                                ? <GameIcon icon="crown" size={10} color="#a06aee" />
+                                : r.type === 'household' && <GameIcon icon="heart" size={10} color="#7ab87a" />}
                             {r.type === 'stat' && <GameIcon icon="trending-up" size={10} color="#c8aa6e" />}
                             <span className="ts-reward-text">
                                 {r.type === 'item' ? `${r.itemName} x${r.amount}` : `+${r.amount}`}
